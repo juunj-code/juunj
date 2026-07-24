@@ -17,26 +17,26 @@
 
 | # | 시스템명 | 카테고리 | 우선순위 | 상태 | 설계 문서 | 의존 시스템 |
 |---|----------|----------|----------|------|-----------|-------------|
-| 1 | 턴제 전투 | Gameplay | MVP | Not Started | — | #6, #7, #12, #13, #10, #11, #15 |
-| 2 | 랜덤 던전 | Gameplay | MVP | Not Started | — | #13, #19, #11 |
-| 3 | 동료 해금 | Progression | MVP | Not Started | — | #10, #13, #14, #9 |
-| 4 | 장비 | Economy | MVP | Not Started | — | #10, #13 |
+| 1 | 턴제 전투 | Gameplay | MVP | Designed | design/gdd/턴제-전투.md | #6, #7, #12, #13, #10, #11, #15 |
+| 2 | 랜덤 던전 | Gameplay | MVP | Designed | design/gdd/랜덤-던전.md | #13, #19, #11 |
+| 3 | 동료 해금 | Progression | MVP | Designed | design/gdd/동료-해금.md | #10, #13, #14, #9 |
+| 4 | 장비 | Economy | MVP | Designed | design/gdd/장비.md | #10, #13 |
 | 5 | 클라우드 세이브 (inferred) | Persistence | Full Vision | Not Started | — | #17 |
-| 6 | 전투 공식 | Core | MVP | Not Started | — | #10, #11 |
-| 7 | 적 AI | Gameplay | MVP | Not Started | — | #11, #6 |
+| 6 | 전투 공식 | Core | MVP | Designed | design/gdd/전투-공식.md | #10, #11 |
+| 7 | 적 AI | Gameplay | MVP | Designed | design/gdd/적-AI.md | #11, #6 |
 | 8 | 시너지 | Gameplay | Vertical Slice | Not Started | — | #10, #6 |
-| 9 | 히든 트리거 | Gameplay | MVP | Not Started | — | #13, #10 |
+| 9 | 히든 트리거 | Gameplay | MVP | Designed | design/gdd/히든-트리거.md | #13, #10 |
 | 10 | 동료 데이터 | Core | MVP | Designed | design/gdd/동료-데이터.md | (없음) |
 | 11 | 적 데이터 | Core | MVP | Designed | design/gdd/적-데이터.md | (없음) |
-| 12 | 상태이상 | Gameplay | MVP | Not Started | — | #6 |
-| 13 | 런 상태 관리 | Core | MVP | Not Started | — | #19 |
-| 14 | 영구 진행 | Progression | MVP | Not Started | — | #13, #17, #10 |
-| 15 | 파티 구성 | Gameplay | MVP | Not Started | — | #10, #13 |
-| 16 | 런 결과 | Progression | MVP | Not Started | — | #13, #14 |
+| 12 | 상태이상 | Gameplay | MVP | Designed | design/gdd/상태이상.md | #6 |
+| 13 | 런 상태 관리 | Core | MVP | Designed | design/gdd/런-상태-관리.md | #19 |
+| 14 | 영구 진행 | Progression | MVP | Designed | design/gdd/영구-진행.md | #13, #17, #10 |
+| 15 | 파티 구성 | Gameplay | MVP | Designed | design/gdd/파티-구성.md | #10, #13 |
+| 16 | 런 결과 | Progression | MVP | Designed | design/gdd/런-결과.md | #13, #14 |
 | 17 | 로컬 세이브 | Persistence | MVP | Designed | design/gdd/로컬-세이브.md | (없음) |
-| 18 | 광고 통합 (inferred) | Meta | MVP | Not Started | — | #19 |
-| 19 | 씬 관리 | Core | MVP | Not Started | — | (없음) |
-| 20 | UI/HUD | UI | MVP | Not Started | — | #1, #13, #14, #15 |
+| 18 | 광고 통합 (inferred) | Meta | MVP | Designed | design/gdd/광고-통합.md | #19 |
+| 19 | 씬 관리 | Core | MVP | Designed | design/gdd/씬-관리.md | (없음) |
+| 20 | UI/HUD | UI | MVP | Designed | design/gdd/UI-HUD.md | #1, #13, #14, #15 |
 | 21 | 오디오 | Audio | Vertical Slice | Not Started | — | #19 |
 | 22 | 동료 내러티브 (inferred) | Narrative | Alpha | Not Started | — | #10, #3 |
 | 23 | 설정 (inferred) | Meta | Alpha | Not Started | — | #17, #19 |
@@ -166,10 +166,10 @@
 | 지표 | 수치 |
 |------|------|
 | 총 식별 시스템 수 | 23 |
-| 설계 문서 시작됨 | 3 |
+| 설계 문서 시작됨 | 18 |
 | 설계 문서 검토 완료 | 0 |
 | 설계 문서 승인됨 | 0 |
-| MVP 시스템 설계 완료 | 3 / 18 |
+| MVP 시스템 설계 완료 | 18 / 18 |
 | Vertical Slice 시스템 설계 완료 | 0 / 2 |
 
 ---
