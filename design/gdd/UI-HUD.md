@@ -2,7 +2,7 @@
 
 > **Status**: In Design
 > **Author**: 사용자 + Claude Code
-> **Last Updated**: 2026-07-24
+> **Last Updated**: 2026-07-26
 > **Implements Pillar**: (전체 필라 지원 — 정보 표시·입력 인터페이스)
 > **Creative Director Review**: Skipped — Lean 모드
 
@@ -22,12 +22,16 @@ UI/HUD 시스템은 게임 내 모든 정보 표시와 플레이어 입력 UI를
 
 | UI 요소 | 내용 | 데이터 소스 |
 |---------|------|-------------|
-| 현재 층/방 표시 | "2층 · 2번 방" | RunManager.current_floor, room_index |
-| 이동 버튼 | "다음 방으로" — 방 클리어 후 활성 | RunManager.state |
+| 현재 층/방 표시 | "2층 · 2번 방" | RunManager.current_floor, current_room_index (2026-07-26 리비전 — 존재하지 않던 `room_index` 대신 실제 필드명으로 정정, 아래 참조) |
+| 이동 버튼 | "다음 방으로" — 방 클리어 후 활성. 탭 시 `RunManager.advance_room()` 호출(층의 마지막 방이면 `#2 랜덤 던전` 판단에 따라 `advance_floor()`/`end_run()`으로 대체, 2026-07-26 추가) | RunManager.state |
 | 파티 HP 요약 | 동료별 HP 바 (소형) | RunManager.party |
-| 히든방 발견 팝업 | 동료 초상화 + 이름 + "동료가 되었다!" + 확인 버튼 | #3 동료 해금 신호 |
+| 히든방 발견 팝업 | 동료 초상화 + 이름 + 설명 + "동료가 되었다!" + 확인 버튼 (2026-07-26 리비전 — 설명 텍스트 추가, 아래 참조) | #3 동료 해금 신호 |
 | 이미 해금 팝업 | "이미 동료가 되어 있어요" 텍스트 + 확인 버튼 | #9 히든 트리거 신호 |
 | 아이템 드롭 팝업 | 아이템 이름 + 스탯 + 확인 버튼 | #4 장비 신호 |
+
+**2026-07-26 리비전 — 버그 수정 2건:**
+1. **존재하지 않는 필드 참조**: 구 버전은 `RunManager.room_index`를 데이터 소스로 지정했으나, 이 필드는 `#13 런 상태 관리` 어디에도 정의된 적이 없었다(Overview에서 "방 위치"를 소유 데이터라 명시했지만 실제 필드가 없었던 `#13` 자체의 갭). `#13` 리뷰에서 `current_room_index` 필드와 `advance_room()`을 새로 추가해 해결 — 이 문서는 그 실제 필드명을 참조하도록 정정.
+2. **동료 발견 팝업의 신호 시그니처가 낡음**: 아래 "신호 구독 목록"의 `companion_unlocked_this_run` 참조.
 
 #### S-05 BattleScreen (전투 화면)
 
@@ -60,7 +64,7 @@ UI/HUD 시스템은 게임 내 모든 정보 표시와 플레이어 입력 UI를
 | #1 턴제 전투 | `player_input_requested(companion_id)` | 액션 버튼 + 타겟 하이라이트 표시 |
 | #1 턴제 전투 | `turn_started(unit_id)` | "○○의 턴" 텍스트 갱신 |
 | #1 턴제 전투 | `status_effects_changed(unit_id, effects)` | 상태이상 아이콘 갱신 |
-| #3 동료 해금 | `companion_unlocked_this_run(id, name, portrait_path)` | 히든방 발견 팝업 표시 |
+| #3 동료 해금 | `companion_unlocked_this_run(id, name, description, portrait_path, color_accent)` (2026-07-26 리비전 — `#3`의 실제 시그니처로 정정. 구 버전은 `description`/`color_accent` 2개 인자가 추가되기 전의 낡은 3-인자 시그니처를 참조하고 있었음) | 히든방 발견 팝업 표시 (초상화·이름·설명 텍스트) |
 | #9 히든 트리거 | `hidden_room_already_cleared(id)` | "이미 동료" 팝업 표시 |
 | #4 장비 | `equipment_dropped(item_data)` | 아이템 드롭 팝업 표시 |
 
@@ -103,6 +107,10 @@ empty_dots = SP_MAX - current_sp  # SP_MAX = 5
 | #13 런 상태 관리 | **Hard** | 현재 층/방, 파티 HP 요약 |
 | #14 영구 진행 | **Hard** | 런 결과 화면 해금 진행도 |
 | #15 파티 구성 | **Hard** | 파티 선택 UI 렌더링 |
+| #16 런 결과 | **Hard** (2026-07-26 추가 — 누락된 의존성 보완) | RunResultScreen 데이터 렌더링 (S-06, 위 씬별 UI 구성 참조) |
+| #3 동료 해금 | **Hard** (2026-07-26 추가 — 누락된 의존성 보완, 아래 신호 구독 목록에는 이미 있었으나 이 표에서 누락) | `companion_unlocked_this_run` 신호 구독 |
+| #9 히든 트리거 | **Soft** (2026-07-26 추가 — 동일) | `hidden_room_already_cleared` 신호 구독 |
+| #4 장비 | **Soft** (2026-07-26 추가 — 동일) | `equipment_dropped` 신호 구독 |
 
 ### Downstream Dependents
 
@@ -138,11 +146,11 @@ empty_dots = SP_MAX - current_sp  # SP_MAX = 5
 
 3. (타겟 하이라이트) GIVEN `player_input_requested` 수신 후 액션 선택 완료 WHEN 적 유닛 확인 THEN 살아있는 적에 선택 하이라이트 표시.
 
-4. (동료 발견 팝업) GIVEN `companion_unlocked_this_run` 신호 수신 WHEN 처리 THEN 동료 초상화·이름·"동료가 되었다!" 팝업 표시, 던전 이동 비활성.
+4. (동료 발견 팝업, 2026-07-26 리비전 — 실제 5-인자 시그니처 반영) GIVEN `companion_unlocked_this_run(id, name, description, portrait_path, color_accent)` 신호 수신 WHEN 처리 THEN 동료 초상화·이름·설명·"동료가 되었다!" 팝업 표시, 던전 이동 비활성.
 
 5. (팝업 확인 후 해제) GIVEN 팝업 표시 중 WHEN "확인" 탭 THEN 팝업 닫힘 + 던전 이동 재활성.
 
-6. (현재 층/방 표시) GIVEN current_floor=2, room_index=1 WHEN 던전 탐색 화면 THEN "2층 · 2번 방" 표시.
+6. (현재 층/방 표시, 2026-07-26 리비전 — 실제 필드명 및 1-based 값 불일치 수정) GIVEN current_floor=2, current_room_index=2 WHEN 던전 탐색 화면 THEN "2층 · 2번 방" 표시. (구 버전은 `room_index=1`을 주고 "2번 방"을 기대해 1-based 필드 값과 표시 텍스트가 서로 어긋나 있었다 — `current_room_index`는 1-based이므로 값과 표시가 그대로 대응해야 한다.)
 
 7. (SP 점 표시) GIVEN current_sp=2, SP_MAX=5 WHEN 파티 HP/SP 바 표시 THEN "●●○○○" 표시.
 
