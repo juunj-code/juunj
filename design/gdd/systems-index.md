@@ -31,7 +31,7 @@
 | 12 | 상태이상 | Gameplay | MVP | Approved | design/gdd/상태이상.md | #6 |
 | 13 | 런 상태 관리 | Core | MVP | Approved | design/gdd/런-상태-관리.md | #19 |
 | 14 | 영구 진행 | Progression | MVP | Approved | design/gdd/영구-진행.md | #13, #17, #10 |
-| 15 | 파티 구성 | Gameplay | MVP | Designed | design/gdd/파티-구성.md | #10, #13 |
+| 15 | 파티 구성 | Gameplay | MVP | Approved | design/gdd/파티-구성.md | #10, #13 |
 | 16 | 런 결과 | Progression | MVP | Designed | design/gdd/런-결과.md | #13, #14 |
 | 17 | 로컬 세이브 | Persistence | MVP | Approved | design/gdd/로컬-세이브.md | (없음) |
 | 18 | 광고 통합 (inferred) | Meta | MVP | Designed | design/gdd/광고-통합.md | #19 |
@@ -167,8 +167,8 @@
 |------|------|
 | 총 식별 시스템 수 | 23 |
 | 설계 문서 시작됨 | 18 |
-| 설계 문서 검토 완료 | 14 |
-| 설계 문서 승인됨 | 14 |
+| 설계 문서 검토 완료 | 15 |
+| 설계 문서 승인됨 | 15 |
 | MVP 시스템 설계 완료 | 18 / 18 |
 | Vertical Slice 시스템 설계 완료 | 0 / 2 |
 
