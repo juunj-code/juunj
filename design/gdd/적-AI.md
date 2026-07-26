@@ -113,6 +113,7 @@ use_skill = (current_sp >= skill.cost_sp)   # bool, 단순 비교
 |--------|-----------|-----------------|
 | #11 적 데이터 | **Hard** | `base_atk`, `base_spd`, `skill_id`, `is_boss`, `SkillData.cost_sp` |
 | #6 전투 공식 | **Hard** | 턴 순서 정렬 (base_spd 기반), 데미지 계산 위임 |
+| #10 동료 데이터 | **Soft** — 타겟팅 규칙에 사용, 없어도 AI는 동작하되 타겟 우선순위가 단순화됨 | `base_atk`, `base_spd`, `class_type` (아군 타겟 후보의 스탯) |
 
 ### Downstream Dependents
 
