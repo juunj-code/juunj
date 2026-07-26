@@ -18,7 +18,7 @@
 | # | 시스템명 | 카테고리 | 우선순위 | 상태 | 설계 문서 | 의존 시스템 |
 |---|----------|----------|----------|------|-----------|-------------|
 | 1 | 턴제 전투 | Gameplay | MVP | Approved | design/gdd/턴제-전투.md | #6, #7, #12, #13, #10, #11, #15 |
-| 2 | 랜덤 던전 | Gameplay | MVP | Designed | design/gdd/랜덤-던전.md | #13, #19, #11 |
+| 2 | 랜덤 던전 | Gameplay | MVP | Approved | design/gdd/랜덤-던전.md | #13, #19, #11 |
 | 3 | 동료 해금 | Progression | MVP | Designed | design/gdd/동료-해금.md | #10, #13, #14, #9 |
 | 4 | 장비 | Economy | MVP | Designed | design/gdd/장비.md | #10, #13 |
 | 5 | 클라우드 세이브 (inferred) | Persistence | Full Vision | Not Started | — | #17 |
@@ -167,8 +167,8 @@
 |------|------|
 | 총 식별 시스템 수 | 23 |
 | 설계 문서 시작됨 | 18 |
-| 설계 문서 검토 완료 | 10 |
-| 설계 문서 승인됨 | 10 |
+| 설계 문서 검토 완료 | 11 |
+| 설계 문서 승인됨 | 11 |
 | MVP 시스템 설계 완료 | 18 / 18 |
 | Vertical Slice 시스템 설계 완료 | 0 / 2 |
 
