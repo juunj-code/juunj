@@ -2,7 +2,7 @@
 
 > **Status**: In Design
 > **Author**: 사용자 + Claude Code
-> **Last Updated**: 2026-07-24
+> **Last Updated**: 2026-07-26
 > **Implements Pillar**: 전략은 단순하게, 조합은 깊게
 > **Creative Director Review**: Skipped — Lean 모드
 
@@ -55,13 +55,20 @@ MVP 단순화: 적은 스킬을 쓸 수 있으면 항상 쓴다. 전략적 보�
 
 ### 타겟 분산 규칙 (Edge Case #11 GDD 계승)
 
-3마리 일반 적이 동일 타겟에 집중하면 한 턴에 최대 39 데미지(13×3) — 60HP 동료 즉사 위험. 이를 방지:
+3마리 일반 적이 모두 스킬을 사용해(Action Selection 규칙상 SP 충분 시 항상 스킬 우선) 동일 타겟에 집중하면 한 턴에 최대 **60 데미지**(`floor(18×1.4)−5=20` × 3마리 — `#11 적-데이터`의 즉사 방지 앵커 기준 적 스킬 배율 상한 1.4 적용) — 60HP 동료(HP 최저치)와 정확히 동일해 즉사 위험. (2026-07-26 리비전: 기존 "13×3=39"는 기본 공격만 가정한 계산으로, 이 문서 자신의 Action Selection 규칙과 모순됐다 — 스킬 사용이 가능하면 항상 스킬을 쓰므로 실제 최악의 경우는 60이다.) 이를 방지:
 
 ```
-같은 턴, 이미 동일 타겟을 공격한 적이 있으면:
-  → 차순위 타겟(다음으로 HP 낮은 동료)으로 강제 분산
-단, 생존 동료가 1명이면 분산 없이 집중 허용
+targeted_this_turn: Array[int]  # 이번 라운드에 이미 타겟된 동료 인덱스 집합 — #1 턴제 전투가 소유·초기화
+
+적이 타겟을 결정할 때:
+  후보 = 생존 동료 중 targeted_this_turn에 없는 동료
+  IF 후보가 비어있지 않으면:
+    → 후보 중 HP 최저(또는 보스 규칙이면 ATK 최고) 선택, targeted_this_turn에 추가
+  ELSE (모든 생존 동료가 이미 이번 라운드에 한 번씩 타겟됨):
+    → 생존 동료 전체 중 HP 최저 순으로 재선택(중복 타겟 허용) — 단, 생존 동료가 1명이면 애초에 후보 제외 로직이 무의미하므로 분산 없이 집중 허용
 ```
+
+이 규칙은 3마리 이상의 적에게도 명시적으로 적용된다 — "차순위 하나만" 정의하던 이전 버전은 3번째 적의 행동이 미정의였다(생존 동료 3명 모두 있을 때 3번째 적이 새 동료로 가는지, 이미 타겟된 동료로 되돌아가는지 불명확). 위 알고리즘은 생존 동료 수만큼 분산한 뒤에만 중복을 허용한다.
 
 # ponytail: 단순 분산 룰. 실제 최적 타겟팅(예상 데미지 기반)은 플레이테스트에서 필요 시 추가.
 
@@ -87,6 +94,8 @@ tie_break    = party_index   # 낮을수록 우선
 target_score_primary   = -base_atk     # 높을수록 우선 (ATK 내림차순)
 target_score_secondary = -current_hp   # 동 ATK 시 HP 낮은 쪽
 ```
+
+**구현 주의 (2026-07-26 리비전)**: Godot의 `Array.sort()`/`sort_custom()`은 안정 정렬이 아니다 (전투-공식.md의 턴 순서 정렬과 동일한 위험). 여기서는 최고/최저 1개 후보만 필요하므로 전체 정렬 대신 **선형 스캔(reduce)** — 후보를 순회하며 "현재 최적"을 (score, tie_break) 복합 비교로만 갱신 — 방식을 권장한다. 이러면 정렬 불안정성 문제 자체가 발생하지 않는다.
 
 **스킬 사용 임계값:**
 ```
@@ -119,7 +128,7 @@ use_skill = (current_sp >= skill.cost_sp)   # bool, 단순 비교
 
 | 시스템 | 의존 유형 | 기대하는 인터페이스 |
 |--------|-----------|---------------------|
-| #1 턴제 전투 | **Hard** — AI 결정 없이 적 턴 진행 불가 | `decide_action(enemy, alive_companions) → (action, target)` |
+| #1 턴제 전투 | **Hard** — AI 결정 없이 적 턴 진행 불가 | `decide_action(enemy, alive_companions: Array[CompanionData], targeted_this_turn: Array[int]) → (action, target)`. `targeted_this_turn`은 #1이 라운드마다 초기화·소유하며, 이 시스템은 타겟 결정 시마다 여기에 추가만 한다 (타겟 분산 규칙 참조) |
 
 ## Tuning Knobs
 
@@ -149,18 +158,22 @@ use_skill = (current_sp >= skill.cost_sp)   # bool, 단순 비교
 
 5. (액션 선택 – 기본 공격) GIVEN 적의 current_sp=2이고 skill.cost_sp=3인 상태에서 WHEN 액션을 결정하면 THEN 기본 공격을 선택한다.
 
-6. (분산 규칙) GIVEN 일반 적 A·B·C가 있고 동료 X(HP=20)·Y(HP=50)가 생존 중이며, 같은 턴 적 A가 이미 X를 타겟으로 결정한 상태에서 WHEN 적 B가 타겟을 결정하면 THEN Y(차순위)를 선택한다.
+6. (분산 규칙 – 2마리) GIVEN 일반 적 A·B가 있고 동료 X(HP=20)·Y(HP=50)가 생존 중이며, `targeted_this_turn=[]`인 상태에서 적 A가 X를 타겟으로 결정해 `targeted_this_turn=[X]`가 된 상태에서 WHEN 적 B가 타겟을 결정하면 THEN Y(차순위, `targeted_this_turn`에 없는 유일한 후보)를 선택하고 `targeted_this_turn=[X, Y]`가 된다.
+
+6b. (분산 규칙 – 3마리, 생존 3명, 2026-07-26 추가) GIVEN 일반 적 A·B·C가 있고 동료 X(HP=20)·Y(HP=50)·Z(HP=80)가 생존 중인 상태에서 WHEN A→X, B→Y 순으로 타겟을 결정한 뒤 C가 타겟을 결정하면 THEN C는 Z(아직 `targeted_this_turn`에 없는 유일한 생존 동료)를 선택한다 — 3번째 적이 X나 Y로 되돌아가지 않는다.
+
+6c. (분산 규칙 – 3마리, 생존 2명, 2026-07-26 추가) GIVEN 일반 적 A·B·C가 있고 동료 X(HP=20)·Y(HP=50)만 생존 중인 상태에서 WHEN A→X, B→Y 순으로 타겟을 결정한 뒤 C가 타겟을 결정하면 THEN C는 생존 동료 전체(X, Y) 중 HP 최저인 X를 다시 선택한다 (후보가 소진되어 중복 허용 단계로 전환).
 
 7. (분산 예외 – 생존 1명) GIVEN 생존 동료가 X 1명뿐인 상태에서 WHEN 적 A·B·C가 모두 타겟을 결정하면 THEN 세 적 모두 X를 선택한다 (분산 미적용).
 
 8. (결정론) GIVEN 동일한 전투 상태(동료 HP·ATK·슬롯, 적 SP 동일)에서 WHEN AI를 두 번 실행하면 THEN 두 결과가 완전히 동일하다 (무작위 없음).
 
-9. (처치된 동료 제외) GIVEN 동료 A(HP=0, 처치), B(HP=40)인 상태에서 WHEN 일반 적이 타겟을 결정하면 THEN B를 선택하고 A를 타겟으로 삼지 않는다.
+9. (입력 계약 방어 – 처치된 동료가 후보에 섞여 들어온 경우) GIVEN `#1 턴제 전투`가 규약을 어기고 `alive_companions`에 처치된 동료 A(HP=0)를 실수로 포함시킨 상태에서 WHEN 일반 적이 타겟을 결정하면 THEN B(생존)를 선택하고 A를 타겟으로 삼지 않는다. (정상 흐름에서는 `#1`이 애초에 생존 동료만 넘겨야 하며 — Edge Cases 참조 — 이 AC는 계약 위반에 대한 방어적 검증이지, 이 시스템이 처치 판정 자체를 소유한다는 뜻은 아니다.)
 
 ## Open Questions
 
 1. **보스 타겟 기준 재검토** — 최고 ATK 타겟이 파티 구성 자유도를 지나치게 제한하지 않는지 프로토타입에서 검증. "최저 HP" 혹은 "무작위" 대비 전략 깊이 비교 필요.
    - 담당: game-designer | 해결 시점: `/prototype roguelite-core` 플레이테스트 후
 
-2. **상태이상 적용 시 AI 타겟 재계산** — MVP는 base_atk/base_hp 고정값 사용. 버프된 동료를 AI가 인식해야 하는지 Vertical Slice에서 결정.
-   - 담당: game-designer + systems-designer | 해결 시점: `#12 상태이상` GDD 작성 시
+2. **상태이상 적용 시 AI 타겟 재계산** — MVP는 base_atk/base_hp 고정값 사용. 버프된 동료를 AI가 인식해야 하는지 Vertical Slice에서 결정. (2026-07-26 리비전: `#12 상태이상`은 이미 작성 완료 상태(In Design, 2026-07-24)이므로 "GDD 작성 시"라는 트리거는 이미 충족됨 — 이 질문은 실제로는 여전히 미해결이며, 다음 세션에서 `#12` 내용을 참조해 지금 결정해야 한다.)
+   - 담당: game-designer + systems-designer | 해결 시점: 즉시 (`#12 상태이상` 내용 검토 후) — 더 이상 "작성 시"로 미룰 수 없음
