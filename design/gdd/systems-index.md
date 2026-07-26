@@ -22,7 +22,7 @@
 | 3 | 동료 해금 | Progression | MVP | Designed | design/gdd/동료-해금.md | #10, #13, #14, #9 |
 | 4 | 장비 | Economy | MVP | Designed | design/gdd/장비.md | #10, #13 |
 | 5 | 클라우드 세이브 (inferred) | Persistence | Full Vision | Not Started | — | #17 |
-| 6 | 전투 공식 | Core | MVP | Designed | design/gdd/전투-공식.md | #10, #11 |
+| 6 | 전투 공식 | Core | MVP | Approved | design/gdd/전투-공식.md | #10, #11 |
 | 7 | 적 AI | Gameplay | MVP | Designed | design/gdd/적-AI.md | #11, #6 |
 | 8 | 시너지 | Gameplay | Vertical Slice | Not Started | — | #10, #6 |
 | 9 | 히든 트리거 | Gameplay | MVP | Designed | design/gdd/히든-트리거.md | #13, #10 |
@@ -167,8 +167,8 @@
 |------|------|
 | 총 식별 시스템 수 | 23 |
 | 설계 문서 시작됨 | 18 |
-| 설계 문서 검토 완료 | 4 |
-| 설계 문서 승인됨 | 4 |
+| 설계 문서 검토 완료 | 5 |
+| 설계 문서 승인됨 | 5 |
 | MVP 시스템 설계 완료 | 18 / 18 |
 | Vertical Slice 시스템 설계 완료 | 0 / 2 |
 
