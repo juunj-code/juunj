@@ -24,6 +24,7 @@
   7. **Tuning Knobs** -- configurable values identified
   8. **Acceptance Criteria** -- testable success conditions
 - Balance values must link to their source formula or rationale
+- **Worked damage examples must use the skill formula (`floor(atk*multiplier)-def`), not the basic-attack formula (`atk-def`), when justifying survivability/threat claims** — a recurring review finding (2026-07-26, found independently in 동료-데이터/적-데이터/전투-공식/적-AI/상태이상) was worked examples using basic-attack math to describe a threat that's actually delivered via a skill, understating real damage by 20-50%. When citing "X survives Y hits" or "buff reduces damage to Z," always check whether the attacker would actually use a skill (`#7 적 AI`'s "always use skill when SP allows" rule) before using the weaker basic-attack number.
 
 # Testing Standards
 
