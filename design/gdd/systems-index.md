@@ -25,7 +25,7 @@
 | 6 | 전투 공식 | Core | MVP | Approved | design/gdd/전투-공식.md | #10, #11 |
 | 7 | 적 AI | Gameplay | MVP | Approved | design/gdd/적-AI.md | #11, #6, #10 |
 | 8 | 시너지 | Gameplay | Vertical Slice | Not Started | — | #10, #6 |
-| 9 | 히든 트리거 | Gameplay | MVP | Designed | design/gdd/히든-트리거.md | #13, #10 |
+| 9 | 히든 트리거 | Gameplay | MVP | Approved | design/gdd/히든-트리거.md | #2, #10, #14 |
 | 10 | 동료 데이터 | Core | MVP | Approved | design/gdd/동료-데이터.md | (없음) |
 | 11 | 적 데이터 | Core | MVP | Approved | design/gdd/적-데이터.md | (없음) |
 | 12 | 상태이상 | Gameplay | MVP | Approved | design/gdd/상태이상.md | #6 |
@@ -167,8 +167,8 @@
 |------|------|
 | 총 식별 시스템 수 | 23 |
 | 설계 문서 시작됨 | 18 |
-| 설계 문서 검토 완료 | 13 |
-| 설계 문서 승인됨 | 13 |
+| 설계 문서 검토 완료 | 14 |
+| 설계 문서 승인됨 | 14 |
 | MVP 시스템 설계 완료 | 18 / 18 |
 | Vertical Slice 시스템 설계 완료 | 0 / 2 |
 
