@@ -20,7 +20,7 @@
 | 1 | 턴제 전투 | Gameplay | MVP | Approved | design/gdd/턴제-전투.md | #6, #7, #12, #13, #10, #11, #15 |
 | 2 | 랜덤 던전 | Gameplay | MVP | Approved | design/gdd/랜덤-던전.md | #13, #19, #11 |
 | 3 | 동료 해금 | Progression | MVP | Approved | design/gdd/동료-해금.md | #10, #13, #14, #9, #19 |
-| 4 | 장비 | Economy | MVP | Designed | design/gdd/장비.md | #10, #13 |
+| 4 | 장비 | Economy | MVP | Approved | design/gdd/장비.md | #10, #13, #2 |
 | 5 | 클라우드 세이브 (inferred) | Persistence | Full Vision | Not Started | — | #17 |
 | 6 | 전투 공식 | Core | MVP | Approved | design/gdd/전투-공식.md | #10, #11 |
 | 7 | 적 AI | Gameplay | MVP | Approved | design/gdd/적-AI.md | #11, #6, #10 |
@@ -167,8 +167,8 @@
 |------|------|
 | 총 식별 시스템 수 | 23 |
 | 설계 문서 시작됨 | 18 |
-| 설계 문서 검토 완료 | 12 |
-| 설계 문서 승인됨 | 12 |
+| 설계 문서 검토 완료 | 13 |
+| 설계 문서 승인됨 | 13 |
 | MVP 시스템 설계 완료 | 18 / 18 |
 | Vertical Slice 시스템 설계 완료 | 0 / 2 |
 
