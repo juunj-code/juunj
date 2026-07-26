@@ -35,7 +35,7 @@
 | 16 | 런 결과 | Progression | MVP | Designed | design/gdd/런-결과.md | #13, #14 |
 | 17 | 로컬 세이브 | Persistence | MVP | Approved | design/gdd/로컬-세이브.md | (없음) |
 | 18 | 광고 통합 (inferred) | Meta | MVP | Designed | design/gdd/광고-통합.md | #19 |
-| 19 | 씬 관리 | Core | MVP | Designed | design/gdd/씬-관리.md | (없음) |
+| 19 | 씬 관리 | Core | MVP | Approved | design/gdd/씬-관리.md | (없음) |
 | 20 | UI/HUD | UI | MVP | Designed | design/gdd/UI-HUD.md | #1, #13, #14, #15 |
 | 21 | 오디오 | Audio | Vertical Slice | Not Started | — | #19 |
 | 22 | 동료 내러티브 (inferred) | Narrative | Alpha | Not Started | — | #10, #3 |
@@ -167,8 +167,8 @@
 |------|------|
 | 총 식별 시스템 수 | 23 |
 | 설계 문서 시작됨 | 18 |
-| 설계 문서 검토 완료 | 3 |
-| 설계 문서 승인됨 | 3 |
+| 설계 문서 검토 완료 | 4 |
+| 설계 문서 승인됨 | 4 |
 | MVP 시스템 설계 완료 | 18 / 18 |
 | Vertical Slice 시스템 설계 완료 | 0 / 2 |
 
