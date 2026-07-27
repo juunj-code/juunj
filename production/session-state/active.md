@@ -25,7 +25,7 @@
 - [x] **엔진 버전 변경: 4.6 → 4.7** (2026-07-27) — 사용자가 실제 설치한 게 4.7이었음. 공식 4.6→4.7 마이그레이션 가이드 확인 결과, 이 프로젝트의 기존 ADR들이 의존하는 영역(JavaScriptBridge, 듀얼 포커스 UI, RNG, 정렬 안정성, floor/floori, duplicate())엔 문서화된 변경 없음 — ADR 재작업 불필요. 진짜 breaking change 3개는 `docs/engine-reference/godot/VERSION.md`에 기록(타입 리턴 상속, packed array setter, input device ID 상수). `CLAUDE.md`/`technical-preferences.md`의 Engine 필드도 4.7로 갱신.
 - [x] /test-setup 완료 (2026-07-28) — GUT 9.7.1 설치(`addons/gut/`), `.gutconfig.json`, 첫 실제 테스트(`tests/unit/combat/combat_formula_test.gd`, ADR-0008 엡실론 가드 회귀 테스트) 작성 및 헤드리스 실행으로 2/2 통과 확인, `.github/workflows/tests.yml` CI 작성. **주의**: 여러 제네릭 스킬/에이전트 파일(`coding-standards.md`였던 것 포함, 지금 수정함)이 GdUnit4를 기본값으로 잡고 있었으나 이 프로젝트의 실제 결정(technical-preferences.md, ADR-0001/0003/0005)은 GUT — `tests/README.md`에 이 불일치 기록해둠.
 - [x] /ux-design 부분 완료 (2026-07-28) — `design/ux/interaction-patterns.md`, `design/accessibility-requirements.md` 생성. **단, 사용자 부재 중 진행이라 새 디자인 판단은 안 하고 이미 결정된 것(ADR-0010/0011/0012, technical-preferences.md)만 정리함.** accessibility Target Tier=Basic은 제안일 뿐 — producer 확인 필요.
-- [ ] /review-all-gdds (선택 — 18개 전체 holistic 교차 일관성 패스)
+- [x] /review-all-gdds 완료 (2026-07-28) — **Verdict: FAIL**, 5개 진짜 blocking 이슈 발견. 리포트: `design/gdd/gdd-cross-review-2026-07-28.md`. **systems-index.md의 GDD 상태를 "Needs Revision"으로 자동 표시하지 않음** — 사용자 부재 중 실행이라 이 판단(어느 GDD를 언제 재작업할지)은 producer 확인 후 처리하는 게 맞다고 보고 보류함.
 - [ ] art-bible 섹션 5-9 작성 (섹션 1-4만 완료)
 - [ ] 보스 스탯 밸런스 재검토 (prototype에서 발견 — 솔로 보스전 승률 0%, 장비 보정 미포함 기준)
 
@@ -99,12 +99,28 @@
 - **결과: PASS 3/3** (Button.pressed 도달, grab_focus() 미사용 커스텀 하이라이트 정상 반응, 호버 전용 반응 없음 — 기본 테마 호버 틴트는 장식적 효과일 뿐)
 - **ADR-0011 → Accepted 전환 완료** — `#20 UI/HUD` 스토리 착수 가능해짐
 
+## Session Extract — /review-all-gdds 2026-07-28
+
+- Verdict: **FAIL**
+- GDDs reviewed: 18
+- Flagged for revision: 턴제-전투, 장비, 히든-트리거, 동료-해금, 씬-관리, 랜덤-던전, game-concept(합류/난이도), 전투-공식, systems-index, entities.yaml, 파티-구성, 적-데이터, 상태이상
+- Blocking issues (5, see report for full detail):
+  1. 장비(#4)의 스탯 보정치가 실제 전투 공식에 전혀 반영 안 됨 — #4가 기능적으로 죽어있음
+  2. 히든방 재방문 시 장비 드롭 여부, `히든-트리거`와 `장비`가 정반대로 서술 (AC 충돌)
+  3. `동료-해금`이 `씬-관리`에 없는 3-인자 `SceneManager.go_to()` 시그니처를 호출 (color_accent 플래시 연출 미구현)
+  4. game-concept.md가 약속한 "런 내 합류"가 18개 GDD 어디에도 구현 안 됨 (MVP 컷인지 미정)
+  5. 히든방 진입 트리거를 실제로 누가 호출하는지 `#2`/`#9`/`#13`/`#20` 어디에도 명시 안 됨
+- Recommended next: 위 5개를 producer가 결정(구현 방식/스코프 컷 여부) → 관련 GDD 수정 → `/review-all-gdds` 재실행 → PASS/CONCERNS 확인 후 architecture 영향 여부 재점검
+- Report: design/gdd/gdd-cross-review-2026-07-28.md
+
 ## Next Session Entry Point
 
-Pre-gate 체크리스트(architecture-review Phase 9 기준) 상태: `tests/`+CI ✅, `design/accessibility-requirements.md` ✅(Draft, producer 확인 필요), `design/ux/interaction-patterns.md` ✅(Draft). 남은 것:
-1. **accessibility-requirements.md의 Basic tier 제안을 producer가 확인/조정** (5분짜리 판단)
-2. Foundation 3개(ADR-0001/0003/0004) 실브라우저 검증 — 웹 export 후 실제 모바일 Safari/Chrome에서 저장 durability/광고 콜백 확인, 실기기 필요
-3. 그 다음 `/gate-check pre-production` 시도 가능, 통과하면 실제 코드 착수(`src/`)
+**우선순위 1 — 이게 진짜 중요함**: `/review-all-gdds`가 FAIL로 나왔다. 5개 진짜 설계 모순 발견 (위 참조) — 전부 producer 판단이 필요한 결정(구현 방식 선택 또는 스코프 컷 여부)이라 자동으로 안 고치고 그대로 뒀다. 이미 작성된 아키텍처(12개 ADR)가 이 버그투성이 GDD 상태를 기반으로 만들어졌으므로, GDD 5개를 고친 뒤 영향받는 ADR(특히 장비/전투공식 관련)도 재검토 필요할 수 있음.
+
+**우선순위 2** (기존 대기 항목):
+1. accessibility-requirements.md의 Basic tier 제안 확인/조정
+2. Foundation 3개(ADR-0001/0003/0004) 실브라우저 검증 — 실기기 필요
+3. 위 다 끝나면 `/gate-check pre-production` → 통과 시 실제 코드 착수(`src/`)
 
 ## Session Extract — /architecture-review 2026-07-27
 
