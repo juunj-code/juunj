@@ -5,9 +5,9 @@
 
 ## Engine & Language
 
-- **Engine**: Godot 4.6
+- **Engine**: Godot 4.7 (originally scoped for 4.6; see `docs/engine-reference/godot/VERSION.md` for the pin change and verified compatibility notes)
 - **Language**: GDScript
-- **Rendering**: Godot Rendering Server (Forward+ / Compatibility — TBD at project creation)
+- **Rendering**: Compatibility (GL Compatibility) renderer — decided 2026-07-27 at project scaffolding. 2D-only game, no need for Forward+'s 3D pipeline; Compatibility has the broadest WebGL2 support across mobile browsers, matching the primary target platform. Easy to change later in Project Settings > Rendering if it becomes a bottleneck.
 - **Physics**: Jolt Physics (Godot 4.6 default)
 
 ## Input & Platform

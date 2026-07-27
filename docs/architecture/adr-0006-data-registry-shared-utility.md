@@ -2,7 +2,7 @@
 
 ## Status
 
-Proposed
+Accepted
 
 ## Date
 
@@ -10,7 +10,7 @@ Proposed
 
 ## Last Verified
 
-2026-07-26
+2026-07-27 (Accepted after `/architecture-review` — dependency direction fixed to ADR-0007 during that review, no other unresolved verification items)
 
 ## Decision Makers
 
@@ -35,10 +35,10 @@ Defines one shared loader utility that both `CompanionRegistry` and `EnemyRegist
 
 | Field | Value |
 |-------|-------|
-| **Depends On** | None |
+| **Depends On** | ADR-0007 (Resource Schema Conventions — this ADR's registries load `CompanionData`/`EnemyData` typed Resources, whose schema ADR-0007 defines; must be Accepted first so the registries are implemented against real, final schemas) |
 | **Enables** | Implementation of `CompanionRegistry` (#10) and `EnemyRegistry` (#11), and the separate build-time validation tool referenced by both GDDs' Acceptance Criteria |
 | **Blocks** | Any story implementing `CompanionRegistry`/`EnemyRegistry`, and the build-time validation tool story (which needs both registries' contract to cross-check `skill_id` references) |
-| **Ordering Note** | Independent of ADR-0002 and ADR-0005. Overlaps with ADR-0002 only in that `CompanionRegistry`/`EnemyRegistry` are two of the 7 Autoloads ordered there — this ADR defines their internal implementation, ADR-0002 only fixes their boot position. |
+| **Ordering Note** | Depends on ADR-0007 (schema must exist before the loader can be implemented against it). Independent of ADR-0002 and ADR-0005 otherwise. Overlaps with ADR-0002 only in that `CompanionRegistry`/`EnemyRegistry` are two of the 7 Autoloads ordered there — this ADR defines their internal implementation, ADR-0002 only fixes their boot position. |
 
 ## Context
 

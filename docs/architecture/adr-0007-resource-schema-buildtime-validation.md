@@ -2,7 +2,7 @@
 
 ## Status
 
-Proposed
+Accepted
 
 ## Date
 
@@ -10,7 +10,7 @@ Proposed
 
 ## Last Verified
 
-2026-07-26
+2026-07-27 (Accepted after `/architecture-review` — dependency direction fixed (no longer depends on ADR-0006) during that review, no other unresolved verification items)
 
 ## Decision Makers
 
@@ -37,7 +37,7 @@ Standardizes the shape every `Resource`-based data schema (`CompanionData`, `Ski
 
 | Field | Value |
 |-------|-------|
-| **Depends On** | ADR-0006 (Data Registry Shared Utility — this ADR's build-time validation tool walks the same folder-enumeration/registry surface that ADR-0006's `CompanionRegistry`/`EnemyRegistry` shared utility defines; the validator is a static/offline sibling of that runtime loader, not a replacement for it) |
+| **Depends On** | None |
 | **Enables** | Implementation of `CompanionData`, `SkillData`, `EnemyData`, `StatusEffect` `.gd` classes and their `.tres` assets; Story work for `#10 동료 데이터` and `#11 적 데이터` |
 | **Blocks** | Any story that creates or loads `.tres` Resource data files (all Foundation-layer data stories) |
 | **Ordering Note** | Must be Accepted before ADR-0006's registries can be implemented against real schemas, since the registries load these exact Resource types. |

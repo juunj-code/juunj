@@ -45,6 +45,7 @@ dist/
 .godot/
 *.translation
 export_presets.cfg
+/android/
 # Uncomment if using Godot:
 # *.import
 

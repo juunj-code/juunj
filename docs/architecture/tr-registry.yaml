@@ -25,9 +25,312 @@
 # STATUS VALUES: active | deprecated | superseded-by: TR-[system]-NNN
 
 version: 1
-last_updated: ""
+last_updated: "2026-07-27"
 
-requirements: []
+# NOTE (2026-07-27 initial population): architecture.md's Phase 0b independently
+# claims ~60 TRs total (60/60 mapped to a Proposed ADR) but only names 12 specific
+# TR-IDs inline (e.g. TR-run-state-004, TR-ui-hud-005) without ever listing the
+# full ~60-item set anywhere in the repo. This first population reconstructs
+# entries from the 12 ADRs' "GDD Requirements Addressed" tables, using the same
+# system slugs architecture.md already uses wherever it names one. Where an ADR's
+# table had more or fewer distinct rows than architecture.md's numeric range
+# implies for that ADR, numbering here is best-effort and NOT guaranteed to align
+# 1:1 with architecture.md's original (unrecovered) extraction — reconcile on the
+# next full /architecture-review pass. IDs are still permanent once set per the
+# rules above; only add new entries, never renumber these.
+
+requirements:
+  - id: TR-local-save-001
+    system: local-save
+    gdd: design/gdd/로컬-세이브.md
+    requirement: "저장 요청은 성공/실패를 명확히 반환해야 하며, 소비 시스템이 '저장됐다'고 UI에 표시하기 전에 이 확인을 기다려야 한다"
+    created: 2026-07-26
+    revised: ""
+    status: active
+
+  - id: TR-local-save-005
+    system: local-save
+    gdd: design/gdd/로컬-세이브.md
+    requirement: "구현 전 FileAccess.close()의 IndexedDB 자동 동기화 여부를 확인해야 한다"
+    created: 2026-07-26
+    revised: ""
+    status: active
+
+  - id: TR-local-save-006
+    system: local-save
+    gdd: design/gdd/로컬-세이브.md
+    requirement: "구현 전 FS.syncfs() 직접 호출 방식의 신뢰성을 확인해야 한다"
+    created: 2026-07-26
+    revised: ""
+    status: active
+
+  - id: TR-local-save-007
+    system: local-save
+    gdd: design/gdd/로컬-세이브.md
+    requirement: "SAVE_WRITE_TIMEOUT_MS 값의 실측 근거를 확인해야 한다"
+    created: 2026-07-26
+    revised: ""
+    status: active
+
+  - id: TR-run-state-004
+    system: run-state
+    gdd: docs/architecture/architecture.md
+    requirement: "Autoload 초기화 순서 및 RunManager 5개 시그널 카탈로그 — Phase 3의 부팅 순서 제약(SaveManager→ProgressManager) + 실제 구독자 미명세 갭"
+    created: 2026-07-26
+    revised: ""
+    status: active
+
+  - id: TR-ad-integration-001
+    system: ad-integration
+    gdd: design/gdd/광고-통합.md
+    requirement: "_ready()에서 JavaScriptBridge.create_callback()으로 실제 콜백을 등록해야 한다 (구 버전은 호출만 하고 등록이 없어 ReferenceError 발생)"
+    created: 2026-07-26
+    revised: ""
+    status: active
+
+  - id: TR-ad-integration-002
+    system: ad-integration
+    gdd: design/gdd/광고-통합.md
+    requirement: "재진입 시 타이머 누수 방지 — _pending_callback이 이미 있으면 재호출을 무시하는 가드"
+    created: 2026-07-26
+    revised: ""
+    status: active
+
+  - id: TR-ad-integration-003
+    system: ad-integration
+    gdd: design/gdd/광고-통합.md
+    requirement: "_js_bridge mock 주입을 통한 GUT 헤드리스 검증 요구"
+    created: 2026-07-26
+    revised: ""
+    status: active
+
+  - id: TR-ad-integration-004
+    system: ad-integration
+    gdd: design/gdd/광고-통합.md
+    requirement: "SceneManager를 직접 호출하지 않고 opaque Callable만 받는다 (#19와의 결합도 최소화)"
+    created: 2026-07-26
+    revised: ""
+    status: active
+
+  - id: TR-ad-integration-005
+    system: ad-integration
+    gdd: design/gdd/광고-통합.md
+    requirement: "JavaScriptBridge.create_callback()/get_interface() 정확한 4.6 시그니처는 엔진 레퍼런스에 미문서화 — 실기기 검증 필요"
+    created: 2026-07-26
+    revised: ""
+    status: active
+
+  - id: TR-scene-management-002
+    system: scene-management
+    gdd: design/gdd/씬-관리.md
+    requirement: "ResourceLoader.load_threaded_get() → change_scene_to_packed() 사용, 동기/블로킹 change_scene_to_file()은 내부적으로도 사용 금지"
+    created: 2026-07-26
+    revised: ""
+    status: active
+
+  - id: TR-scene-management-004
+    system: scene-management
+    gdd: design/gdd/씬-관리.md
+    requirement: "Threads 빌드 변형은 호스트의 COOP/COEP 헤더가 필요 — itch.io는 프로젝트별로 명시적으로 켜야만 제공, 구현 전 검증 필요"
+    created: 2026-07-26
+    revised: ""
+    status: active
+
+  - id: TR-scene-management-005
+    system: scene-management
+    gdd: design/gdd/씬-관리.md
+    requirement: "t_load_elapsed는 _process(delta) 누적치로 측정 — 브라우저 백그라운드 탭에서 _process 정지 시 타임아웃 판정이 부당하게 앞당겨지지 않도록"
+    created: 2026-07-26
+    revised: ""
+    status: active
+
+  - id: TR-scene-management-008
+    system: scene-management
+    gdd: design/gdd/씬-관리.md
+    requirement: "탭을 Tween 진행 중 30초 이상 백그라운드에 둔 뒤 재개했을 때, 재개 프레임 delta 로그와 Tween 종료값이 정확히 1.0인지(NaN/오버슈트 없는지) 확인"
+    created: 2026-07-26
+    revised: ""
+    status: active
+
+  - id: TR-random-dungeon-001
+    system: random-dungeon
+    gdd: design/gdd/랜덤-던전.md
+    requirement: "rng를 외부 주입받아 테스트에서 결정적 결과를 강제할 수 있어야 한다. 적 구성 샘플링은 with-replacement(중복 허용)여야 한다 — 이전 without-replacement 버전이 3종 전체를 매번 뽑는 버그로 발견/수정됨"
+    created: 2026-07-26
+    revised: ""
+    status: active
+
+  - id: TR-equipment-003
+    system: equipment
+    gdd: design/gdd/장비.md
+    requirement: "rng 주입 명시, 테스트 결정성 확보 — DROP_CHANCE=0.5 롤과 Array.pick_random()(전역 RNG) 대신 명시적 인덱싱 사용"
+    created: 2026-07-26
+    revised: ""
+    status: active
+
+  - id: TR-hidden-trigger-001
+    system: hidden-trigger
+    gdd: design/gdd/히든-트리거.md
+    requirement: "런 시작 시 rng 주입받아 셔플 후 순서대로 히든방에 배정 — 3개 히든 id가 런당 정확히 1회씩만 배정(without-replacement)"
+    created: 2026-07-26
+    revised: ""
+    status: active
+
+  - id: TR-companion-data-001
+    system: companion-data
+    gdd: design/gdd/동료-데이터.md
+    requirement: "CompanionData, SkillData, EnemyData, StatusEffect는 모두 class_name X extends Resource, 완전 타입화된 @export 필드 (Variant 금지)"
+    created: 2026-07-26
+    revised: ""
+    status: active
+
+  - id: TR-companion-data-002
+    system: companion-data
+    gdd: design/gdd/동료-데이터.md
+    requirement: "base_hp가 0 이하인 CompanionData/EnemyData 로드 시 정확히 1회의 push_error, 레지스트리 미등록"
+    created: 2026-07-26
+    revised: ""
+    status: active
+
+  - id: TR-companion-data-003
+    system: companion-data
+    gdd: design/gdd/동료-데이터.md
+    requirement: "CompanionRegistry는 파일명 오름차순 정렬 후 순서대로 로드 — EnemyRegistry와 동일 로직을 공용 유틸리티로 공유"
+    created: 2026-07-26
+    revised: ""
+    status: active
+
+  - id: TR-companion-data-004
+    system: companion-data
+    gdd: design/gdd/동료-데이터.md
+    requirement: "네이티브 Color 타입 사용 (hex 문자열 금지)"
+    created: 2026-07-26
+    revised: ""
+    status: active
+
+  - id: TR-companion-data-005
+    system: companion-data
+    gdd: design/gdd/동료-데이터.md
+    requirement: "빌드 검증 도구가 중복 id와 dangling skill_id 참조를 런타임 이전에 경고로 잡아야 한다 (런타임 폴백과는 별개)"
+    created: 2026-07-26
+    revised: ""
+    status: active
+
+  - id: TR-companion-data-006
+    system: companion-data
+    gdd: design/gdd/동료-데이터.md
+    requirement: "base_atk/base_def/base_spd 등 base_hp 외 스탯은 범위 위반 시 push_warning만 하고 값은 그대로 로드 (클램핑 금지)"
+    created: 2026-07-26
+    revised: ""
+    status: active
+
+  - id: TR-enemy-data-001
+    system: enemy-data
+    gdd: design/gdd/적-데이터.md
+    requirement: "EnemyRegistry는 CompanionRegistry와 동일 로직(폴더 열거 → 오름차순 정렬 → 로드 → id 중복 검사)을 공용 유틸리티로 공유 — 폴더 경로/대상 타입만 다른 얇은 wrapper"
+    created: 2026-07-26
+    revised: ""
+    status: active
+
+  - id: TR-enemy-data-002
+    system: enemy-data
+    gdd: design/gdd/적-데이터.md
+    requirement: "빌드 검증 도구가 중복 id와 dangling skill_id 참조를 런타임 이전에 경고로 잡아야 한다 (런타임 폴백과는 별개)"
+    created: 2026-07-26
+    revised: ""
+    status: active
+
+  - id: TR-enemy-data-003
+    system: enemy-data
+    gdd: design/gdd/적-데이터.md
+    requirement: "적 스킬(target_type=\"enemy\")의 damage_multiplier 유효 범위: 0.5~1.4 (일반 companion 범위 0.5~3.0보다 좁음 — 3.0 사용 시 60HP 동료 대상 인스타킬 실증)"
+    created: 2026-07-26
+    revised: ""
+    status: active
+
+  - id: TR-status-effects-001
+    system: status-effects
+    gdd: design/gdd/상태이상.md
+    requirement: "StatusEffect extends Resource 스키마 정의 (id, name, type, value, stat_target, duration), 완전 타입화된 @export 필드"
+    created: 2026-07-26
+    revised: ""
+    status: active
+
+  - id: TR-status-effects-002
+    system: status-effects
+    gdd: design/gdd/상태이상.md
+    requirement: "apply_effect()는 반드시 effect_resource.duplicate()로 새 인스턴스를 생성한 뒤 저장해야 한다 — 동일 블루프린트를 유닛 A/B에 적용 시 A만 duration 감소, B와 원본 .tres는 영향받지 않아야 함"
+    created: 2026-07-26
+    revised: ""
+    status: active
+
+  - id: TR-combat-formula-001
+    system: combat-formula
+    gdd: design/gdd/전투-공식.md
+    requirement: "GDScript의 floor()는 float를 반환하므로 int 타입 데미지/HP 값에는 floori()를 대신 사용해야 한다"
+    created: 2026-07-26
+    revised: ""
+    status: active
+
+  - id: TR-combat-formula-002
+    system: combat-formula
+    gdd: design/gdd/전투-공식.md
+    requirement: "atk=25, multiplier=1.16 같은 조합에서 부동소수점 오차로 28.999999999999996이 나올 수 있으므로 +0.0001 엡실론 가드로 흡수해야 한다"
+    created: 2026-07-26
+    revised: ""
+    status: active
+
+  - id: TR-combat-formula-003
+    system: combat-formula
+    gdd: design/gdd/전투-공식.md
+    requirement: "Godot의 Array.sort()/sort_custom()은 안정 정렬이 아니므로, 턴 순서(speed 동률 시)는 파티 인덱스를 명시적 2차 정렬 키로 사용해야 한다"
+    created: 2026-07-26
+    revised: ""
+    status: active
+
+  # NOTE: architecture.md's Phase 0b cites combat-formula range as "001~005" but
+  # only 3 distinct requirements were recoverable from ADR-0008's GDD Requirements
+  # table. TR-combat-formula-004/005 are not yet itemized — add when found.
+
+  - id: TR-enemy-ai-002
+    system: enemy-ai
+    gdd: design/gdd/적-AI.md
+    requirement: "타겟 선택은 최고/최저 1개 후보만 필요하므로 전체 정렬 대신 선형 스캔(reduce) 방식을 사용해야 한다"
+    created: 2026-07-26
+    revised: ""
+    status: active
+
+  - id: TR-turn-based-combat-001
+    system: turn-based-combat
+    gdd: design/gdd/턴제-전투.md
+    requirement: "입력 없이 진행 없음, 타임아웃 없음(턴제) — '입력 대기' 단계는 실제 터치 입력까지 무기한 대기해야 하므로 커스텀 시그널(await action_selected, await target_selected)에 대한 await로 구현"
+    created: 2026-07-26
+    revised: ""
+    status: active
+
+  - id: TR-companion-unlock-002
+    system: companion-unlock
+    gdd: design/gdd/동료-해금.md
+    requirement: "발견 흐름은 await popup_confirmed 형태로 플레이어 탭 시그널을 기다린다 — 수동 토글 bool이 아니라 시그널 await로 구현해야 예외/조기 반환 경로에서 입력 잠금이 풀리지 않는 버그를 피함"
+    created: 2026-07-26
+    revised: ""
+    status: active
+
+  - id: TR-ui-hud-001
+    system: ui-hud
+    gdd: design/gdd/UI-HUD.md
+    requirement: "UI는 데이터를 소유하지 않는다: 모든 구독은 _ready()에서 1회 연결, 신호 수신 시 즉시 갱신, 다른 시스템 데이터의 폴링/로컬 캐시 비교 금지 (자체 소유 프레젠테이션 상태(팝업 큐 등)는 예외)"
+    created: 2026-07-26
+    revised: ""
+    status: active
+
+  - id: TR-ui-hud-005
+    system: ui-hud
+    gdd: design/gdd/UI-HUD.md
+    requirement: "Godot 4.6 듀얼 포커스 시스템(마우스/터치 포커스 vs 키보드/게임패드 포커스)이 터치 전용 Control UI에 미치는 영향이 엔진 레퍼런스에 미문서화 — #20 구현 전 실기기 스모크 테스트 필수"
+    created: 2026-07-26
+    revised: ""
+    status: active
 
 # --- EXAMPLE ENTRIES (remove when first real entries are added) ---
 #

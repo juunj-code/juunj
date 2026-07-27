@@ -2,7 +2,7 @@
 
 ## Status
 
-Proposed
+Accepted
 
 ## Date
 
@@ -10,7 +10,7 @@ Proposed
 
 ## Last Verified
 
-2026-07-26
+2026-07-27 (Accepted after `/architecture-review` — see `docs/architecture/architecture-review-2026-07-27.md`, no unresolved verification items for this ADR)
 
 ## Decision Makers
 

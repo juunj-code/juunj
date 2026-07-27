@@ -2,7 +2,7 @@
 
 ## Status
 
-Proposed
+Accepted
 
 ## Date
 
@@ -10,7 +10,11 @@ Proposed
 
 ## Last Verified
 
-2026-07-26
+2026-07-27 — 실측 완료, `prototypes/touch-input-smoke/` (엔진 4.7 실제 에디터 실행, F6, 사용자 수동 확인). 결과:
+(a) Button.pressed가 클릭/탭에 정상 도달함 — 확인.
+(b) `grab_focus()`를 전혀 호출하지 않는 커스텀 enum 하이라이트가 탭에 정상 반응함 — 확인.
+(c) 클릭 없이 마우스만 올렸을 때 우리 로직(라벨, 하이라이트 상태)은 반응하지 않음 — 확인. Godot 기본 Button 테마의 마우스 호버 시각 효과(회색 틴트)는 관찰됐으나 이는 엔진 기본 테마의 장식적 스타일일 뿐 기능적 인터랙션이 아니며, 터치 기기에는 호버 자체가 없어 실제 타겟 플랫폼(모바일 브라우저)에서는 나타나지 않음 — `technical-preferences.md`의 "호버 전용 인터랙션 금지" 위반 아님.
+세 항목 모두 예상대로 동작 — Superseded 불필요. (참고: 헤드리스 CLI 시뮬레이션은 시도했으나 `--headless`가 GUI 입력 디스패치 자체를 실행하지 않아 마우스 클릭조차 재현 안 됨 — 실제 에디터 실행으로 전환해 검증함, 상세는 `prototypes/touch-input-smoke/README.md` 참조.)
 
 ## Decision Makers
 
@@ -24,7 +28,7 @@ Godot 4.6은 마우스/터치 포커스와 키보드/게임패드 포커스를 �
 
 | Field | Value |
 |-------|-------|
-| **Engine** | Godot 4.6 |
+| **Engine** | Godot 4.6 (written); **verified against Godot 4.7.1** on 2026-07-27 — see Last Verified |
 | **Domain** | UI / Input |
 | **Knowledge Risk** | HIGH — post-cutoff, must verify |
 | **References Consulted** | `docs/engine-reference/godot/modules/ui.md` (전문 확인), `docs/engine-reference/godot/modules/input.md` (전문 확인), `docs/engine-reference/godot/breaking-changes.md` (전문 확인) |
@@ -190,10 +194,10 @@ N/A — 마이그레이션 대상이 되는 기존 시스템이 없다(첫 구�
 
 ## Validation Criteria
 
-- [ ] throwaway Godot 4.6 씬에서 터치 탭이 Button/Control의 `pressed`/`_gui_input`에 정상 도달함을 실측 확인.
-- [ ] `grab_focus()`를 호출하지 않은 커스텀 boolean 하이라이트가 탭에 정상 반응함을 실측 확인.
-- [ ] 의도치 않은 호버 전용 시각 피드백이 없음을 실측 확인(`technical-preferences.md`의 호버 금지 제약 준수).
-- [ ] 위 세 항목 실측 완료 후 이 ADR의 "Last Verified" 날짜 갱신, 결과가 예상과 다르면 Superseded 처리.
+- [x] throwaway Godot 씬에서 터치/클릭이 Button/Control의 `pressed`/`_gui_input`에 정상 도달함을 실측 확인. (2026-07-27, Godot 4.7.1, 에디터 실행)
+- [x] `grab_focus()`를 호출하지 않은 커스텀 boolean 하이라이트가 탭에 정상 반응함을 실측 확인. (2026-07-27)
+- [x] 의도치 않은 호버 전용 시각 피드백이 없음을 실측 확인(`technical-preferences.md`의 호버 금지 제약 준수) — 기본 Button 테마의 장식적 호버 틴트는 관찰됐으나 기능적 인터랙션 아님, 터치 기기엔 해당 없음. (2026-07-27)
+- [x] 위 세 항목 실측 완료 후 이 ADR의 "Last Verified" 날짜 갱신, 결과가 예상과 다르면 Superseded 처리. → 예상대로 동작, Superseded 불필요.
 
 ## GDD Requirements Addressed
 

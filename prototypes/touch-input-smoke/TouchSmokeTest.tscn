@@ -1,0 +1,23 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://prototypes/touch-input-smoke/touch_smoke_scene.gd" id="1"]
+
+[node name="TouchSmokeTest" type="Control"]
+position = Vector2(0, 0)
+size = Vector2(640, 480)
+script = ExtResource("1")
+
+[node name="ActionButton" type="Button" parent="."]
+position = Vector2(40, 40)
+size = Vector2(200, 64)
+text = "TAP ME (Button)"
+
+[node name="Highlight" type="Control" parent="."]
+position = Vector2(40, 160)
+size = Vector2(200, 64)
+
+[node name="ResultLabel" type="Label" parent="."]
+position = Vector2(40, 260)
+size = Vector2(560, 200)
+text = "Tap the button, then tap the box below it."
+autowrap_mode = 3

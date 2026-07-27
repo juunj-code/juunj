@@ -30,7 +30,7 @@
 #   Superseded entries:     Grep pattern="status: superseded"
 
 version: 1
-last_updated: ""
+last_updated: "2026-07-27"
 
 # ─── STATE OWNERSHIP ─────────────────────────────────────────────────────────
 # Who is the authoritative owner of each piece of shared game state.
@@ -43,7 +43,56 @@ last_updated: ""
 # interface: how other systems access this state (read-only property, method call,
 #   signal, shared resource, etc.) — this is the contract other ADRs depend on.
 
-state_ownership: []
+state_ownership:
+  - state: run_rng
+    status: active
+    owner_system: run-state
+    adr: docs/architecture/adr-0005-rng-injection-pattern.md
+    interface: "RunManager._run_rng — private field, RandomNumberGenerator created once in start_run(); threaded through explicit call parameters to consumers (generate_floor(floor_index, rng), roll_drop(rng), shuffle_companion_pool(rng)), never exposed as a public property"
+    write_access: run-state-only
+    referenced_by:
+      - docs/architecture/adr-0005-rng-injection-pattern.md
+      - docs/architecture/adr-0002-autoload-init-order-signal-catalog.md
+    added: 2026-07-27
+    revised: ""
+
+  - state: companion_registry_data
+    status: active
+    owner_system: companion-data
+    adr: docs/architecture/adr-0006-data-registry-shared-utility.md
+    interface: "CompanionRegistry.get_by_id(id) / get_all_ids() — read-only accessors over an internal Dictionary populated at _ready() via DataRegistryLoader.load_all()"
+    write_access: companion-data-registry-only
+    referenced_by:
+      - docs/architecture/adr-0006-data-registry-shared-utility.md
+      - docs/architecture/adr-0002-autoload-init-order-signal-catalog.md
+      - docs/architecture/adr-0007-resource-schema-buildtime-validation.md
+    added: 2026-07-27
+    revised: ""
+
+  - state: enemy_registry_data
+    status: active
+    owner_system: enemy-data
+    adr: docs/architecture/adr-0006-data-registry-shared-utility.md
+    interface: "EnemyRegistry.get_by_id(id) — read-only accessor over an internal Dictionary populated at _ready() via DataRegistryLoader.load_all()"
+    write_access: enemy-data-registry-only
+    referenced_by:
+      - docs/architecture/adr-0006-data-registry-shared-utility.md
+      - docs/architecture/adr-0002-autoload-init-order-signal-catalog.md
+      - docs/architecture/adr-0007-resource-schema-buildtime-validation.md
+    added: 2026-07-27
+    revised: ""
+
+  - state: unit_active_effects
+    status: active
+    owner_system: status-effects
+    adr: docs/architecture/adr-0009-resource-duplication-policy.md
+    interface: "unit.active_effects (Array[StatusEffect]) — mutated only via apply_effect(unit, effect_id), which always .duplicate()s the shared StatusEffect blueprint before appending/replacing"
+    write_access: status-effects-system-only
+    referenced_by:
+      - docs/architecture/adr-0009-resource-duplication-policy.md
+      - docs/architecture/adr-0007-resource-schema-buildtime-validation.md
+    added: 2026-07-27
+    revised: ""
 
 # Example:
 #
@@ -71,7 +120,88 @@ state_ownership: []
 #
 # pattern options: signal | direct_call | event_bus | shared_resource | rpc | none
 
-interfaces: []
+interfaces:
+  - contract: run_manager_signals
+    status: active
+    pattern: signal
+    producer: run-state
+    consumers:
+      - UNCONFIRMED — ADR-0002's own catalog found zero exact-name GDD citations for any of the 5 signals; verify actual subscribers at implementation time
+    adr: docs/architecture/adr-0002-autoload-init-order-signal-catalog.md
+    signal_signature: "floor_changed(new_floor: int) / combat_entered(enemies: Array[EnemyRunState]) / combat_exited(victory: bool) / run_ended(success: bool) / state_changed(old_state: String, new_state: String)"
+    referenced_by:
+      - docs/architecture/adr-0002-autoload-init-order-signal-catalog.md
+    added: 2026-07-27
+    revised: ""
+
+  - contract: progression_boot_load
+    status: active
+    pattern: direct_call
+    producer: save
+    consumers:
+      - progression
+    adr: docs/architecture/adr-0002-autoload-init-order-signal-catalog.md
+    signal_signature: "SaveManager.load_section() — called synchronously from ProgressManager._ready(); SaveManager must precede ProgressManager in project.godot [autoload] order"
+    referenced_by:
+      - docs/architecture/adr-0002-autoload-init-order-signal-catalog.md
+    added: 2026-07-27
+    revised: ""
+
+  - contract: js_gdscript_callback_bridge
+    status: active
+    pattern: direct_call
+    producer: ads
+    consumers:
+      - save
+    adr: docs/architecture/adr-0003-js-ad-bridge.md
+    signal_signature: "_ready()-time pre-registration: JavaScriptBridge.eval('window.<Bridge> = {};') then get_interface('window').<Bridge>.<method> = JavaScriptBridge.create_callback(_on_js_callback); DI shim + reentry guard mandatory wherever a timeout failsafe coexists"
+    referenced_by:
+      - docs/architecture/adr-0003-js-ad-bridge.md
+      - docs/architecture/adr-0001-html5-local-save-sync.md
+    added: 2026-07-27
+    revised: ""
+
+  - contract: save_completion_signal
+    status: active
+    pattern: signal
+    producer: save
+    consumers:
+      - ui-hud
+    adr: docs/architecture/adr-0001-html5-local-save-sync.md
+    signal_signature: "SaveManager emits its final 'Save Complete' signal only after _on_indexeddb_sync_done() confirms FS.syncfs() succeeded (web) — not merely after FileAccess bool success"
+    referenced_by:
+      - docs/architecture/adr-0001-html5-local-save-sync.md
+    added: 2026-07-27
+    revised: ""
+
+  - contract: player_input_await
+    status: active
+    pattern: signal
+    producer: ui-hud
+    consumers:
+      - turn-based-combat
+      - companion-unlock
+    adr: docs/architecture/adr-0010-await-coroutine-pattern.md
+    signal_signature: "action_selected(action_data: Dictionary) / target_selected(target_id: String) / popup_confirmed — consumed via `await <signal>`, never polling, never yield(); is_inside_tree() guard required immediately on resume"
+    referenced_by:
+      - docs/architecture/adr-0010-await-coroutine-pattern.md
+      - docs/architecture/adr-0012-ui-signal-subscription-convention.md
+    added: 2026-07-27
+    revised: ""
+
+  - contract: ui_state_subscription
+    status: active
+    pattern: signal
+    producer: cross-cutting
+    consumers:
+      - ui-hud
+    adr: docs/architecture/adr-0012-ui-signal-subscription-convention.md
+    signal_signature: "All subscriptions connected once in _ready(); handler updates the view immediately, no comparison against a stored previous value, no local copy of another system's data (UI-owned presentation state, e.g. the popup queue, is not covered by this ban)"
+    referenced_by:
+      - docs/architecture/adr-0012-ui-signal-subscription-convention.md
+      - docs/architecture/adr-0010-await-coroutine-pattern.md
+    added: 2026-07-27
+    revised: ""
 
 # Example:
 #
@@ -131,7 +261,139 @@ performance_budgets: []
 # Register an API decision when the choice is non-obvious and other ADRs might
 # make a different choice for the same purpose without knowing this was decided.
 
-api_decisions: []
+api_decisions:
+  - purpose: html5_save_durability_confirmation
+    status: active
+    api: "JavaScriptBridge.eval(\"FS.syncfs(false, callback)\") + JavaScriptBridge.create_callback()"
+    not: "FileAccess.close() alone as the durability signal"
+    adr: docs/architecture/adr-0001-html5-local-save-sync.md
+    reason: "Whether close() auto-triggers syncfs() (and sync vs async) is undocumented for 4.4-4.6; treating close() as sufficient is a silent-failure risk for the project's most player-trust-critical guarantee"
+    referenced_by:
+      - docs/architecture/adr-0001-html5-local-save-sync.md
+    added: 2026-07-27
+    revised: ""
+
+  - purpose: js_gdscript_async_callback_pattern
+    status: active
+    api: "_ready()-time pre-registered JavaScriptBridge.create_callback() + get_interface(\"window\") + _js_bridge DI shim + reentry guard"
+    not: "_process()-driven JS polling loop checking a window.* flag every frame"
+    adr: docs/architecture/adr-0003-js-ad-bridge.md
+    reason: "Polling violates the signal-first/no-polling architecture principle and adds per-frame eval overhead; pre-registration prevents the ReferenceError bug class actually found in #18"
+    referenced_by:
+      - docs/architecture/adr-0003-js-ad-bridge.md
+      - docs/architecture/adr-0001-html5-local-save-sync.md
+    added: 2026-07-27
+    revised: ""
+
+  - purpose: web_export_scene_loading_variant
+    status: active
+    api: "Regular (non-threaded) HTML5 export variant + ResourceLoader.load_threaded_request()/load_threaded_get_status() with _process(delta)-accumulated (not wall-clock) timeout"
+    not: "Threads export variant + COOP/COEP cross-origin isolation headers"
+    adr: docs/architecture/adr-0004-scene-threaded-loading-coop-coep.md
+    reason: "itch.io's support for custom COOP/COEP response headers is unverified; a Threads build that fails to load on an unsupported host is an unacceptable deploy-time risk"
+    referenced_by:
+      - docs/architecture/adr-0004-scene-threaded-loading-coop-coep.md
+    added: 2026-07-27
+    revised: ""
+
+  - purpose: procedural_rng_source
+    status: active
+    api: "RandomNumberGenerator instance injected as an explicit parameter, owned/created once by RunManager.start_run()"
+    not: "Godot global randi()/randf()/Array.pick_random()"
+    adr: docs/architecture/adr-0005-rng-injection-pattern.md
+    reason: "Global RNG state can't be seeded per-test-case in isolation, directly violating the project's DI-over-singletons and no-random-seeds testing standards"
+    referenced_by:
+      - docs/architecture/adr-0005-rng-injection-pattern.md
+    added: 2026-07-27
+    revised: ""
+
+  - purpose: shared_data_loader_implementation
+    status: active
+    api: "static class_name DataRegistryLoader with stateless static methods (load_all(folder_path, reject_if_invalid))"
+    not: "An Autoload singleton for the loader utility itself"
+    adr: docs/architecture/adr-0006-data-registry-shared-utility.md
+    reason: "The loader is stateless and needs no Autoload lifecycle/boot-order participation, unlike CompanionRegistry/EnemyRegistry which do (ADR-0002)"
+    referenced_by:
+      - docs/architecture/adr-0006-data-registry-shared-utility.md
+    added: 2026-07-27
+    revised: ""
+
+  - purpose: resource_color_field_type
+    status: active
+    api: "native Color (@export var x: Color)"
+    not: "hex string or int-packed color representation"
+    adr: docs/architecture/adr-0007-resource-schema-buildtime-validation.md
+    reason: "A hex-string color_accent field was actually caught and corrected during #10's design review; native Color removes per-consumer parsing/fallback duplication project-wide"
+    referenced_by:
+      - docs/architecture/adr-0007-resource-schema-buildtime-validation.md
+    added: 2026-07-27
+    revised: ""
+
+  - purpose: resource_validation_severity_policy
+    status: active
+    api: "base_hp <= 0 → push_error + reject (not registered); every other out-of-range stat/multiplier → push_warning + load unchanged"
+    not: "Clamping any out-of-range value, including base_hp, to a valid bound"
+    adr: docs/architecture/adr-0007-resource-schema-buildtime-validation.md
+    reason: "Clamping masks designer error and blocks GDD-required intentional out-of-range testing; base_hp<=0 is uniquely crash-class"
+    referenced_by:
+      - docs/architecture/adr-0007-resource-schema-buildtime-validation.md
+    added: 2026-07-27
+    revised: ""
+
+  - purpose: int_damage_rounding
+    status: active
+    api: "floori(atk * multiplier + 0.0001) - defense"
+    not: "bare floor() (returns float) fed into an int-typed field, or floori() without the +0.0001 epsilon guard"
+    adr: docs/architecture/adr-0008-combat-formula-float-sort-stability.md
+    reason: "floor() causes int/float type friction; float precision loss (e.g. 25*1.16 → 28.999999999999996) silently underdeals damage by 1 without the epsilon guard — a bug found in #6's design review"
+    referenced_by:
+      - docs/architecture/adr-0008-combat-formula-float-sort-stability.md
+    added: 2026-07-27
+    revised: ""
+
+  - purpose: deterministic_tiebreak_ordering
+    status: active
+    api: "Array.sort_custom() with an explicit secondary (tie-break) key when full ordering is needed; linear scan/reduce when only a single extremum is needed"
+    not: "Relying on Array.sort()/sort_custom()'s incidental ordering of equal-key elements"
+    adr: docs/architecture/adr-0008-combat-formula-float-sort-stability.md
+    reason: "Godot's Array.sort()/sort_custom() is not a stable sort; this bug class was independently rediscovered twice (turn order in #6, targeting in #7)"
+    referenced_by:
+      - docs/architecture/adr-0008-combat-formula-float-sort-stability.md
+    added: 2026-07-27
+    revised: ""
+
+  - purpose: shared_resource_instance_duplication
+    status: active
+    api: "Shallow .duplicate() before attaching a shared-registry Resource (e.g. StatusEffect) to a mutable per-unit collection"
+    not: "duplicate_deep() (unneeded — schema has no nested Resource fields) or direct reference assignment"
+    adr: docs/architecture/adr-0009-resource-duplication-policy.md
+    reason: "Godot Resources loaded via load()/preload() are cached and shared by reference; an un-duplicated attach lets one unit's mutation corrupt every other unit's copy — a proven real bug from #12's design review"
+    referenced_by:
+      - docs/architecture/adr-0009-resource-duplication-policy.md
+    added: 2026-07-27
+    revised: ""
+
+  - purpose: player_input_wait_mechanism
+    status: active
+    api: "await custom_signal (GDScript 2.0 native coroutine), with an is_inside_tree() guard as the first statement on resume"
+    not: "_process()/_physics_process() bool-flag polling; yield() (removed in 4.x); timeout-wrapping a player-input wait"
+    adr: docs/architecture/adr-0010-await-coroutine-pattern.md
+    reason: "Turn-based genre requires unbounded waiting for player input; a timeout here conflates player-decision-time with the unrelated external-SDK-reliability uncertainty ADR-0003's timeouts exist for"
+    referenced_by:
+      - docs/architecture/adr-0010-await-coroutine-pattern.md
+    added: 2026-07-27
+    revised: ""
+
+  - purpose: touch_ui_selection_state_tracking
+    status: active
+    api: "Explicit custom boolean/enum state (e.g. highlight_state) toggled directly by signal handlers, rendered via custom StyleBoxFlat/_draw()"
+    not: "Godot's native Focus system (grab_focus(), has_focus(), focus StyleBox)"
+    adr: docs/architecture/adr-0011-dual-focus-ui-strategy.md
+    reason: "Godot 4.6's dual-focus system separates mouse/touch focus from keyboard/gamepad focus in a way this project's engine reference does not fully document for touch-only Control UI; the project has no gamepad/keyboard-navigation requirement. Requires a mandatory pre-implementation measurement gate before #20 stories start."
+    referenced_by:
+      - docs/architecture/adr-0011-dual-focus-ui-strategy.md
+    added: 2026-07-27
+    revised: ""
 
 # Example:
 #
@@ -157,7 +419,111 @@ api_decisions: []
 # Register a pattern when an ADR explicitly bans it AND other ADRs might
 # unknowingly use it (i.e., it's a tempting but wrong approach for this project).
 
-forbidden_patterns: []
+forbidden_patterns:
+  - pattern: js_bridge_polling_loop
+    status: active
+    description: "GDScript must not use a _process()-driven JavaScriptBridge.eval() poll to check a JS-side state flag instead of a registered callback."
+    why: "Violates the project's signal-first/no-polling architecture principle; adds per-frame eval overhead."
+    adr: docs/architecture/adr-0003-js-ad-bridge.md
+    added: 2026-07-27
+
+  - pattern: js_callback_without_preregistration
+    status: active
+    description: "A JS eval string must never reference a callback object/method that was not first created and bound via JavaScriptBridge.create_callback() in _ready(), before any eval() call that could invoke it."
+    why: "Produces a ReferenceError crash — the exact bug found in #18 광고 통합."
+    adr: docs/architecture/adr-0003-js-ad-bridge.md
+    added: 2026-07-27
+
+  - pattern: rng_global_calls_in_deterministic_systems
+    status: active
+    description: "#2 랜덤 던전, #4 장비, #9 히든 트리거 (and any future randomness-dependent system) must never call Godot's global randi()/randf()/Array.pick_random(); randomness must arrive via an injected RandomNumberGenerator parameter."
+    why: "Global RNG state can't be seeded per-test-case in isolation, breaking the project's deterministic-testing standard and run-wide seed reproducibility."
+    adr: docs/architecture/adr-0005-rng-injection-pattern.md
+    added: 2026-07-27
+
+  - pattern: resource_schema_new_severity_tier
+    status: active
+    description: "A new stat-bearing Resource schema must not invent a third validation-severity tier beyond 'base_hp-style field rejects (push_error)' / 'everything else warns (push_warning)' without a new ADR amending ADR-0007."
+    why: "Prevents inconsistent crash-handling policy drifting independently per schema."
+    adr: docs/architecture/adr-0007-resource-schema-buildtime-validation.md
+    added: 2026-07-27
+
+  - pattern: resource_stat_clamping
+    status: active
+    description: "Out-of-range stat/multiplier values (other than the base_hp<=0 reject case) must never be silently clamped to a valid bound."
+    why: "Clamping masks designer error and blocks intentional out-of-range value testing the GDDs explicitly require."
+    adr: docs/architecture/adr-0007-resource-schema-buildtime-validation.md
+    added: 2026-07-27
+
+  - pattern: bare_floor_into_int_context
+    status: active
+    description: "floor() (returns float) must never be used where the result is assigned to, compared against, or otherwise consumed as an int (HP, damage, stat values); floori() must be used instead."
+    why: "Type friction / silent bugs; floori() (Godot 4.2+) returns int directly."
+    adr: docs/architecture/adr-0008-combat-formula-float-sort-stability.md
+    added: 2026-07-27
+
+  - pattern: unguarded_float_multiplier_damage_math
+    status: active
+    description: "Any floori(x * multiplier) pattern feeding damage math must never omit the +0.0001 epsilon guard."
+    why: "Float precision loss can silently under-deal damage by 1 point — a real bug found in #6's design review."
+    adr: docs/architecture/adr-0008-combat-formula-float-sort-stability.md
+    added: 2026-07-27
+
+  - pattern: unstable_sort_without_tiebreak
+    status: active
+    description: "Array.sort_custom() must never be used with a comparator lacking an explicit secondary (tie-break) key when deterministic tie resolution is required (e.g. turn order, targeting)."
+    why: "Godot's Array.sort()/sort_custom() is not stable; equal-key order is unguaranteed. Independently rediscovered twice already (#6, #7)."
+    adr: docs/architecture/adr-0008-combat-formula-float-sort-stability.md
+    added: 2026-07-27
+
+  - pattern: unduplicated_shared_resource_mutation
+    status: active
+    description: "A Resource loaded from a shared registry/cache (e.g. a StatusEffect blueprint) must never be attached directly to a per-unit mutable collection without an intervening .duplicate() call."
+    why: "Godot Resources are cached and shared by reference; mutating an un-duplicated instance corrupts the shared blueprint and leaks state across every unit holding it — a real bug found in #12's design review."
+    adr: docs/architecture/adr-0009-resource-duplication-policy.md
+    added: 2026-07-27
+
+  - pattern: input_wait_polling_loop
+    status: active
+    description: "Game logic must never wait for player input via a _process()/_physics_process() boolean-flag poll."
+    why: "Wastes CPU cycles and violates the project's signal-first architecture principle."
+    adr: docs/architecture/adr-0010-await-coroutine-pattern.md
+    added: 2026-07-27
+
+  - pattern: yield_coroutine_syntax
+    status: active
+    description: "yield() (Godot 3.x coroutine mechanism) must never be used or referenced in code, docs, or comments — it does not exist in 4.x."
+    why: "Prevents confusion carried over from outdated 3.x tutorials/patterns; await custom_signal is the only approved mechanism."
+    adr: docs/architecture/adr-0010-await-coroutine-pattern.md
+    added: 2026-07-27
+
+  - pattern: manual_bool_toggle_for_confirmation_state
+    status: active
+    description: "Tracking 'has the player confirmed/selected yet' via a manually toggled bool flag (rather than await custom_signal) must never be used."
+    why: "The flag doesn't reset on exception/early-return paths, permanently locking player input — a bug class #3 동료 해금's Core Rule 3 explicitly calls out."
+    adr: docs/architecture/adr-0010-await-coroutine-pattern.md
+    added: 2026-07-27
+
+  - pattern: player_input_wait_timeout
+    status: active
+    description: "A player-input await coroutine (await action_selected, await popup_confirmed, etc.) must never be wrapped in a 'just in case' timeout."
+    why: "Contradicts the turn-based genre requirement of unbounded waiting for player decisions; conflates player-decision-time uncertainty with the unrelated external-SDK-reliability uncertainty that ADR-0003's ad-callback timeout addresses."
+    adr: docs/architecture/adr-0010-await-coroutine-pattern.md
+    added: 2026-07-27
+
+  - pattern: native_focus_dependency_for_touch_ui
+    status: active
+    description: "#20 UI/HUD custom tap interactions (action button highlight, target highlight, popup confirm button) must never depend on Godot's native Focus system (grab_focus(), has_focus(), focus StyleBox)."
+    why: "Godot 4.6's dual-focus system separates mouse/touch focus from keyboard/gamepad focus in a way undocumented for this project's touch-only, gamepad-less UI."
+    adr: docs/architecture/adr-0011-dual-focus-ui-strategy.md
+    added: 2026-07-27
+
+  - pattern: ui_polling_or_caching_other_systems_state
+    status: active
+    description: "Presentation-layer nodes must never (a) poll another system's owned data in _process()/_physics_process() by comparing against a stored previous value, or (b) hold a member variable that is a duplicated copy of data owned by another system for that comparison. Self-owned presentation state (e.g. #20's popup queue) is explicitly not covered by this ban."
+    why: "Violates the signal-first architecture principle and creates a second source of truth that can drift from the owning system's actual state."
+    adr: docs/architecture/adr-0012-ui-signal-subscription-convention.md
+    added: 2026-07-27
 
 # Example:
 #
