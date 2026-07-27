@@ -23,8 +23,8 @@
 - [x] 폴더 스캐폴딩 완료 (2026-07-27): `assets/{art,audio,vfx,shaders,data/{companions,enemies,skills,status_effects}}`, `tests/{unit,integration,performance,playtest}`, `tools/` — 전부 `.gitkeep`만 있는 빈 디렉토리
 - [x] `project.godot` 생성 완료 (2026-07-27) — 사용자가 New Project 마법사로 생성, Renderer=Compatibility(GL Compatibility) 확인됨. 프로젝트가 `바람의탑/` 하위 폴더에 생성돼 루트로 이동 처리(`project.godot`, `icon.svg`, `.godot/` 등 → 저장소 루트). 빈 `바람의탑/` 폴더는 Godot 에디터가 잠그고 있어 삭제 실패 — 에디터를 새 경로(`C:\Users\junjj\projects\juunj`)로 재오픈하면 삭제 가능.
 - [x] **엔진 버전 변경: 4.6 → 4.7** (2026-07-27) — 사용자가 실제 설치한 게 4.7이었음. 공식 4.6→4.7 마이그레이션 가이드 확인 결과, 이 프로젝트의 기존 ADR들이 의존하는 영역(JavaScriptBridge, 듀얼 포커스 UI, RNG, 정렬 안정성, floor/floori, duplicate())엔 문서화된 변경 없음 — ADR 재작업 불필요. 진짜 breaking change 3개는 `docs/engine-reference/godot/VERSION.md`에 기록(타입 리턴 상속, packed array setter, input device ID 상수). `CLAUDE.md`/`technical-preferences.md`의 Engine 필드도 4.7로 갱신.
-- [ ] /test-setup (gate-check 전 필수)
-- [ ] /ux-design (gate-check 전 필수)
+- [x] /test-setup 완료 (2026-07-28) — GUT 9.7.1 설치(`addons/gut/`), `.gutconfig.json`, 첫 실제 테스트(`tests/unit/combat/combat_formula_test.gd`, ADR-0008 엡실론 가드 회귀 테스트) 작성 및 헤드리스 실행으로 2/2 통과 확인, `.github/workflows/tests.yml` CI 작성. **주의**: 여러 제네릭 스킬/에이전트 파일(`coding-standards.md`였던 것 포함, 지금 수정함)이 GdUnit4를 기본값으로 잡고 있었으나 이 프로젝트의 실제 결정(technical-preferences.md, ADR-0001/0003/0005)은 GUT — `tests/README.md`에 이 불일치 기록해둠.
+- [x] /ux-design 부분 완료 (2026-07-28) — `design/ux/interaction-patterns.md`, `design/accessibility-requirements.md` 생성. **단, 사용자 부재 중 진행이라 새 디자인 판단은 안 하고 이미 결정된 것(ADR-0010/0011/0012, technical-preferences.md)만 정리함.** accessibility Target Tier=Basic은 제안일 뿐 — producer 확인 필요.
 - [ ] /review-all-gdds (선택 — 18개 전체 holistic 교차 일관성 패스)
 - [ ] art-bible 섹션 5-9 작성 (섹션 1-4만 완료)
 - [ ] 보스 스탯 밸런스 재검토 (prototype에서 발견 — 솔로 보스전 승률 0%, 장비 보정 미포함 기준)
@@ -101,7 +101,10 @@
 
 ## Next Session Entry Point
 
-남은 Foundation 3개(ADR-0001/0003/0004)는 실브라우저 검증(웹 export 후 실제 모바일 Safari/Chrome에서 저장 durability/광고 콜백 확인) 필요 — 이건 웹 export 설정 + 실기기/브라우저가 있어야 함. 그 다음 `/test-setup`, `/ux-design`.
+Pre-gate 체크리스트(architecture-review Phase 9 기준) 상태: `tests/`+CI ✅, `design/accessibility-requirements.md` ✅(Draft, producer 확인 필요), `design/ux/interaction-patterns.md` ✅(Draft). 남은 것:
+1. **accessibility-requirements.md의 Basic tier 제안을 producer가 확인/조정** (5분짜리 판단)
+2. Foundation 3개(ADR-0001/0003/0004) 실브라우저 검증 — 웹 export 후 실제 모바일 Safari/Chrome에서 저장 durability/광고 콜백 확인, 실기기 필요
+3. 그 다음 `/gate-check pre-production` 시도 가능, 통과하면 실제 코드 착수(`src/`)
 
 ## Session Extract — /architecture-review 2026-07-27
 
