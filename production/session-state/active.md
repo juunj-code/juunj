@@ -1,11 +1,11 @@
 # Session State — 바람의 탑 (Wind Tower)
 
-**Last Updated**: 2026-07-27
-**Stage**: Architecture review 완료, ADR 5/12 Accepted → Godot 프로젝트 생성됨, 코드 착수 준비 중
+**Last Updated**: 2026-07-28
+**Stage**: GDD 재검토 PASS 완료 → 코딩 착수로 전환 (design/architecture 문서는 이제 참고자료, 게이트 아님 — [[project_juunj-scope-pivot]] 참조)
 
 ## Current Task
 
-`/architecture-review` 완료(Verdict: CONCERNS, 블로킹 없음) → ADR 5개 Accepted(0002/0005/0006/0007/0011) → Godot 4.7.1 프로젝트 생성 및 스캐폴딩 완료 → ADR-0011 터치 스모크 테스트 PASS. 남은 것: ADR-0001/0003/0004(Foundation) 실브라우저 검증, `/test-setup`, `/ux-design`.
+2026-07-28 `/review-all-gdds`(FAIL, 5개 blocking) 이슈 전부 producer 판단 완료 및 GDD 반영 완료: (1) 장비→전투공식 연결(#1이 직접 조회하는 방식으로 확정, Core/Feature 레이어 위반 회피), (2) 히든방 드롭 모순(장비.md를 히든-트리거.md에 맞춤), (3) SceneManager.go_to() color 파라미터 추가, (4) "런 내 합류" MVP 컷 확정, (5) 히든방 진입 트리거를 #13→signal→#9 구독 방식으로 소유권 확정. 상세: `design/gdd/gdd-cross-review-2026-07-28.md`의 "Resolution Log" 섹션. **다음**: `/review-all-gdds` 재실행으로 PASS 확인 필요 — 아직 안 함.
 
 ## Progress Checklist
 
@@ -26,7 +26,11 @@
 - [x] /test-setup 완료 (2026-07-28) — GUT 9.7.1 설치(`addons/gut/`), `.gutconfig.json`, 첫 실제 테스트(`tests/unit/combat/combat_formula_test.gd`, ADR-0008 엡실론 가드 회귀 테스트) 작성 및 헤드리스 실행으로 2/2 통과 확인, `.github/workflows/tests.yml` CI 작성. **주의**: 여러 제네릭 스킬/에이전트 파일(`coding-standards.md`였던 것 포함, 지금 수정함)이 GdUnit4를 기본값으로 잡고 있었으나 이 프로젝트의 실제 결정(technical-preferences.md, ADR-0001/0003/0005)은 GUT — `tests/README.md`에 이 불일치 기록해둠.
 - [x] /ux-design 부분 완료 (2026-07-28) — `design/ux/interaction-patterns.md`, `design/accessibility-requirements.md` 생성. **단, 사용자 부재 중 진행이라 새 디자인 판단은 안 하고 이미 결정된 것(ADR-0010/0011/0012, technical-preferences.md)만 정리함.** accessibility Target Tier=Basic은 제안일 뿐 — producer 확인 필요.
 - [x] /review-all-gdds 완료 (2026-07-28) — **Verdict: FAIL**, 5개 진짜 blocking 이슈 발견. 리포트: `design/gdd/gdd-cross-review-2026-07-28.md`. **systems-index.md의 GDD 상태를 "Needs Revision"으로 자동 표시하지 않음** — 사용자 부재 중 실행이라 이 판단(어느 GDD를 언제 재작업할지)은 producer 확인 후 처리하는 게 맞다고 보고 보류함.
-- [ ] art-bible 섹션 5-9 작성 (섹션 1-4만 완료)
+- [x] 5개 blocking 이슈 전부 수정 (2026-07-28) — 장비/전투-공식/턴제-전투/상태이상/히든-트리거/씬-관리/game-concept/랜덤-던전/런-상태-관리/systems-index 총 10개 파일 수정. 상세: `gdd-cross-review-2026-07-28.md`의 Resolution Log 섹션.
+- [x] GDD 재검토 완료 (2026-07-28, 병렬 Consistency + Design Theory 2-pass) — **Verdict: PASS**. 재검토 중 발견된 추가 이슈 4개(랜덤-던전 잔존 오류, 영구-진행 의존성 오귀인, heal_multiplier 공식 누락, "적 강도 자동 조절" 미구현 약속)도 전부 수정 완료. 상세: `gdd-cross-review-2026-07-28.md`의 "Re-Review" 섹션. 남은 항목은 전부 non-blocking Warning(밸런스 튜닝·registry 정리 등)으로 코딩 착수를 막지 않음.
+- [x] **방향 전환 결정 (2026-07-28)**: 사용자가 제작 속도 우려(1주 vs 1년 비교)를 제기 → 남은 설계 문서 다듬기·ADR 완결·art-bible 후반부를 코딩 전 게이트로 취급하지 않기로 결정. 이제부터 GDD/ADR은 참고자료, 코딩 진행하며 필요시 인라인으로 갭 메움. 상세: [[project_juunj-scope-pivot]] 메모리 참조.
+- [ ] **다음 세션 최우선**: Godot/GDScript로 core loop(전투+던전+동료해금) 실제 코드 착수 (`src/`)
+- [ ] art-bible 섹션 5-9 작성 (섹션 1-4만 완료, 코딩 진행 중 필요할 때 채움 — 게이트 아님)
 - [ ] 보스 스탯 밸런스 재검토 (prototype에서 발견 — 솔로 보스전 승률 0%, 장비 보정 미포함 기준)
 
 ## 전체 개발 진행률 스냅샷 (2026-07-26, 사용자 질의 응답 기록)
@@ -115,12 +119,12 @@
 
 ## Next Session Entry Point
 
-**우선순위 1 — 이게 진짜 중요함**: `/review-all-gdds`가 FAIL로 나왔다. 5개 진짜 설계 모순 발견 (위 참조) — 전부 producer 판단이 필요한 결정(구현 방식 선택 또는 스코프 컷 여부)이라 자동으로 안 고치고 그대로 뒀다. 이미 작성된 아키텍처(12개 ADR)가 이 버그투성이 GDD 상태를 기반으로 만들어졌으므로, GDD 5개를 고친 뒤 영향받는 ADR(특히 장비/전투공식 관련)도 재검토 필요할 수 있음.
+**우선순위 1 — 방향 전환**: GDD 재검토 PASS 완료(2026-07-28). 사용자가 제작 속도(1주 vs 1년 비교) 우려로 스코프 피벗 결정 — 남은 프리프로덕션 게이트(ADR-0001/0003/0004 실브라우저 검증, art-bible 5-9, `/gate-check`)를 코딩 착수 전 필수 조건으로 더 이상 취급하지 않음. **바로 `src/`에 core loop(전투+던전+동료해금) 구현 착수**. GDD/ADR은 참고자료로만 사용 — 코딩 중 갭 발견 시 인라인으로 결정하고 넘어갈 것 (전체 파이프라인 재가동 안 함, 사용자가 다시 그 수준 리고 요청하지 않는 한). 상세 근거: [[project_juunj-scope-pivot]].
 
-**우선순위 2** (기존 대기 항목):
-1. accessibility-requirements.md의 Basic tier 제안 확인/조정
-2. Foundation 3개(ADR-0001/0003/0004) 실브라우저 검증 — 실기기 필요
-3. 위 다 끝나면 `/gate-check pre-production` → 통과 시 실제 코드 착수(`src/`)
+**보류 (게이트 아님, 필요할 때 처리)**:
+1. Foundation ADR 3개(0001/0003/0004) 실브라우저 검증 — 실제 해당 코드(로컬 세이브, 광고 브릿지, 씬 로딩) 작성 시점에 병행 검증
+2. accessibility-requirements.md의 Basic tier 제안 확인/조정
+3. art-bible 섹션 5-9, 보스 스탯 밸런스 재검토, `power_ring` 트레이드오프 등 — 실제 플레이 가능해진 뒤 튜닝 패스
 
 ## Session Extract — /architecture-review 2026-07-27
 
