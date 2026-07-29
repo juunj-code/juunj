@@ -1,11 +1,13 @@
 # Session State — 바람의 탑 (Wind Tower)
 
-**Last Updated**: 2026-07-28
-**Stage**: GDD 재검토 PASS 완료 → 코딩 착수로 전환 (design/architecture 문서는 이제 참고자료, 게이트 아님 — [[project_juunj-scope-pivot]] 참조)
+**Last Updated**: 2026-07-29
+**Stage**: 코딩 착수 (design/architecture 문서는 참고자료, 게이트 아님 — [[project_juunj-scope-pivot]] 참조). 사용자가 커밋/다음 시스템 선택 등 코딩 단계 전반에 자율 진행 승인 ([[project_juunj-review-autonomy]] 참조, 2026-07-29 확장).
 
 ## Current Task
 
-2026-07-28 `/review-all-gdds`(FAIL, 5개 blocking) 이슈 전부 producer 판단 완료 및 GDD 반영 완료: (1) 장비→전투공식 연결(#1이 직접 조회하는 방식으로 확정, Core/Feature 레이어 위반 회피), (2) 히든방 드롭 모순(장비.md를 히든-트리거.md에 맞춤), (3) SceneManager.go_to() color 파라미터 추가, (4) "런 내 합류" MVP 컷 확정, (5) 히든방 진입 트리거를 #13→signal→#9 구독 방식으로 소유권 확정. 상세: `design/gdd/gdd-cross-review-2026-07-28.md`의 "Resolution Log" 섹션. **다음**: `/review-all-gdds` 재실행으로 PASS 확인 필요 — 아직 안 함.
+**코딩 진행 중 (2026-07-29)** — Recommended Design Order 순서로 구현: #6 전투 공식 → #10 동료 데이터 → #11 적 데이터 → #7 적 AI → #12 상태이상 완료 (48/48 GUT 통과). **다음 후보**: #19 씬 관리, #13 런 상태 관리 (둘 다 Foundation/Core, 언블록 상태 — #13은 #19에 의존하므로 #19 먼저). **#17 로컬 세이브는 건너뜀 (블로킹 아님, 순서만 재조정)** — GDD Open Question #2가 명시: HTML5/IndexedDB 쓰기 durability를 실브라우저로 검증하는 ADR-0001이 "구현 시작 전 필수"인데 ADR-0001은 아직 Proposed(미검증). 웹 export 저장 동작을 추측으로 구현하지 않기 위해 그 검증 전까지는 순서상 뒤로 미룸. **#14 영구 진행도 #17에 의존하므로 같은 이유로 대기.**
+
+이전 완료 항목 (2026-07-28): `/review-all-gdds`(FAIL, 5개 blocking) 이슈 전부 producer 판단 완료 및 GDD 반영 완료, 이후 재검토 PASS. 상세: `design/gdd/gdd-cross-review-2026-07-28.md`.
 
 ## Progress Checklist
 
@@ -29,7 +31,8 @@
 - [x] 5개 blocking 이슈 전부 수정 (2026-07-28) — 장비/전투-공식/턴제-전투/상태이상/히든-트리거/씬-관리/game-concept/랜덤-던전/런-상태-관리/systems-index 총 10개 파일 수정. 상세: `gdd-cross-review-2026-07-28.md`의 Resolution Log 섹션.
 - [x] GDD 재검토 완료 (2026-07-28, 병렬 Consistency + Design Theory 2-pass) — **Verdict: PASS**. 재검토 중 발견된 추가 이슈 4개(랜덤-던전 잔존 오류, 영구-진행 의존성 오귀인, heal_multiplier 공식 누락, "적 강도 자동 조절" 미구현 약속)도 전부 수정 완료. 상세: `gdd-cross-review-2026-07-28.md`의 "Re-Review" 섹션. 남은 항목은 전부 non-blocking Warning(밸런스 튜닝·registry 정리 등)으로 코딩 착수를 막지 않음.
 - [x] **방향 전환 결정 (2026-07-28)**: 사용자가 제작 속도 우려(1주 vs 1년 비교)를 제기 → 남은 설계 문서 다듬기·ADR 완결·art-bible 후반부를 코딩 전 게이트로 취급하지 않기로 결정. 이제부터 GDD/ADR은 참고자료, 코딩 진행하며 필요시 인라인으로 갭 메움. 상세: [[project_juunj-scope-pivot]] 메모리 참조.
-- [ ] **다음 세션 최우선**: Godot/GDScript로 core loop(전투+던전+동료해금) 실제 코드 착수 (`src/`)
+- [x] **코드 착수** (2026-07-29): `src/core/combat_formula.gd` (#6, 14 tests), `src/core/{companion_data,skill_data,data_registry_loader,companion_registry}.gd` (#10, 4 tests), `src/core/{enemy_data,enemy_registry,data_validator}.gd` + `tools/validate_data.gd` (#11 + build-time skill_id/target_type/damage_multiplier validator, 9 tests). 27/27 GUT 통과. 커밋 4개 (combat formula, .uid sidecars, 동료 데이터, 적 데이터+validator).
+- [ ] **다음**: #19 씬 관리 또는 #7 적 AI (Foundation/Core, 언블록). 이후 #12 상태이상, #13 런 상태 관리, #14 영구 진행(→#17 필요, ADR-0001 검증 후), 마지막 #1 턴제 전투(7개 hard dep 전부 필요 — 아직 이르다, GDD의 "L(4세션+)" 예상 노력도 이를 반영).
 - [ ] art-bible 섹션 5-9 작성 (섹션 1-4만 완료, 코딩 진행 중 필요할 때 채움 — 게이트 아님)
 - [ ] 보스 스탯 밸런스 재검토 (prototype에서 발견 — 솔로 보스전 승률 0%, 장비 보정 미포함 기준)
 

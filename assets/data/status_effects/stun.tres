@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="StatusEffect" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/core/status_effect.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "stun"
+name = "기절"
+type = "SKIP_TURN"
+value = 0
+stat_target = ""
+duration = 1

@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="StatusEffect" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/core/status_effect.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "defense_up"
+name = "방어 강화"
+type = "STAT_MODIFY"
+value = 8
+stat_target = "def"
+duration = 2
