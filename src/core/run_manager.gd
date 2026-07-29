@@ -23,7 +23,8 @@ var state: String = "IDLE"
 var current_floor: int = 0
 var current_room_index: int = 0
 var is_success: bool = false
-var current_room_data: Variant = null # populated externally by #2 랜덤 던전 (not built yet)
+var current_room_data: Variant = null # derived from floor_rooms by _refresh_current_room_data()
+var floor_rooms: Array = [] ## Array[Array[Dictionary]] from DungeonGenerator.generate_run(), set in start_run()
 
 var _run_rng: RandomNumberGenerator = null
 
@@ -72,6 +73,8 @@ func start_run(party_config: Array) -> void:
 	current_room_index = 1
 	discovered_companions.clear()
 	_run_rng = RandomNumberGenerator.new()
+	floor_rooms = DungeonGenerator.generate_run(_run_rng)
+	_refresh_current_room_data()
 	_set_state("EXPLORING")
 	_go_to_scene("S-04", "FADE")
 
@@ -111,6 +114,8 @@ func reset() -> void:
 	inventory.clear()
 	current_floor = 0
 	current_room_index = 0
+	floor_rooms = []
+	current_room_data = null
 	_run_rng = null
 	is_success = false
 	_set_state("IDLE")
@@ -124,6 +129,7 @@ func advance_floor() -> void:
 		return
 	current_floor += 1
 	current_room_index = 1
+	_refresh_current_room_data()
 	floor_changed.emit(current_floor)
 	room_entered.emit(current_room_data)
 
@@ -132,6 +138,7 @@ func advance_room() -> void:
 		push_error("RunManager.advance_room() called while state=%s" % state)
 		return
 	current_room_index += 1
+	_refresh_current_room_data()
 	room_entered.emit(current_room_data)
 
 func add_discovered_companion(id: String) -> void:
@@ -140,6 +147,13 @@ func add_discovered_companion(id: String) -> void:
 		return
 	if not discovered_companions.has(id):
 		discovered_companions.append(id)
+
+func _refresh_current_room_data() -> void:
+	if floor_rooms.is_empty():
+		current_room_data = null
+		return
+	var floor: Array = floor_rooms[current_floor - 1]
+	current_room_data = floor[current_room_index - 1] if current_room_index - 1 < floor.size() else null
 
 func _set_state(new_state: String) -> void:
 	var old_state := state

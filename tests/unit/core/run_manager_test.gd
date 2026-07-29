@@ -105,10 +105,9 @@ func test_advance_room_increments() -> void: # AC6b
 	assert_eq(RunManager.current_room_index, 2)
 
 func test_advance_room_emits_room_entered_with_room_data() -> void: # AC6c
-	# Arrange
+	# Arrange -- start_run() now generates real floor_rooms via #2 DungeonGenerator
 	RunManager.start_run(_party_config())
-	var fake_room := {"type": "hidden"}
-	RunManager.current_room_data = fake_room
+	var expected_next_room = RunManager.floor_rooms[0][1] # floor 1, room index 2 (0-based 1)
 	var received: Array = []
 	RunManager.room_entered.connect(func(room_data): received.append(room_data))
 
@@ -117,7 +116,8 @@ func test_advance_room_emits_room_entered_with_room_data() -> void: # AC6c
 
 	# Assert
 	assert_eq(received.size(), 1)
-	assert_eq(received[0]["type"], "hidden")
+	assert_eq(received[0], expected_next_room)
+	assert_eq(RunManager.current_room_data, expected_next_room)
 
 func test_add_discovered_companion_dedupes() -> void: # AC7
 	# Arrange
