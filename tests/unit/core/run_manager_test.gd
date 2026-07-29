@@ -7,6 +7,13 @@ func before_each() -> void:
 	RunManager.reset()
 	RunManager._scene_navigator_override = Callable()
 	RunManager._progress_handoff_override = Callable()
+	var dir := DirAccess.open("user://")
+	for f in ["savegame.dat", "savegame.dat.tmp", "savegame.dat.corrupted.bak"]:
+		if dir.file_exists(f):
+			dir.remove(f)
+	SaveManager._sections = {}
+	ProgressManager.unlocked_companions = [ProgressManager.BASE_COMPANION_ID]
+	ProgressManager.highest_floor_reached = 0
 
 func _party_config() -> Array:
 	return [
@@ -128,7 +135,9 @@ func test_end_run_hands_off_discovered_companions_to_progress_manager() -> void:
 	RunManager.start_run(_party_config())
 	RunManager.add_discovered_companion("hidden_mage_02")
 	var received: Array = []
-	RunManager._progress_handoff_override = func(ids): received.assign(ids)
+	RunManager._progress_handoff_override = func(ids, _floor):
+		received.assign(ids)
+		return {"newly_unlocked": ids, "is_new_record": false}
 
 	# Act
 	RunManager.end_run(true)
@@ -178,7 +187,9 @@ func test_end_run_is_idempotent() -> void: # AC9b
 	# Arrange
 	RunManager.start_run(_party_config())
 	var call_count := [0] # mutable box -- GDScript lambdas capture outer ints by value
-	RunManager._progress_handoff_override = func(_ids): call_count[0] += 1
+	RunManager._progress_handoff_override = func(_ids, _floor):
+		call_count[0] += 1
+		return {"newly_unlocked": [], "is_new_record": false}
 
 	# Act
 	RunManager.end_run(true)
@@ -198,3 +209,24 @@ func test_advance_floor_at_max_floor_rejected() -> void: # AC10
 	# Assert
 	assert_eq(RunManager.current_floor, 3)
 	assert_push_error("max floor")
+
+func test_end_run_wires_into_real_progress_manager() -> void:
+	# Regression test: the defensive get_node_or_null() handoff used to check
+	# for a "commit_discovered" method that ProgressManager never actually
+	# had (its real method is commit_run_end) -- so real end_run() silently
+	# never persisted anything even with ProgressManager fully built. This
+	# proves the wiring against the real autoload, not the test-seam override.
+
+	# Arrange
+	RunManager.start_run(_party_config())
+	RunManager.add_discovered_companion("companion_tank_01")
+	RunManager.current_floor = 2
+
+	# Act
+	RunManager.end_run(true)
+
+	# Assert
+	assert_eq(RunManager.last_newly_unlocked, ["companion_tank_01"])
+	assert_true(RunManager.last_is_new_record)
+	assert_true(ProgressManager.is_unlocked("companion_tank_01"))
+	assert_eq(ProgressManager.highest_floor_reached, 2)

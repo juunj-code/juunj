@@ -46,7 +46,13 @@ var current_enemies: Array:
 var discovered_companions: Array[String] = []
 var inventory: Array[String] = [] ## equipment_id list, owned per design/gdd/장비.md
 
-## Test seams -- see ponytail note above.
+## Result data #16 런 결과 reads (assembled here per its GDD -- #16 doesn't
+## talk to #14 directly). Set by end_run()'s progress handoff.
+var last_newly_unlocked: Array = []
+var last_is_new_record: bool = false
+
+## Test seams -- see ponytail note above. Handoff override signature:
+## func(discovered_ids: Array, floor: int) -> Dictionary{newly_unlocked, is_new_record}
 var _scene_navigator_override: Callable = Callable()
 var _progress_handoff_override: Callable = Callable()
 
@@ -150,8 +156,14 @@ func _go_to_scene(scene_id: String, transition: String) -> void:
 
 func _handoff_discovered_companions() -> void:
 	if _progress_handoff_override.is_valid():
-		_progress_handoff_override.call(discovered_companions)
+		var result: Dictionary = _progress_handoff_override.call(discovered_companions, current_floor)
+		last_newly_unlocked = result.get("newly_unlocked", [])
+		last_is_new_record = result.get("is_new_record", false)
 		return
 	var progress_manager := get_node_or_null("/root/ProgressManager")
-	if progress_manager and progress_manager.has_method("commit_discovered"):
-		progress_manager.commit_discovered(discovered_companions)
+	if progress_manager and progress_manager.has_method("commit_run_end"):
+		last_is_new_record = current_floor > progress_manager.highest_floor_reached
+		last_newly_unlocked = progress_manager.commit_run_end(discovered_companions, current_floor)
+	else:
+		last_newly_unlocked = []
+		last_is_new_record = false
