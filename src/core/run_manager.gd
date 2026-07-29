@@ -17,6 +17,7 @@ signal combat_exited(victory: bool)
 signal run_ended(success: bool)
 signal state_changed(old_state: String, new_state: String)
 signal room_entered(room_data)
+signal equipment_dropped(item_data: EquipmentData)
 
 var state: String = "IDLE"
 var current_floor: int = 0
@@ -43,6 +44,7 @@ var current_enemies: Array:
 		return _current_enemies
 
 var discovered_companions: Array[String] = []
+var inventory: Array[String] = [] ## equipment_id list, owned per design/gdd/장비.md
 
 ## Test seams -- see ponytail note above.
 var _scene_navigator_override: Callable = Callable()
@@ -100,6 +102,7 @@ func reset() -> void:
 	_party.clear()
 	_current_enemies.clear()
 	discovered_companions.clear()
+	inventory.clear()
 	current_floor = 0
 	current_room_index = 0
 	_run_rng = null

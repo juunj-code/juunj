@@ -20,6 +20,7 @@ CompanionRegistry="*res://src/core/companion_registry.gd"
 EnemyRegistry="*res://src/core/enemy_registry.gd"
 StatusEffectRegistry="*res://src/core/status_effect_registry.gd"
 RunManager="*res://src/core/run_manager.gd"
+EquipmentDatabase="*res://src/core/equipment_database.gd"
 
 [display]
 
