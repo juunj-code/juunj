@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/core/enemy_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "enemy_balance_01"
+name = "떠도는 병사"
+sprite_id = ""
+base_hp = 45
+base_atk = 13
+base_def = 7
+base_spd = 5
+skill_id = "skill_enemy_slam"
+is_boss = false

@@ -17,6 +17,7 @@ config/icon="res://icon.svg"
 [autoload]
 
 CompanionRegistry="*res://src/core/companion_registry.gd"
+EnemyRegistry="*res://src/core/enemy_registry.gd"
 
 [display]
 

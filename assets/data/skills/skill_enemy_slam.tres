@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/core/skill_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "skill_enemy_slam"
+name = "내리치기"
+description = "밸런스형 적의 표준 공격."
+target_type = "enemy"
+damage_multiplier = 1.0
+heal_multiplier = 0.0
+effect_id = ""
+cost_sp = 0
