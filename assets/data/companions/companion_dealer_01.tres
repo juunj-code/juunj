@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="CompanionData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/core/companion_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "companion_dealer_01"
+name = "빠른 손 리사"
+description = "아무도 그녀가 언제부터 탑에 있었는지 모른다."
+class_type = "dealer"
+portrait_id = ""
+color_accent = Color(0.95, 0.75, 0.15, 1)
+base_hp = 70
+base_atk = 28
+base_def = 7
+base_spd = 8
+skill_id = "skill_heavy_strike"
+is_hidden = true
+unlock_condition_id = "hidden_trigger_dealer_01"

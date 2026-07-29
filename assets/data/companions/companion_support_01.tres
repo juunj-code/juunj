@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="CompanionData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/core/companion_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "companion_support_01"
+name = "노래하는 유이"
+description = "그녀의 노래가 들리는 방은 언제나 안전하다고 한다."
+class_type = "support"
+portrait_id = ""
+color_accent = Color(0.6, 0.85, 0.9, 1)
+base_hp = 80
+base_atk = 14
+base_def = 10
+base_spd = 9
+skill_id = "skill_heal_light"
+is_hidden = true
+unlock_condition_id = "hidden_trigger_support_01"

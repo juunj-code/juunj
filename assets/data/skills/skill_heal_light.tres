@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/core/skill_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "skill_heal_light"
+name = "가벼운 치유"
+description = "아군 대상 회복."
+target_type = "ally"
+damage_multiplier = 1.0
+heal_multiplier = 0.3
+effect_id = ""
+cost_sp = 2

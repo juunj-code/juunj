@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/core/skill_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "skill_guard_bash"
+name = "방패 강타"
+description = "낮은 배율의 방어형 타격."
+target_type = "enemy"
+damage_multiplier = 1.1
+heal_multiplier = 0.0
+effect_id = ""
+cost_sp = 2

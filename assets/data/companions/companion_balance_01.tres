@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="CompanionData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/core/companion_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "companion_balance_01"
+name = "검사 아이라"
+description = "탑에 처음 들어온 자를 언제나 마중 나오는 검사."
+class_type = "balance"
+portrait_id = ""
+color_accent = Color(0.95, 0.55, 0.2, 1)
+base_hp = 100
+base_atk = 18
+base_def = 12
+base_spd = 6
+skill_id = "skill_slash"
+is_hidden = false
+unlock_condition_id = ""
