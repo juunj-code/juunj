@@ -5,7 +5,15 @@
 
 ## Current Task
 
-**코딩 진행 중 (2026-07-29)** — Recommended Design Order 순서로 구현: #6 전투 공식 → #10 동료 데이터 → #11 적 데이터 → #7 적 AI → #12 상태이상 완료 (48/48 GUT 통과). **다음 후보**: #19 씬 관리, #13 런 상태 관리 (둘 다 Foundation/Core, 언블록 상태 — #13은 #19에 의존하므로 #19 먼저). **#17 로컬 세이브는 건너뜀 (블로킹 아님, 순서만 재조정)** — GDD Open Question #2가 명시: HTML5/IndexedDB 쓰기 durability를 실브라우저로 검증하는 ADR-0001이 "구현 시작 전 필수"인데 ADR-0001은 아직 Proposed(미검증). 웹 export 저장 동작을 추측으로 구현하지 않기 위해 그 검증 전까지는 순서상 뒤로 미룸. **#14 영구 진행도 #17에 의존하므로 같은 이유로 대기.**
+**코딩 진행 중 (2026-07-29)** — Recommended Design Order 순서로 구현: #6 전투 공식 → #10 동료 데이터 → #11 적 데이터 → #7 적 AI → #12 상태이상 → #19 씬 관리(순수 로직만) → #13 런 상태 관리 완료. **73/73 GUT 통과, 8개 커밋.** #13은 SceneManager(#19 Node)·ProgressManager(#14)가 아직 없어도 되도록 defensive get_node_or_null + overridable Callable 테스트 seam으로 구현 — 나중에 그 오토로드들이 생겨도 RunManager 코드 변경 불필요.
+
+**Core/Foundation 순수 로직 계층이 거의 소진됨** — 남은 항목은 실제 엔진 통합(Node/Tween/씬 파일) 또는 미검증 ADR이 필요:
+- **#19 씬 관리**: `SceneTransitionRules`(순수 로직: 전환 타이밍/그래프/타임아웃 산수)만 완료. `SceneManager` 오토로드 자체(실제 Tween, CanvasLayer, `ResourceLoader.load_threaded_request/get`, 시그널)는 보류 — `Boot.tscn` 등 실제 씬 파일이 하나도 없어 지금 만들면 검증 불가능. `#2`/`#3`/`#13`이 실제 화면을 갖게 되면 이 Node 배선을 완성할 것.
+- **#17 로컬 세이브**: 여전히 대기 — ADR-0001(HTML5/IndexedDB 쓰기 durability) 실브라우저 검증이 "구현 시작 전 필수"인데 Proposed 상태.
+- **#13 런 상태 관리**: **완료.** RunManager 오토로드 (state machine, party/enemy runtime state, floor/room 진행, discovered_companions, 시그널 5종) — SceneManager/ProgressManager 호출은 defensive+override seam이라 그 시스템들 없이도 전부 테스트 가능했음.
+- **#14/#15/#16**: `#13`은 이제 준비됨. `#15 파티 구성`(#10,#13 dep — 둘 다 완료, 언블록)이 다음 후보. `#14 영구 진행`은 `#17`(ADR-0001 대기)에도 의존하므로 여전히 대기. `#16 런 결과`는 `#14`에 의존하므로 연쇄 대기.
+
+**다음 세션 후보 (우선순위)**: (a) `#15 파티 구성` — 완전히 언블록, 다음 자연스러운 스텝. (b) 실제 씬 파일들을 만들어 `#19` SceneManager Node(실제 Tween/시그널) 완성. (c) ADR-0001/0004를 실브라우저로 검증해 `#17`/`#19` 완전판 블로커 해소.
 
 이전 완료 항목 (2026-07-28): `/review-all-gdds`(FAIL, 5개 blocking) 이슈 전부 producer 판단 완료 및 GDD 반영 완료, 이후 재검토 PASS. 상세: `design/gdd/gdd-cross-review-2026-07-28.md`.
 
