@@ -2,9 +2,10 @@ class_name DungeonGenerator
 extends RefCounted
 ## Procedural (room-catalog-based) dungeon generation. See design/gdd/랜덤-던전.md.
 ## Pure except for two runtime lookups: EnemyRegistry (real, always present)
-## and #9 히든 트리거's get_next_companion_id() (not built yet -- looked up
+## and #9 히든 트리거's start_new_run()/get_next_companion_id() (looked up
 ## defensively via find_child(), same pattern as run_result.gd's AdManager/
-## SceneManager lookups. Hidden rooms just get companion_id="" until #9 exists).
+## SceneManager lookups -- keeps this Core-layer file from hard-depending on
+## a Feature-layer autoload).
 
 const COMBAT_ROOMS_PER_FLOOR := {1: 2, 2: 2, 3: 1}
 const ENEMIES_PER_COMBAT_ROOM := {1: 2, 2: 3, 3: 3}
@@ -14,6 +15,7 @@ const HIDDEN_ROOM_CHANCE := 0.5
 ## (index 0 = floor 1). Each room: {"type": "combat"|"hidden"|"boss",
 ## "enemy_ids": Array[String], "companion_id": String ("" unless hidden)}.
 static func generate_run(rng: RandomNumberGenerator) -> Array:
+	_reset_hidden_trigger_pool(rng)
 	var floors: Array = []
 	var floor1_had_hidden := false
 
@@ -81,6 +83,18 @@ static func _next_companion_id_for_hidden_room() -> String:
 	if trigger and trigger.has_method("get_next_companion_id"):
 		return trigger.get_next_companion_id()
 	return ""
+
+## Reshuffles #9's companion-id pool for this run, before any hidden rooms
+## below draw from it. No-op if the HiddenTrigger autoload isn't present
+## (e.g. isolated unit tests calling _generate_floor()/generate_run() without
+## the full autoload tree).
+static func _reset_hidden_trigger_pool(rng: RandomNumberGenerator) -> void:
+	var tree := Engine.get_main_loop() as SceneTree
+	if tree == null:
+		return
+	var trigger := tree.root.find_child("HiddenTrigger", true, false)
+	if trigger and trigger.has_method("start_new_run"):
+		trigger.start_new_run(rng)
 
 static func _shuffle(arr: Array, rng: RandomNumberGenerator) -> void:
 	for i in range(arr.size() - 1, 0, -1):

@@ -24,6 +24,7 @@ EquipmentDatabase="*res://src/core/equipment_database.gd"
 SaveManager="*res://src/core/save_manager.gd"
 ProgressManager="*res://src/core/progress_manager.gd"
 RunManager="*res://src/core/run_manager.gd"
+HiddenTrigger="*res://src/core/hidden_trigger.gd"
 
 [display]
 
