@@ -5,7 +5,9 @@
 
 ## Current Task
 
-**코딩 진행 중 (2026-07-30)** — #6 전투 공식 → #10 동료 데이터 → #11 적 데이터 → #7 적 AI → #12 상태이상 → #19 씬 관리(순수 로직만) → #13 런 상태 관리 → #15 파티 구성 → #4 장비 → #17 로컬 세이브(동기 코어만) → #14 영구 진행 → #16 런 결과 → #2 랜덤 던전 → #1 턴제 전투 → **#9 히든 트리거 완료**. MVP 18개 중 남은 건 #3 동료 해금(이제 언블록됨) · #20 UI/HUD · #18 광고 통합뿐. **148/148 GUT 통과, 20개 커밋.**
+**코딩 진행 중 (2026-07-30)** — #6 전투 공식 → #10 동료 데이터 → #11 적 데이터 → #7 적 AI → #12 상태이상 → #19 씬 관리(순수 로직만) → #13 런 상태 관리 → #15 파티 구성 → #4 장비 → #17 로컬 세이브(동기 코어만) → #14 영구 진행 → #16 런 결과 → #2 랜덤 던전 → #1 턴제 전투 → #9 히든 트리거 → **#3 동료 해금 완료**. MVP 18개 중 남은 건 **#20 UI/HUD**(다음 우선순위, #3까지 완료로 언블록) · #18 광고 통합뿐. **154/154 GUT 통과, 21개 커밋.**
+
+**#3 구현 메모**: `CompanionUnlock`(src/core/companion_unlock.gd, 오토로드)는 `HiddenTrigger.companion_discovered`를 구독해 #10 조회 → `RunManager.add_discovered_companion()`(이미 #13이 dedupe/state-guard를 갖고 있었음, 재사용) → FLASH 연출(디펜시브 `find_child("SceneManager")`, #19 미존재라 현재는 no-op) → `companion_unlocked_this_run` 신호 발신까지만 담당. GDD의 `await popup_confirmed`(팝업 닫힐 때까지 블로킹)는 스킵 — #20이 없어 검증 불가능하고 구 AC6이 이미 #20 스코프로 이관됨; #20 배선 시점에 추가. **부수 발견**: `CompanionUnlock`이 실제 오토로드로 상시 리스닝하게 되면서 `hidden_trigger_test.gd`가 `RunManager.state`를 EXPLORING으로 안 맞춰놨던 게 드러남(이전엔 리스너가 없어 무해했음) — `before_each()`에 `RunManager.state = "EXPLORING"` 추가해 수정.
 
 **#9 구현 메모**: `HiddenTrigger`(src/core/hidden_trigger.gd, 오토로드)는 `RunManager.room_entered` 신호를 자체 구독(#13은 #9 존재를 모름, Core→Feature 단방향 유지). 중요 수정: GDD 원문의 `hidden_mage_02` 등 플레이스홀더 풀은 #10의 실제 데이터(companion_dealer_01/support_01/tank_01, `is_hidden=true`)와 매칭되지 않아 폐기 — 대신 `CompanionRegistry`에서 `is_hidden=true`인 동료를 동적으로 풀링하도록 구현(로스터 변경에 자동 동기화, GDD 상수 하드코딩보다 정확). `DungeonGenerator.generate_run()`이 플로어 생성 전에 `HiddenTrigger.start_new_run(rng)`를 defensive find_child로 호출해 풀을 리셋 — 던전 생성이 히든방마다 `get_next_companion_id()`를 동기 호출하므로 런 시작 시점에 시그널이 아닌 직접 리셋이 필요했음(시그널 기반으로는 타이밍이 늦음).
 

@@ -8,6 +8,8 @@ extends GutTest
 func before_each() -> void:
 	ProgressManager.unlocked_companions = [ProgressManager.BASE_COMPANION_ID]
 	RunManager.inventory = []
+	RunManager.discovered_companions = []
+	RunManager.state = "EXPLORING" # real invariant: hidden rooms only fire while exploring (#3 CompanionUnlock now listens too)
 
 func _hidden_room(companion_id: String) -> Dictionary:
 	return {"type": "hidden", "enemy_ids": [], "companion_id": companion_id}
