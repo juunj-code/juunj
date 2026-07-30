@@ -5,9 +5,11 @@
 
 ## Current Task
 
-**코딩 진행 중 (2026-07-30)** — #6 전투 공식 → #10 동료 데이터 → #11 적 데이터 → #7 적 AI → #12 상태이상 → #19 씬 관리(순수 로직만) → #13 런 상태 관리 → #15 파티 구성 → #4 장비 → #17 로컬 세이브(동기 코어만) → #14 영구 진행 → #16 런 결과 → #2 랜덤 던전 → #1 턴제 전투 → #9 히든 트리거 → **#3 동료 해금 완료**. MVP 18개 중 남은 건 **#20 UI/HUD**(다음 우선순위, #3까지 완료로 언블록) · #18 광고 통합뿐. **154/154 GUT 통과, 21개 커밋.**
+**코딩 진행 중 (2026-07-30)** — #6 전투 공식 → #10 동료 데이터 → #11 적 데이터 → #7 적 AI → #12 상태이상 → #19 씬 관리(순수 로직만) → #13 런 상태 관리 → #15 파티 구성 → #4 장비 → #17 로컬 세이브(동기 코어만) → #14 영구 진행 → #16 런 결과 → #2 랜덤 던전 → #1 턴제 전투 → #9 히든 트리거 → #3 동료 해금 → **#20 UI/HUD 완료 (순수 로직만)**. MVP 18개 중 남은 건 **#18 광고 통합**뿐. **166/166 GUT 통과, 22개 커밋.**
 
 **#3 구현 메모**: `CompanionUnlock`(src/core/companion_unlock.gd, 오토로드)는 `HiddenTrigger.companion_discovered`를 구독해 #10 조회 → `RunManager.add_discovered_companion()`(이미 #13이 dedupe/state-guard를 갖고 있었음, 재사용) → FLASH 연출(디펜시브 `find_child("SceneManager")`, #19 미존재라 현재는 no-op) → `companion_unlocked_this_run` 신호 발신까지만 담당. GDD의 `await popup_confirmed`(팝업 닫힐 때까지 블로킹)는 스킵 — #20이 없어 검증 불가능하고 구 AC6이 이미 #20 스코프로 이관됨; #20 배선 시점에 추가. **부수 발견**: `CompanionUnlock`이 실제 오토로드로 상시 리스닝하게 되면서 `hidden_trigger_test.gd`가 `RunManager.state`를 EXPLORING으로 안 맞춰놨던 게 드러남(이전엔 리스너가 없어 무해했음) — `before_each()`에 `RunManager.state = "EXPLORING"` 추가해 수정.
+
+**#20 구현 범위 결정**: #19 SceneManager Node와 동일한 이유(`S-03/04/05/06` .tscn 실 씬 파일이 하나도 없음)로 실제 Control/CanvasLayer/터치 UI Node 구현은 스킵 — 만들어도 헤드리스로 검증 불가능한 보일러플레이트일 뿐. 대신 AC 중 순수 로직/포맷팅으로 테스트 가능한 부분만 뽑아냄: `HudRules`(src/core/hud_rules.gd, static — SP 점 표시 AC7, 층/방 텍스트 AC6, 스킬 비활성 판정 AC2, 생존 타겟 필터링 AC3)와 `HudPopupQueue`(src/core/hud_popup_queue.gd, 인스턴스 — 팝업 단일 활성+FIFO 큐, Core Rule 3/AC4/AC5). AC1(HP바 갱신)·AC8(상태이상 아이콘)은 신호→렌더 그대로 바인딩이라 로직이 없어 함수 없음. 실제 Node 배선은 #2/#3/#13이 진짜 화면을 갖게 되는 시점(#19와 동일 트리거)에 이 뽑아낸 로직을 호출하는 형태로 완성할 것.
 
 **#9 구현 메모**: `HiddenTrigger`(src/core/hidden_trigger.gd, 오토로드)는 `RunManager.room_entered` 신호를 자체 구독(#13은 #9 존재를 모름, Core→Feature 단방향 유지). 중요 수정: GDD 원문의 `hidden_mage_02` 등 플레이스홀더 풀은 #10의 실제 데이터(companion_dealer_01/support_01/tank_01, `is_hidden=true`)와 매칭되지 않아 폐기 — 대신 `CompanionRegistry`에서 `is_hidden=true`인 동료를 동적으로 풀링하도록 구현(로스터 변경에 자동 동기화, GDD 상수 하드코딩보다 정확). `DungeonGenerator.generate_run()`이 플로어 생성 전에 `HiddenTrigger.start_new_run(rng)`를 defensive find_child로 호출해 풀을 리셋 — 던전 생성이 히든방마다 `get_next_companion_id()`를 동기 호출하므로 런 시작 시점에 시그널이 아닌 직접 리셋이 필요했음(시그널 기반으로는 타이밍이 늦음).
 
