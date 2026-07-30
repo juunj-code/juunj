@@ -14,10 +14,6 @@ Each agent owns a specific domain, enforcing separation of concerns and quality.
 > **Note**: Engine-specialist agents exist for Godot, Unity, and Unreal with
 > dedicated sub-specialists. Use the set matching your engine.
 
-## Project Structure
-
-@.claude/docs/directory-structure.md
-
 ## Engine Version Reference
 
 @docs/engine-reference/godot/VERSION.md
@@ -39,6 +35,8 @@ Every task follows: **Question -> Options -> Decision -> Draft -> Approval**
 - Agents MUST show drafts or summaries before requesting approval
 - Multi-file changes require explicit approval for the full changeset
 - No commits without user instruction
+
+**Coding-phase exception (2026-07-30, confirmed via `/doctor`)**: during active implementation of the MVP systems, the user granted standing autonomy to proceed through commits and next-system selection without per-step approval — see `production/session-state/active.md` and memory `project_juunj-review-autonomy`. The global `~/.claude/rules/ecc/common/` pack's mandatory pre-coding design-gate and automatic code-reviewer/tdd-guide/planner delegation rules are likewise intentionally NOT enforced here for the same reason; that global pack is left unchanged for other projects.
 
 See `docs/COLLABORATIVE-DESIGN-PRINCIPLE.md` for full protocol and examples.
 

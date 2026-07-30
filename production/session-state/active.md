@@ -1,11 +1,15 @@
 # Session State — 바람의 탑 (Wind Tower)
 
-**Last Updated**: 2026-07-29
+**Last Updated**: 2026-07-30
 **Stage**: 코딩 착수 (design/architecture 문서는 참고자료, 게이트 아님 — [[project_juunj-scope-pivot]] 참조). 사용자가 커밋/다음 시스템 선택 등 코딩 단계 전반에 자율 진행 승인 ([[project_juunj-review-autonomy]] 참조, 2026-07-29 확장).
 
 ## Current Task
 
-**코딩 진행 중 (2026-07-29)** — #6 전투 공식 → #10 동료 데이터 → #11 적 데이터 → #7 적 AI → #12 상태이상 → #19 씬 관리(순수 로직만) → #13 런 상태 관리 → #15 파티 구성 → #4 장비 → #17 로컬 세이브(동기 코어만) → #14 영구 진행 완료. **116/116 GUT 통과, 14개 커밋.**
+**코딩 진행 중 (2026-07-30)** — #6 전투 공식 → #10 동료 데이터 → #11 적 데이터 → #7 적 AI → #12 상태이상 → #19 씬 관리(순수 로직만) → #13 런 상태 관리 → #15 파티 구성 → #4 장비 → #17 로컬 세이브(동기 코어만) → #14 영구 진행 → #16 런 결과 → #2 랜덤 던전 → **#1 턴제 전투 완료 (commit a09dbe9)**. MVP의 8-hard-dep 최종 보스였던 #1이 끝나 Core/Gameplay 레이어가 사실상 소진됨. **141/141 GUT 통과, 19개 커밋.**
+
+**#1 구현 메모**: `TurnBattle`(src/core/turn_battle.gd)은 시퀀싱/입력 대기/디스패치만 담당, 데미지·턴순서·SP는 #6/#7/#12에 위임. Unit은 duck-typed Dictionary(setup()에서 CompanionRunState/EnemyRunState + registry로 1회 빌드, "run_state" 백레퍼런스로 _sync() 동기화). `SkillRegistry` 오토로드 신규 추가(#10/#11 registry와 동일 패턴, DataRegistryLoader 래퍼).
+**발견+수정한 테스트 버그**: 이전 세션(또는 이전 나)이 짠 `test_dot_ticks_and_skip_turn_together`가 "기절→해당 유닛 턴 스킵→run_battle()이 그 라운드 끝에서 멈출 것"이라고 잘못 가정했음. 실제로는 GDD(턴제-전투.md: "기절은 1턴 — 다음 라운드 정상 행동")대로 스턴은 정확히 1턴만 지속되므로, skip_turn은 그 유닛 차례만 건너뛰고 코루틴은 계속 진행 — 2라운드째에 스턴이 풀린 동료가 `await action_selected`에 걸려야 비로소 멈춤. 그 사이 poison이 두 번 틱함(1번이 아니라). 구현이 아니라 테스트 쪽 가정이 틀렸던 것으로 판단, GDD 대조 확인 후 테스트 기대값을 수정(hp 95→89, duration 2→1).
+**새로 등장한 재현 패턴**: `class_name`이 새로 추가된 .gd 파일은 Godot 전역 스크립트 클래스 캐시에 바로 안 잡힘 → GUT가 "Could not find type X" 파싱 에러를 냄. 고치는 법: `godot --headless --editor --quit --path .` 로 헤드리스 에디터를 한 번 띄웠다 종료하면 캐시 갱신됨 (이전 세션 CombatFormula 때도 동일 증상, 이번 TurnBattle도 동일하게 해결).
 
 **중요 전환**: `#17 로컬 세이브`를 "ADR-0001 검증 전까지 완전 차단"으로 잘못 판단했던 걸 정정함 — GUT 테스트는 데스크톱 Godot로 돌아가므로 `FileAccess`는 실제 동기 I/O이고, ADR-0001이 막는 건 오직 웹 익스포트의 IndexedDB durability 뿐. 그래서 섹션 API·원자적 쓰기·손상 감지·용량 상한 등 동기 코어는 지금 정상 구현+테스트했고, 재시도/타임아웃/큐(웹 비동기 전용 매커니즘)만 ADR-0001 Accepted 이후로 미룸. 이 판단 덕분에 `#14 영구 진행`도 바로 이어서 구현 가능해짐 — 앞으로 비슷한 "ADR 필수" GDD를 만나면 먼저 "데스크톱에서 테스트 가능한 부분과 실제 웹 검증이 필요한 부분"을 나눠볼 것.
 
