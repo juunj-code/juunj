@@ -1,11 +1,15 @@
 # Session State — 바람의 탑 (Wind Tower)
 
-**Last Updated**: 2026-07-30
+**Last Updated**: 2026-07-31
 **Stage**: 코딩 착수 (design/architecture 문서는 참고자료, 게이트 아님 — [[project_juunj-scope-pivot]] 참조). 사용자가 커밋/다음 시스템 선택 등 코딩 단계 전반에 자율 진행 승인 ([[project_juunj-review-autonomy]] 참조, 2026-07-29 확장).
 
 ## Current Task
 
-**코딩 진행 중 (2026-07-30)** — #6 전투 공식 → #10 동료 데이터 → #11 적 데이터 → #7 적 AI → #12 상태이상 → #19 씬 관리(순수 로직만) → #13 런 상태 관리 → #15 파티 구성 → #4 장비 → #17 로컬 세이브(동기 코어만) → #14 영구 진행 → #16 런 결과 → #2 랜덤 던전 → #1 턴제 전투 → #9 히든 트리거 → #3 동료 해금 → **#20 UI/HUD 완료 (순수 로직만)**. MVP 18개 중 남은 건 **#18 광고 통합**뿐. **166/166 GUT 통과, 22개 커밋.**
+**코딩 진행 중 (2026-07-31)** — #6 전투 공식 → #10 동료 데이터 → #11 적 데이터 → #7 적 AI → #12 상태이상 → #19 씬 관리(순수 로직만) → #13 런 상태 관리 → #15 파티 구성 → #4 장비 → #17 로컬 세이브(동기 코어만) → #14 영구 진행 → #16 런 결과 → #2 랜덤 던전 → #1 턴제 전투 → #9 히든 트리거 → #3 동료 해금 → #20 UI/HUD(순수 로직) → **#19 SceneManager Node + 실제 화면 6개(Boot/MainMenu/PartySelect/Dungeon Exploration/Battle/RunResult) 완료**. MVP 18개 중 남은 건 **#18 광고 통합**뿐. **169/169 GUT 통과, 24개 커밋.**
+
+**2026-07-31 세션 요약 (화면 배선)**: `SceneManager` 오토로드(Tween 기반 fade/flash, ADR-0004에 따라 동기 씬 스왑) 및 `project.godot`의 `run/main_scene`을 `Boot.tscn`으로 설정. `TurnBattle`/`CompanionUnlock`에 #20 UI-HUD.md 신호 계약(`unit_hp_changed`/`unit_sp_changed`/`turn_started`/`player_input_requested`/`status_effects_changed`/`popup_confirmed`) 추가 — 이전 세션에서 순수 로직만 뽑아뒀던 `HudRules`/`HudPopupQueue`를 실제 `DungeonExplorationScreen`이 소비하도록 배선 완료. `BattleScreen`(S-05)이 `TurnBattle`을 직접 소유·구동(setup → run_battle, 버튼으로 submit_action/submit_target 전달)하고 `RunResultScreen`(S-06)은 `RunResult.build_display_data()`의 순수 렌더. 6개 화면 전부 연결되어 Boot→MainMenu→PartySelect→Dungeon→Battle→RunResult 풀 루프가 처음으로 실제로 플레이 가능한 상태.
+**발견+수정한 버그 2건**: (1) `run_result_test.gd`의 `SceneManagerSpy`가 이제 진짜 오토로드로 존재하는 `SceneManager`와 이름이 겹쳐 `find_child` 탐색에서 항상 밀림 — 테스트 안에서 실제 오토로드를 잠깐 트리에서 빼고 spy로 교체하는 방식으로 수정. (2) `BattleScreen.tscn`이 실존하게 되자, 다른 테스트가 남긴 미완료 비동기 `SceneManager.go_to("S-05",...)`가 엉뚱한 테스트 프레임 도중에 완료되어 `RunManager.state=IDLE`인 채로 `BattleScreen._ready()`가 실행 → `TurnBattle.setup([], [])` → `run_battle()`의 `while true`가 빈 turn_order로 영원히 도는 행(hang) 발생, GUT 전체가 멈춤. `run_battle()`에 빈 turn_order 가드 추가(즉시 종료) + `BattleScreen._ready()`에 `RunManager.state != "IN_COMBAT"` 방어 가드 추가로 해결. 부수적으로 `scene_transition_rules.gd`의 선언된 전환 그래프에 `S-05→S-06`(전투 패배 시 결과 화면 직행) 엣지가 누락돼 있던 것도 발견해 추가.
+**알려진 미완 항목 (게이트 아님)**: `PartySelectScreen`은 장비 슬롯 선택 UI 없이 무기/방어구 슬롯을 항상 빈 문자열로 시작(#4 스탯 보정 미적용); `BattleScreen`은 SP 수치를 표시하지 않음(`HudRules.sp_dots()`는 있지만 아직 미배선); AC8(상태이상 아이콘)도 아직 렌더 없음. 전부 "플레이 가능"엔 지장 없는 후속 폴리시 패스.
 
 **#3 구현 메모**: `CompanionUnlock`(src/core/companion_unlock.gd, 오토로드)는 `HiddenTrigger.companion_discovered`를 구독해 #10 조회 → `RunManager.add_discovered_companion()`(이미 #13이 dedupe/state-guard를 갖고 있었음, 재사용) → FLASH 연출(디펜시브 `find_child("SceneManager")`, #19 미존재라 현재는 no-op) → `companion_unlocked_this_run` 신호 발신까지만 담당. GDD의 `await popup_confirmed`(팝업 닫힐 때까지 블로킹)는 스킵 — #20이 없어 검증 불가능하고 구 AC6이 이미 #20 스코프로 이관됨; #20 배선 시점에 추가. **부수 발견**: `CompanionUnlock`이 실제 오토로드로 상시 리스닝하게 되면서 `hidden_trigger_test.gd`가 `RunManager.state`를 EXPLORING으로 안 맞춰놨던 게 드러남(이전엔 리스너가 없어 무해했음) — `before_each()`에 `RunManager.state = "EXPLORING"` 추가해 수정.
 
@@ -57,7 +61,8 @@
 - [x] GDD 재검토 완료 (2026-07-28, 병렬 Consistency + Design Theory 2-pass) — **Verdict: PASS**. 재검토 중 발견된 추가 이슈 4개(랜덤-던전 잔존 오류, 영구-진행 의존성 오귀인, heal_multiplier 공식 누락, "적 강도 자동 조절" 미구현 약속)도 전부 수정 완료. 상세: `gdd-cross-review-2026-07-28.md`의 "Re-Review" 섹션. 남은 항목은 전부 non-blocking Warning(밸런스 튜닝·registry 정리 등)으로 코딩 착수를 막지 않음.
 - [x] **방향 전환 결정 (2026-07-28)**: 사용자가 제작 속도 우려(1주 vs 1년 비교)를 제기 → 남은 설계 문서 다듬기·ADR 완결·art-bible 후반부를 코딩 전 게이트로 취급하지 않기로 결정. 이제부터 GDD/ADR은 참고자료, 코딩 진행하며 필요시 인라인으로 갭 메움. 상세: [[project_juunj-scope-pivot]] 메모리 참조.
 - [x] **코드 착수** (2026-07-29): `src/core/combat_formula.gd` (#6, 14 tests), `src/core/{companion_data,skill_data,data_registry_loader,companion_registry}.gd` (#10, 4 tests), `src/core/{enemy_data,enemy_registry,data_validator}.gd` + `tools/validate_data.gd` (#11 + build-time skill_id/target_type/damage_multiplier validator, 9 tests). 27/27 GUT 통과. 커밋 4개 (combat formula, .uid sidecars, 동료 데이터, 적 데이터+validator).
-- [ ] **다음**: #19 씬 관리 또는 #7 적 AI (Foundation/Core, 언블록). 이후 #12 상태이상, #13 런 상태 관리, #14 영구 진행(→#17 필요, ADR-0001 검증 후), 마지막 #1 턴제 전투(7개 hard dep 전부 필요 — 아직 이르다, GDD의 "L(4세션+)" 예상 노력도 이를 반영).
+- [x] MVP 17/18 시스템 완료, 6개 화면(S-01~S-06) 전부 배선 완료 (2026-07-31) — 상세는 "Current Task" 최신 항목 참조.
+- [ ] **다음**: #18 광고 통합만 남음. 폴리시 후속 항목(장비 슬롯 UI, SP 표시, 상태이상 아이콘)은 게이트 아님, 필요할 때.
 - [ ] art-bible 섹션 5-9 작성 (섹션 1-4만 완료, 코딩 진행 중 필요할 때 채움 — 게이트 아님)
 - [ ] 보스 스탯 밸런스 재검토 (prototype에서 발견 — 솔로 보스전 승률 0%, 장비 보정 미포함 기준)
 
