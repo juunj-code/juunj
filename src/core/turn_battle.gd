@@ -15,6 +15,18 @@ signal action_selected(action: String)
 signal target_selected(target: Dictionary)
 signal battle_ended(victory: bool)
 
+## #20 UI/HUD signal contract (UI-HUD.md "신호 구독 목록" / ADR-0010) -- added
+## once #20 existed to actually consume them. unit_id is the unit's "id" field
+## (== enemy_id for enemies), NOT guaranteed unique: sampling-with-replacement
+## in DungeonGenerator can put two same-enemy_id units in one battle, and a
+## signal keyed by that id can't disambiguate which one changed. Known
+## ceiling, not fixed here -- see BattleScreen's note.
+signal unit_hp_changed(unit_id: String, new_hp: int)
+signal unit_sp_changed(unit_id: String, new_sp: int)
+signal player_input_requested(unit_id: String)
+signal turn_started(unit_id: String)
+signal status_effects_changed(unit_id: String, effects: Array)
+
 var party_units: Array = []
 var enemy_units: Array = []
 var ended := false
@@ -82,6 +94,8 @@ func run_battle() -> void:
 			if tick_result["skip_turn"]:
 				continue
 
+			turn_started.emit(unit["id"])
+
 			var action_data: Dictionary
 			if unit["is_companion"]:
 				action_data = await _get_player_action(unit)
@@ -114,6 +128,7 @@ func _skill_cost(unit: Dictionary) -> int:
 	return skill.cost_sp if skill else 0
 
 func _get_player_action(unit: Dictionary) -> Dictionary:
+	player_input_requested.emit(unit["id"])
 	var action: String = await action_selected
 	if action == "skill" and unit["current_sp"] < _skill_cost(unit):
 		push_warning("Skill selected without enough SP on %s, falling back to basic_attack" % unit["id"])
@@ -196,3 +211,6 @@ func _sync(unit: Dictionary) -> void:
 	rs.current_hp = unit["current_hp"]
 	rs.current_sp = unit["current_sp"]
 	rs.active_effects = unit["active_effects"]
+	unit_hp_changed.emit(unit["id"], unit["current_hp"])
+	unit_sp_changed.emit(unit["id"], unit["current_sp"])
+	status_effects_changed.emit(unit["id"], unit["active_effects"])

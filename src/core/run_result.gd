@@ -26,8 +26,10 @@ static func _progress_text() -> String:
 	return "해금 동료: %d / %d명" % [unlocked_count, TOTAL_COMPANIONS]
 
 ## "메인메뉴로" button handler: ad (if #18 exists) -> SceneManager.go_to(S-02).
-## Both are looked up defensively (neither #18 nor #19's Node exists yet) --
-## same pattern as RunManager's _go_to_scene()/_handoff_discovered_companions().
+## Both are looked up defensively -- AdManager (#18) doesn't exist yet;
+## SceneManager (#19) does now, but the lookup stays the same shape (same
+## pattern as RunManager's _go_to_scene()) so this needs no changes if #18
+## lands later.
 static func go_to_main_menu() -> void:
 	var tree := Engine.get_main_loop() as SceneTree
 	if tree == null:

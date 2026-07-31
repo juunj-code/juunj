@@ -106,6 +106,36 @@ func test_dot_ticks_and_skip_turn_together() -> void:
 	assert_eq(battle.party_units[0]["active_effects"][0].id, "poison")
 	assert_eq(battle.party_units[0]["active_effects"][0].duration, 1) # 3 -> 2 (r1) -> 1 (r2)
 
+func test_player_turn_emits_turn_started_and_player_input_requested() -> void: # #20 UI-HUD.md signal contract
+	var battle := _make_battle()
+	battle.setup([_make_companion("companion_balance_01")], [_make_enemy("enemy_tank_01")])
+	var turn_started_ids: Array = []
+	var input_requested_ids: Array = []
+	battle.turn_started.connect(func(id): turn_started_ids.append(id))
+	battle.player_input_requested.connect(func(id): input_requested_ids.append(id))
+
+	battle.run_battle()
+
+	assert_eq(turn_started_ids, ["companion_balance_01"])
+	assert_eq(input_requested_ids, ["companion_balance_01"])
+
+func test_basic_attack_emits_hp_changed_reflecting_final_values() -> void: # #20 UI-HUD.md signal contract
+	# _sync() emits on every processing step (tick/SP-recover included), not
+	# only on actual change -- so assert latest-seen value per id, not an
+	# exact call sequence (see test_player_basic_attack_damages_enemy_and_
+	# enemy_counters for why 59/99 is the expected end-of-round state).
+	var battle := _make_battle()
+	battle.setup([_make_companion("companion_balance_01")], [_make_enemy("enemy_tank_01")])
+	var last_hp: Dictionary = {}
+	battle.unit_hp_changed.connect(func(id, hp): last_hp[id] = hp)
+
+	battle.run_battle()
+	battle.submit_action("basic_attack")
+	battle.submit_target(battle.enemy_units[0])
+
+	assert_eq(last_hp["enemy_tank_01"], 59)
+	assert_eq(last_hp["companion_balance_01"], 99)
+
 func test_victory_ends_battle_and_calls_run_manager_exit_combat() -> void:
 	RunManager.reset()
 	RunManager.start_run([{"companion_id": "companion_balance_01", "weapon_slot": "", "armor_slot": ""}])

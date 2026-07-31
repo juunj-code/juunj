@@ -6,13 +6,8 @@ extends Node
 ## after run end is #13/#14's job, not this system's (GDD explicitly scopes
 ## that out).
 ##
-## ponytail: GDD's flow also has this system `await popup_confirmed` before
-## returning (blocking dungeon input until #20's popup closes). Skipped --
-## #20 UI/HUD doesn't exist yet, no AC covers it (old AC6 was moved to #20's
-## scope), and there's nothing downstream to resume. Add the await once #20
-## exists and needs this system to stay suspended across the popup.
-
 signal companion_unlocked_this_run(id: String, comp_name: String, description: String, portrait_id: String, color_accent: Color)
+signal popup_confirmed ## #20 emits this when the player taps confirm on the discovery popup (ADR-0010 pattern).
 
 func _ready() -> void:
 	HiddenTrigger.companion_discovered.connect(_on_companion_discovered)
@@ -33,9 +28,12 @@ func handle_discovered(id: String) -> void:
 	RunManager.add_discovered_companion(id)
 	_trigger_flash(data.color_accent)
 	companion_unlocked_this_run.emit(id, data.name, data.description, data.portrait_id, data.color_accent)
+	await popup_confirmed
+	if not is_inside_tree(): # ADR-0010 guard -- scene torn down while popup was up
+		return
 
-## Defensive lookup (same pattern as RunManager._go_to_scene()) -- #19 씬 관리
-## doesn't exist yet, so this is a no-op until it does.
+## Defensive lookup (same pattern as RunManager._go_to_scene()) -- SceneManager
+## (#19) exists now, so this actually fires the flash transition.
 func _trigger_flash(color: Color) -> void:
 	var tree := Engine.get_main_loop() as SceneTree
 	if tree == null:

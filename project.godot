@@ -13,9 +13,11 @@ config_version=5
 config/name="바람의탑"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 config/icon="res://icon.svg"
+run/main_scene="res://scenes/Boot.tscn"
 
 [autoload]
 
+SceneManager="*res://src/core/scene_manager.gd"
 CompanionRegistry="*res://src/core/companion_registry.gd"
 EnemyRegistry="*res://src/core/enemy_registry.gd"
 StatusEffectRegistry="*res://src/core/status_effect_registry.gd"
