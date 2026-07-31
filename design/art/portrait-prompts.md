@@ -1,0 +1,51 @@
+# Companion Portrait Generation Prompts
+
+Prepared 2026-07-31. Blocked on generation: Higgsfield workspace out of credits,
+Gemini (nanobanana) free-tier quota is 0 for `gemini-3.1-flash-image`. Run these
+once either is unblocked — square 1:1, save to `assets/art/portraits/<companion_id>.png`.
+
+Shared style line (repeat in every prompt for consistency across the set):
+> Square game UI portrait icon for a 2D indie JRPG called "Wind Tower" (바람의탑),
+> retro 16-bit-inspired but rendered as clean flat cel-shaded illustration with
+> bold dark outlines — a stylized game character icon, not a photo. Front-facing
+> bust portrait, chest-up, centered, symmetrical. No text, no logos, no UI
+> frame/border baked into the image, no watermark. Character fills most of the
+> square frame.
+
+Colors are locked to `design/art/art-bible.md`'s 동료 컬러 레지스터 (2026-07-31).
+Background for all four: flat cool dark blue-gray stone `#2A3040`, no scenery detail.
+
+## companion_balance_01 — 검사 아이라 (전사/근접)
+
+Warm, welcoming female sword-fighter who always greets newcomers to a dark,
+ancient stone tower. Calm, confident expression. Simple leather-and-steel
+armor, short sword hilt visible near her shoulder. Rounded, convex silhouette —
+broad shoulders, no sharp spiky shapes.
+
+**Accent color**: `#C77329` (hair + armor accents — the single most important color).
+
+## companion_tank_01 — 방패지기 도른 (탱커/방어)
+
+Large, heavily-built male shield-bearer found deep in the tower under a
+collapsed rampart. Stoic, weathered expression. Battered round shield, thick
+plate armor. Muted, low-saturation "묵직함" (weighty) presence — not bright or
+flashy, deliberately subdued.
+
+**Accent color**: `#856E45` (muted brownish-orange — armor trim/shield accents).
+
+## companion_dealer_01 — 빠른 손 리사 (도적/정찰)
+
+Agile, hooded rogue — no one knows how long she's been in the tower. Sly,
+alert expression, twin daggers visible. Asymmetric/dynamic pose within the
+bust framing (slight tilt), leaner silhouette than the other three.
+
+**Accent color**: `#8C3652` (crimson/magenta — hood, cloak trim, dagger wraps).
+
+## companion_support_01 — 노래하는 유이 (힐러/지원)
+
+Gentle female healer/bard — rooms where her song is heard are said to always
+be safe. Warm, serene expression, faint musical motif (small harp or songbird
+detail near her shoulder is optional, don't overdo it). Soft, rounded
+silhouette.
+
+**Accent color**: `#D1B857` (warm gold — robe trim, hair accent).
