@@ -78,6 +78,10 @@ func submit_target(target: Dictionary) -> void:
 
 func run_battle() -> void:
 	var turn_order := _compute_turn_order()
+	if turn_order.is_empty():
+		push_error("TurnBattle.run_battle() called with no living units -- ending immediately")
+		ended = true
+		return
 	_targeted_this_turn = []
 
 	while true:

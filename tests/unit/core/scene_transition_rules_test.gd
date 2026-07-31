@@ -41,6 +41,9 @@ func test_boot_preload_scene_list_matches_gdd() -> void: # AC7 (list only, not r
 func test_declared_edge_recognized() -> void: # AC11
 	assert_true(SceneTransitionRules.is_declared_edge("S-04", "S-05")) # Dungeon -> Battle
 
+func test_battle_defeat_edge_recognized() -> void: # AC11 -- RunManager.end_run() fires this mid-battle on a party wipe
+	assert_true(SceneTransitionRules.is_declared_edge("S-05", "S-06")) # Battle -> RunResult
+
 func test_undeclared_edge_not_recognized_but_not_blocked() -> void: # AC11
 	# BattleScreen -> MainMenu isn't in the graph -- caller decides to warn,
 	# this rule set just reports it's off-graph, it doesn't refuse.

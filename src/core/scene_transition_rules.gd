@@ -35,7 +35,7 @@ const TRANSITION_GRAPH := {
 	"S-02": ["S-03"],
 	"S-03": ["S-04"],
 	"S-04": ["S-05", "S-06"],
-	"S-05": ["S-04"],
+	"S-05": ["S-04", "S-06"], # victory -> back to dungeon, defeat -> run result
 	"S-06": ["S-03", "S-02"],
 }
 
