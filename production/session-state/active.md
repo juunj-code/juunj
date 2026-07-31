@@ -5,7 +5,10 @@
 
 ## Current Task
 
-**코딩 진행 중 (2026-07-31)** — #6 전투 공식 → #10 동료 데이터 → #11 적 데이터 → #7 적 AI → #12 상태이상 → #19 씬 관리(순수 로직만) → #13 런 상태 관리 → #15 파티 구성 → #4 장비 → #17 로컬 세이브(동기 코어만) → #14 영구 진행 → #16 런 결과 → #2 랜덤 던전 → #1 턴제 전투 → #9 히든 트리거 → #3 동료 해금 → #20 UI/HUD(순수 로직) → **#19 SceneManager Node + 실제 화면 6개(Boot/MainMenu/PartySelect/Dungeon Exploration/Battle/RunResult) 완료**. MVP 18개 중 남은 건 **#18 광고 통합**뿐. **169/169 GUT 통과, 24개 커밋.**
+**MVP 18/18 시스템 전부 구현 완료 (2026-07-31)** — #6 전투 공식 → #10 동료 데이터 → #11 적 데이터 → #7 적 AI → #12 상태이상 → #19 씬 관리(순수 로직) → #13 런 상태 관리 → #15 파티 구성 → #4 장비 → #17 로컬 세이브(동기 코어) → #14 영구 진행 → #16 런 결과 → #2 랜덤 던전 → #1 턴제 전투 → #9 히든 트리거 → #3 동료 해금 → #20 UI/HUD(순수 로직) → #19 SceneManager Node + 실제 화면 6개 → **#18 광고 통합(AdManager)**. **175/175 GUT 통과, 26개 커밋.**
+
+**#18 구현 메모**: ADR-0003 패턴(사전 등록 콜백 + `_js_bridge` DI + 재진입 가드) 그대로 구현. 실제 GUT 헤드리스 검증을 위해 `_web_override` 시임을 하나 더 추가함 — GUT은 데스크톱 바이너리로 돌아가 `OS.has_feature("web")`이 항상 false라, 이 시임 없이는 GDD AC1/3/4/6/7이 검증하는 web 분기 자체에 진입할 방법이 없었음(ADR-0003/GDD 원문엔 이 갭이 명시돼 있지 않았음, 구현 중 발견). SDK 실선택(AdSense/AdMob/파트너)과 실브라우저 JS 검증은 여전히 미해결 — ADR-0003은 Proposed 유지(0001/0004와 동일 사유).
+**부수 발견+수정**: `SceneManager.go_to()`가 `--headless`에서도 실제 Tween로 비동기 대기하고 있었음 — 보이는 창이 없는 CI/테스트 환경에서 이건 "몇 프레임 뒤 엉뚱한 테스트 도중에 재개되는 suspended coroutine"을 만들어냄. 이게 이전 세션에서 잡은 TurnBattle 행(hang)의 진짜 근본 원인이었고, 이번엔 같은 뿌리에서 새 증상(모든 동료가 죽은 상태로 `run_battle()`이 시작되면 적 턴에서 EnemyAI가 타겟 후보 0개로 크래시)이 발견됨. `_fade()`가 headless에서 즉시 완료되도록 수정 + `run_battle()`이 루프 진입 전에 승패를 먼저 확인하도록 수정 + `BattleScreen`/`DungeonExplorationScreen` 양쪽에 기대 상태(`IN_COMBAT`/`EXPLORING`) 아닐 때 로드를 무시하는 방어 가드 추가로 해결.
 
 **2026-07-31 세션 요약 (화면 배선)**: `SceneManager` 오토로드(Tween 기반 fade/flash, ADR-0004에 따라 동기 씬 스왑) 및 `project.godot`의 `run/main_scene`을 `Boot.tscn`으로 설정. `TurnBattle`/`CompanionUnlock`에 #20 UI-HUD.md 신호 계약(`unit_hp_changed`/`unit_sp_changed`/`turn_started`/`player_input_requested`/`status_effects_changed`/`popup_confirmed`) 추가 — 이전 세션에서 순수 로직만 뽑아뒀던 `HudRules`/`HudPopupQueue`를 실제 `DungeonExplorationScreen`이 소비하도록 배선 완료. `BattleScreen`(S-05)이 `TurnBattle`을 직접 소유·구동(setup → run_battle, 버튼으로 submit_action/submit_target 전달)하고 `RunResultScreen`(S-06)은 `RunResult.build_display_data()`의 순수 렌더. 6개 화면 전부 연결되어 Boot→MainMenu→PartySelect→Dungeon→Battle→RunResult 풀 루프가 처음으로 실제로 플레이 가능한 상태.
 **발견+수정한 버그 2건**: (1) `run_result_test.gd`의 `SceneManagerSpy`가 이제 진짜 오토로드로 존재하는 `SceneManager`와 이름이 겹쳐 `find_child` 탐색에서 항상 밀림 — 테스트 안에서 실제 오토로드를 잠깐 트리에서 빼고 spy로 교체하는 방식으로 수정. (2) `BattleScreen.tscn`이 실존하게 되자, 다른 테스트가 남긴 미완료 비동기 `SceneManager.go_to("S-05",...)`가 엉뚱한 테스트 프레임 도중에 완료되어 `RunManager.state=IDLE`인 채로 `BattleScreen._ready()`가 실행 → `TurnBattle.setup([], [])` → `run_battle()`의 `while true`가 빈 turn_order로 영원히 도는 행(hang) 발생, GUT 전체가 멈춤. `run_battle()`에 빈 turn_order 가드 추가(즉시 종료) + `BattleScreen._ready()`에 `RunManager.state != "IN_COMBAT"` 방어 가드 추가로 해결. 부수적으로 `scene_transition_rules.gd`의 선언된 전환 그래프에 `S-05→S-06`(전투 패배 시 결과 화면 직행) 엣지가 누락돼 있던 것도 발견해 추가.
@@ -61,8 +64,8 @@
 - [x] GDD 재검토 완료 (2026-07-28, 병렬 Consistency + Design Theory 2-pass) — **Verdict: PASS**. 재검토 중 발견된 추가 이슈 4개(랜덤-던전 잔존 오류, 영구-진행 의존성 오귀인, heal_multiplier 공식 누락, "적 강도 자동 조절" 미구현 약속)도 전부 수정 완료. 상세: `gdd-cross-review-2026-07-28.md`의 "Re-Review" 섹션. 남은 항목은 전부 non-blocking Warning(밸런스 튜닝·registry 정리 등)으로 코딩 착수를 막지 않음.
 - [x] **방향 전환 결정 (2026-07-28)**: 사용자가 제작 속도 우려(1주 vs 1년 비교)를 제기 → 남은 설계 문서 다듬기·ADR 완결·art-bible 후반부를 코딩 전 게이트로 취급하지 않기로 결정. 이제부터 GDD/ADR은 참고자료, 코딩 진행하며 필요시 인라인으로 갭 메움. 상세: [[project_juunj-scope-pivot]] 메모리 참조.
 - [x] **코드 착수** (2026-07-29): `src/core/combat_formula.gd` (#6, 14 tests), `src/core/{companion_data,skill_data,data_registry_loader,companion_registry}.gd` (#10, 4 tests), `src/core/{enemy_data,enemy_registry,data_validator}.gd` + `tools/validate_data.gd` (#11 + build-time skill_id/target_type/damage_multiplier validator, 9 tests). 27/27 GUT 통과. 커밋 4개 (combat formula, .uid sidecars, 동료 데이터, 적 데이터+validator).
-- [x] MVP 17/18 시스템 완료, 6개 화면(S-01~S-06) 전부 배선 완료 (2026-07-31) — 상세는 "Current Task" 최신 항목 참조.
-- [ ] **다음**: #18 광고 통합만 남음. 폴리시 후속 항목(장비 슬롯 UI, SP 표시, 상태이상 아이콘)은 게이트 아님, 필요할 때.
+- [x] MVP 18/18 시스템 전부 완료, 6개 화면(S-01~S-06) 전부 배선 완료 (2026-07-31) — 상세는 "Current Task" 최신 항목 참조.
+- [ ] **다음**: MVP 코드는 전부 구현됨. 남은 건 (1) 광고 SDK 실선택 + 실브라우저 JS 검증(ADR-0003), (2) 실브라우저/실기기 검증 필요한 나머지 ADR(0001 로컬세이브 durability, 0004 씬 로딩 COOP/COEP), (3) 폴리시 후속(장비 슬롯 UI, SP 표시, 상태이상 아이콘) — 전부 게이트 아님, 실제 플레이/배포 준비 단계에서 처리.
 - [ ] art-bible 섹션 5-9 작성 (섹션 1-4만 완료, 코딩 진행 중 필요할 때 채움 — 게이트 아님)
 - [ ] 보스 스탯 밸런스 재검토 (prototype에서 발견 — 솔로 보스전 승률 0%, 장비 보정 미포함 기준)
 
