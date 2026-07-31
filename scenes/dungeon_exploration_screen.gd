@@ -15,6 +15,9 @@ extends Control
 var _popup_queue := HudPopupQueue.new()
 
 func _ready() -> void:
+	if RunManager.state != "EXPLORING":
+		push_warning("DungeonExplorationScreen loaded while RunManager.state=%s -- ignoring" % RunManager.state)
+		return
 	CompanionUnlock.companion_unlocked_this_run.connect(_on_companion_unlocked)
 	HiddenTrigger.hidden_room_already_cleared.connect(_on_hidden_room_already_cleared)
 	RunManager.equipment_dropped.connect(_on_equipment_dropped)

@@ -54,16 +54,19 @@ func test_main_menu_transition_noop_when_neither_system_exists() -> void: # AC7 
 	assert_true(true) # reaching here without an error is the assertion
 
 func test_main_menu_transition_calls_ad_then_scene() -> void: # AC7
-	# SceneManager (#19) is a real autoload now, so it wins any find_child("SceneManager")
-	# lookup over a same-named test double added elsewhere in the tree. Swap it out for
-	# the duration of this test so RunResult's dispatch call can be observed in isolation.
+	# SceneManager (#19) and AdManager (#18) are both real autoloads now, so they
+	# win any find_child("...") lookup over a same-named test double added elsewhere
+	# in the tree. Swap both out for the duration of this test so RunResult's
+	# dispatch calls can be observed in isolation.
 	var root: Node = (Engine.get_main_loop() as SceneTree).root
 	var real_scene_manager: Node = root.get_node("SceneManager")
+	var real_ad_manager: Node = root.get_node("AdManager")
 	root.remove_child(real_scene_manager)
+	root.remove_child(real_ad_manager)
 
 	var ad_manager := AdManagerSpy.new()
 	ad_manager.name = "AdManager"
-	add_child_autofree(ad_manager)
+	root.add_child(ad_manager)
 	var scene_manager := SceneManagerSpy.new()
 	scene_manager.name = "SceneManager"
 	root.add_child(scene_manager)
@@ -75,7 +78,10 @@ func test_main_menu_transition_calls_ad_then_scene() -> void: # AC7
 
 	root.remove_child(scene_manager)
 	scene_manager.free()
+	root.remove_child(ad_manager)
+	ad_manager.free()
 	root.add_child(real_scene_manager)
+	root.add_child(real_ad_manager)
 
 class AdManagerSpy extends Node:
 	var shown := false

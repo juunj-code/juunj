@@ -82,6 +82,15 @@ func run_battle() -> void:
 		push_error("TurnBattle.run_battle() called with no living units -- ending immediately")
 		ended = true
 		return
+	# setup() can be handed an already-resolved battle (e.g. a party that was
+	# wiped before this battle started) -- turn_order alone doesn't catch that
+	# if the still-alive side just hasn't acted yet, and EnemyAI has no valid
+	# target to pick if it goes first with zero living companions. Resolve
+	# victory/defeat before ever computing an action, same as after every
+	# other HP-affecting event below.
+	_check_end_of_battle()
+	if ended:
+		return
 	_targeted_this_turn = []
 
 	while true:

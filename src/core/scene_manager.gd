@@ -67,7 +67,13 @@ func _fade(color: Color, from_alpha: float, to_alpha: float, duration_sec: float
 	if _active_tween and _active_tween.is_valid():
 		_active_tween.kill() # a fade-out can be interrupted by the next fade-in (chained transitions)
 	_overlay.color = Color(color.r, color.g, color.b, from_alpha)
-	if duration_sec <= 0.0:
+	# ponytail: --headless (GUT's CI/test runner, per coding-standards.md) has no
+	# visible window to fade, so skip the Tween/await entirely there. This also
+	# makes go_to() run fully synchronously under GUT instead of leaving a
+	# suspended coroutine that resumes several frames later during an unrelated
+	# test -- that exact staleness previously hung TurnBattle.run_battle() on an
+	# empty turn_order and crashed EnemyAI on a mismatched RunManager snapshot.
+	if duration_sec <= 0.0 or OS.has_feature("headless"):
 		_overlay.color.a = to_alpha
 		return
 	_active_tween = create_tween()
