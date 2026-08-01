@@ -5,6 +5,8 @@
 
 ## Current Task
 
+**SP/상태이상 HUD 폴리시 완료 (2026-08-01)**: `BattleScreen`이 `TurnBattle.unit_sp_changed`/`status_effects_changed` 신호를 구독하지 않고 있던 걸 배선(#20 UI-HUD AC7/AC8) — 유닛별 SP 점(`HudRules.sp_dots()` 재사용)과 상태이상 "이름(잔여턴)" 텍스트 라벨 추가. 상태이상 아이콘 그래픽 에셋은 아직 없음(art-bible 5-9 미작성)이라 `StatusEffect.name` 필드를 텍스트로 그대로 사용 — 실제 아이콘 에셋 생기면 텍스트를 아이콘+숫자로 교체. `RunManager._scene_navigator_override` 테스트 시임으로 실제 씬 전환 없이 `BattleScreen`을 단독 구동해 SP=2/5·poison(3) 상태로 스크린샷 확인. 175/175 GUT 통과. 커밋 `07c78d4`.
+
 **동료 초상화 아트 배선 완료 (2026-08-01)**: 이전 세션 종료 시점엔 Higgsfield 크레딧 소진 + Gemini(nanobanana) 무료 쿼터 0으로 초상화 생성이 블록된 상태였음(`design/art/portrait-prompts.md`에 프롬프트만 저장, 커밋 `29602ad`). 이후 생성이 풀려 `design/art/portrait-prompts.md`에 고정해둔 프롬프트/컬러로 4개 동료 초상화(balance/dealer/support/tank) 전부 생성 → `assets/art/portraits/`에 저장, Godot import 완료. 각 동료 `.tres`의 `portrait_id`를 실제 경로로 채우고 `PartySelectScreen._build_roster()`가 로스터 버튼 아이콘으로 렌더하도록 배선(`icon_max_width=40`). 이 작업이 커밋 안 된 채 남아있던 걸 이번 세션에서 발견 → GUT 175/175 재확인 후 커밋(`7646249`). 함께 밀려있던 Godot 에디터 생성 `.gd.uid` 사이드카 9개도 동일 커밋에 포함(기존 트래킹 컨벤션과 일치).
 
 **MVP 18/18 시스템 전부 구현 완료 (2026-07-31)** — #6 전투 공식 → #10 동료 데이터 → #11 적 데이터 → #7 적 AI → #12 상태이상 → #19 씬 관리(순수 로직) → #13 런 상태 관리 → #15 파티 구성 → #4 장비 → #17 로컬 세이브(동기 코어) → #14 영구 진행 → #16 런 결과 → #2 랜덤 던전 → #1 턴제 전투 → #9 히든 트리거 → #3 동료 해금 → #20 UI/HUD(순수 로직) → #19 SceneManager Node + 실제 화면 6개 → **#18 광고 통합(AdManager)**. **175/175 GUT 통과, 26개 커밋.**
