@@ -24,6 +24,10 @@ func _build_roster() -> void:
 		button.toggle_mode = true
 		button.custom_minimum_size = Vector2(0, 44)
 		button.button_pressed = _composition.selected.has(id)
+		if data.portrait_id != "":
+			button.icon = load(data.portrait_id)
+			button.expand_icon = true
+			button.add_theme_constant_override("icon_max_width", 40)
 		button.toggled.connect(_on_companion_toggled.bind(id, button))
 		_roster_container.add_child(button)
 		_buttons[id] = button
