@@ -19,6 +19,8 @@ extends Control
 
 var _battle: TurnBattle
 var _labels: Dictionary = {} # id -> Array[Label]
+var _sp_labels: Dictionary = {} # id -> Array[Label]
+var _status_labels: Dictionary = {} # id -> Array[Label]
 var _base_hp: Dictionary = {} # id -> int
 var _current_unit: Dictionary = {}
 
@@ -35,6 +37,8 @@ func _ready() -> void:
 	_battle.turn_started.connect(_on_turn_started)
 	_battle.player_input_requested.connect(_on_player_input_requested)
 	_battle.unit_hp_changed.connect(_on_unit_hp_changed)
+	_battle.unit_sp_changed.connect(_on_unit_sp_changed)
+	_battle.status_effects_changed.connect(_on_status_effects_changed)
 
 	_basic_attack_button.pressed.connect(_on_basic_attack_pressed)
 	_skill_button.pressed.connect(_on_skill_pressed)
@@ -52,12 +56,37 @@ func _build_rows(units: Array, container: VBoxContainer) -> void:
 		_base_hp[unit["id"]] = unit["base_hp"]
 		_render_label(label, unit["id"], unit["current_hp"])
 
+		var sp_label := Label.new()
+		container.add_child(sp_label)
+		if not _sp_labels.has(unit["id"]):
+			_sp_labels[unit["id"]] = []
+		_sp_labels[unit["id"]].append(sp_label)
+		sp_label.text = HudRules.sp_dots(unit["current_sp"])
+
+		var status_label := Label.new()
+		container.add_child(status_label)
+		if not _status_labels.has(unit["id"]):
+			_status_labels[unit["id"]] = []
+		_status_labels[unit["id"]].append(status_label)
+		_render_status_label(status_label, unit["active_effects"])
+
 func _render_label(label: Label, id: String, hp: int) -> void:
 	label.text = "%s  %d/%d HP" % [id, hp, _base_hp[id]]
+
+func _render_status_label(label: Label, effects: Array) -> void:
+	label.text = ", ".join(effects.map(func(e): return "%s(%d)" % [e.name, e.duration]))
 
 func _on_unit_hp_changed(unit_id: String, new_hp: int) -> void:
 	for label in _labels.get(unit_id, []):
 		_render_label(label, unit_id, new_hp)
+
+func _on_unit_sp_changed(unit_id: String, new_sp: int) -> void:
+	for label in _sp_labels.get(unit_id, []):
+		label.text = HudRules.sp_dots(new_sp)
+
+func _on_status_effects_changed(unit_id: String, effects: Array) -> void:
+	for label in _status_labels.get(unit_id, []):
+		_render_status_label(label, effects)
 
 func _on_turn_started(unit_id: String) -> void:
 	_turn_label.text = "%s의 차례" % unit_id
