@@ -1,8 +1,8 @@
 # Art Bible: 바람의 탑 (Wind Tower)
 
 *Created: 2026-07-22*
-*Status: Complete — Sections 1–4 (core visual identity). Sections 5–9 deferred.*
-*Engine: Godot 4.6 | Style: 16-bit pixel art, top-down*
+*Status: Complete — Sections 1–5. Sections 6–9 deferred (게이트 아님, 필요할 때 채움 — [[project_juunj-scope-pivot]]).*
+*Engine: Godot 4.7 | Style: 16-bit pixel art, top-down*
 
 ---
 
@@ -227,3 +227,38 @@
 | 발견금 (보상/히든) | 힐러 동료 warm과 혼동 | 히든 단서 = L자 또는 X자 2~3픽셀 패턴 + 0.5Hz 깜빡임 + 진입 시 전용 sfx |
 
 **색맹 검증**: Coblis 또는 동등 툴로 Deuteranopia / Protanopia / Tritanopia 3종 필수 검증. 타이밍: 섹션 완료 시마다 1회 + 최종 UI 완성 시 전체 1회.
+
+---
+
+## Section 5: 상태이상 아이콘 시스템
+
+`#20 UI/HUD` AC8(상태이상 아이콘 렌더)을 완성하기 위해 필요한 최소 범위만 정의한다 — 스킬 아이콘·VFX 등 나머지 아이콘 체계는 실제로 필요해질 때(섹션 6-9) 다룬다.
+
+### 5-1. 프레임 규칙
+
+섹션 3-3 "UI 셰이프 문법"을 그대로 따른다: 32×32 사각 프레임, 외곽 2픽셀 단색 청회색(`#2A2D35`) 테두리, 내부 flat 단색 실루엣(그라디언트/베벨 금지), 배경은 냉석(`#2A3040`) 위에서 검증.
+
+### 5-2. 타입별 색상 매핑
+
+섹션 4-2 시맨틱 컬러 규칙을 그대로 적용 — 새 색은 도입하지 않는다.
+
+| `StatusEffect.type` | 의미 | 색상 | 근거 |
+|---|---|---|---|
+| `DOT` | 지속 피해(독 등) | 위협홍 `#C0392B` 계열 | 4-2 표: "적 rim light, 위험 UI, **상태이상**" |
+| `SKIP_TURN` | 행동 불가(기절 등) | 위협홍 `#C0392B` 계열 | 동일 |
+| `STAT_MODIFY` (value > 0, 버프) | 능력치 상승 | 초록 `H:140–155°` | 4-2 표: "버프 아이콘" |
+| `STAT_MODIFY` (value < 0, 디버프) | 능력치 하락 | 위협홍 `#C0392B` 계열 | 디버프는 위험 신호이므로 DOT/SKIP_TURN과 동일 채널 |
+
+### 5-3. 픽토그램 언어 (MVP 3종)
+
+| `id` | 픽토그램 | 비고 |
+|---|---|---|
+| `poison` | 해골 또는 물방울 실루엣 | DOT — 위협홍 |
+| `stun` | 별/소용돌이 실루엣 | SKIP_TURN — 위협홍 |
+| `defense_up` | 상승 화살표 + 방패 실루엣 | STAT_MODIFY(+) — 초록 |
+
+### 5-4. 데이터 연결 & 배치
+
+`StatusEffect.icon_id`(경로, `CompanionData.portrait_id`와 동일 패턴)로 참조. 파일 규칙: `assets/art/icons/status_[id].png`. 배치는 섹션 1 원칙 3(전투 타일을 가리지 않는 테두리/하단 영역)과 섹션 3-3(사각 프레임)을 따르며, 상태이상 이름 텍스트 옆에 아이콘 + 잔여 턴수 숫자로 인라인 배치한다 (이름 텍스트 단독 표기는 대체됨).
+
+*디자인 테스트*: 새 상태이상 추가 시 타입(`DOT`/`SKIP_TURN`/`STAT_MODIFY`)만으로 색상이 자동 결정되므로, 개별 상태이상마다 새 색을 고르는 것은 선택하지 않는다 — 픽토그램 실루엣만 새로 그린다.

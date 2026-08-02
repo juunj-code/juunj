@@ -10,3 +10,4 @@ extends Resource
 @export var value: int = 0 ## DOT: damage amount / STAT_MODIFY: stat delta / SKIP_TURN: unused
 @export var stat_target: String = "" ## STAT_MODIFY only: "atk" | "def"
 @export var duration: int ## remaining turns; runtime copies decrement this
+@export var icon_id: String = "" ## res:// path to the HUD icon, see design/art/art-bible.md Section 5
