@@ -42,6 +42,22 @@ godot --headless --path . res://prototypes/status-icon-smoke/StatusIconSmoke.tsc
 `battle_screen.gd`의 적 스프라이트 `load()`/`TextureRect` 배선도 같이 검증한다
 (같은 씬을 재사용, 별도 스크립트 안 만듦).
 
+## 추가 프로토타입: `save_bridge_debug.gd`/`SaveBridgeDebug.tscn` (2026-08-02)
+
+ADR-0001 2단계(`SaveManager`의 `FS.syncfs()` 확인) 구현 직후, 실제 웹 빌드에서
+전체 던전을 수동으로 클릭해 런을 끝까지 진행하지 않고도 `SaveManager.save()`를
+직접 호출해 진짜 IndexedDB 왕복을 볼 수 있게 만든 디버그 씬. 사용법:
+`project.godot`의 `run/main_scene`을 잠깐 이 씬으로 바꾸고 익스포트 → 확인 →
+`Boot.tscn`으로 원복(둘 다 이 세션에서 이미 처리, `.git diff`로 원복 확인됨).
+
+**결과 (2026-08-02, 실제 웹 빌드, 로컬 서빙)**:
+- `SAVE_BRIDGE_DEBUG: calling save() -- OS.has_feature(web)=true` — 웹 분기 진입 확인
+- `SAVE_BRIDGE_DEBUG: save() returned true` — 1단계(가상 FS 쓰기) 정상
+- 브라우저 콘솔에 Emscripten 자체 경고 발생: **`warning: 2 FS.syncfs operations in flight at once, probably just doing extra work`** — `FS.syncfs`가 실제로 존재하고 호출된다는 확실한 증거. 동시에 "2개가 동시 진행 중"이라는 건 **Godot 엔진 자신도 `user://` 쓰기 시 내부적으로 `FS.syncfs()`를 자동 호출한다**는 뜻으로 보임 — ADR-0001의 Verification Required 항목 (a)("FileAccess.close()가 IndexedDB 자동 동기화를 트리거하는지")가 사실상 YES로 실측된 것.
+- **그런데 `GodotSaveBridge.onSyncDone` 콜백도, 5초 타임아웃 폴백(`_on_sync_timeout`)도 20초 넘게 기다려도 전혀 발화하지 않음.** 콜백 자체가 아예 안 오는 건지, SceneTreeTimer가 이 씬 구성에서 안 도는 건지 이번 세션에선 원인 특정까지 못함.
+
+**판정**: PARTIAL. `FS.syncfs` 호출 자체는 실증됐고 Godot의 자동 동기화 존재도 확인됐지만(ADR-0001 항목 a 실측 완료), 우리 콜백이 왕복하는지(항목 b)는 여전히 미확인 — 오히려 "Godot 자체 자동 동기화와 우리 명시적 호출이 경합해서 콜백이 죽는다"는 새로운 가설이 생김. 다음 세션 조사 방향: (1) 5초 타임아웃 자체가 왜 안 도는지부터 확인(SceneTreeTimer 단독 재현), (2) Godot의 자동 syncfs를 믿고 우리 쪽 명시적 `FS.syncfs()` 호출을 아예 빼는 대안(ADR-0001의 "Alternative 1" 재검토 근거가 될 수 있음 — 콜백 없이 신뢰하는 게 아니라, 최소한 자동 호출이 실재한다는 걸 알았으니).
+
 ## 결과 (2026-08-02, Godot 4.7.1, 헤드리스만)
 
 | 확인 항목 | 결과 |
