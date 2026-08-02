@@ -10,7 +10,11 @@ Proposed
 
 ## Last Verified
 
-2026-07-26
+2026-08-03 — Verification Required 항목 (c)/(d) 실측 완료 (항목 (b) itch.io COOP/COEP 헤더 지원은 실제 itch.io 배포가 필요해 여전히 미검증, Status는 Proposed 유지).
+
+**(c) Regular 변형 프레임 예산 실측** — 실제 프로덕션 웹 빌드에서 `Time.get_ticks_usec()`로 `change_scene_to_file()` 호출 자체를 정밀 계측(자동화 환경의 `_process` delta 노이즈를 우회한 직접 측정). 결과: S-02(MainMenu) 6.40ms, S-03(PartySelect) 17.10ms, **S-04(DungeonExploration) 27.60ms, S-05(BattleScreen, 적 스프라이트 2장+초상화 로드) 48.70ms** — 16.6ms 예산을 확실히 초과. 단, 이건 지속적 프레임 드랍이 아니라 씬 전환 순간 단발성 히치(hitch)임 — 매 프레임 반복되는 병목이 아니라 로드 시점 1프레임만 영향. 리스크 표가 예견한 "무거운 씬 전환 시 눈에 띄는 프레임 드랍"이 실측으로 확인됨(Medium probability → Confirmed). Threads 전환 검토를 앞당길 근거가 됨(원 문서의 "초과 시 재검토" 조건 충족) — 단, 즉시 시각적으로 문제인지는 실사용자 체감 테스트가 별도로 필요.
+
+**(d) 탭 백그라운드 30초+ 복귀 시 Tween 동작** — `prototypes/tween-background-resume/`(8초 Tween 격리 씬)로 검증. 45초 백그라운드 후 복귀: `_process`가 백그라운드 동안 완전히 정지(경과 시간이 delta로 반영되지 않고 소실), 복귀 후 거대한 단일 delta(SUSPICIOUS >0.2s) 발생 **0건**, `overlay_a`가 0.109→0.24→0.372→0.502→0.631로 8초 기준 정확히 선형 진행(점프/역행 없음). TR-scene-management-008이 우려한 비정상 delta·1.0 미도달·NaN/오버슈트 중 어느 것도 관찰되지 않음 — 리스크 표의 Medium impact 우려보다 실제 위험도가 낮음(시각적으로는 "백그라운드 중 페이드가 멈췄다가 재개"뿐, 깨짐 없음). 상세: `prototypes/tween-background-resume/README.md`.
 
 ## Decision Makers
 
@@ -174,9 +178,9 @@ N/A — 마이그레이션 대상이 되는 기존 시스템이 없다(첫 구�
 
 ## Validation Criteria
 
-- [ ] 첫 프로토타입 빌드(`/prototype roguelite-core` 또는 이후 실제 빌드)에서 Regular 변형으로 `DungeonExploration → BattleScreen` 전환 시 프레임 타임을 실측하고 16.6ms 예산 대비 기록.
-- [ ] 탭을 Tween 진행 중(FADE 또는 FLASH) 30초 이상 백그라운드에 두었다가 재개했을 때, 재개 프레임의 delta 값과 Tween 종료값(정확히 1.0인지, NaN/오버슈트 없는지)을 로그로 확인.
-- [ ] itch.io 실제 프로젝트 페이지에서 커스텀 응답 헤더(COOP/COEP) 설정 가능 여부를 문서 또는 실제 업로드 테스트로 확인하고 결과를 이 ADR의 후속 노트 또는 별도 ADR에 기록.
+- [x] 첫 프로토타입 빌드(`/prototype roguelite-core` 또는 이후 실제 빌드)에서 Regular 변형으로 `DungeonExploration → BattleScreen` 전환 시 프레임 타임을 실측하고 16.6ms 예산 대비 기록. — 2026-08-03, 48.70ms 실측(예산 초과 확인), 위 "Last Verified" 참조.
+- [x] 탭을 Tween 진행 중(FADE 또는 FLASH) 30초 이상 백그라운드에 두었다가 재개했을 때, 재개 프레임의 delta 값과 Tween 종료값(정확히 1.0인지, NaN/오버슈트 없는지)을 로그로 확인. — 2026-08-03, `prototypes/tween-background-resume/`로 검증, 위 "Last Verified" 참조.
+- [ ] itch.io 실제 프로젝트 페이지에서 커스텀 응답 헤더(COOP/COEP) 설정 가능 여부를 문서 또는 실제 업로드 테스트로 확인하고 결과를 이 ADR의 후속 노트 또는 별도 ADR에 기록. — 미검증, 실제 itch.io 배포 필요.
 
 ## GDD Requirements Addressed
 
