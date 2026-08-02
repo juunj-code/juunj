@@ -66,11 +66,11 @@ ADR-0001 2단계(`SaveManager`의 `FS.syncfs()` 확인) 구현 직후, 실제 �
 - **결론**: `ADR-0001`의 Key Interfaces에 적힌 구현(`_js_bridge.eval("FS.syncfs(false, ...)")`)은 **이 Godot 버전에서 원천적으로 동작 불가능** — `save_manager.gd`의 콜백이 영원히 안 오는 게 당연했음(예외가 나되 GDScript 쪽에 전파 안 되고 조용히 삼켜짐). 지금 구현된 5초 타임아웃 폴백조차 발화 안 하는 것도 확인됐는데(부가 발견, 아래), 그거와 무관하게 어차피 이 경로 자체가 막혀 있었음.
 - **부가 발견 (원인 미해결, 별도 이슈로 분리)**: 이 최소 디버그 씬에서는 `_process()`도, `get_tree().create_timer()`도 전혀 발화하지 않음(10초+ 대기해도 프레임 카운터가 0에서 안 움직임) — 반면 이번 세션 앞부분에서 실제 게임 화면(메인메뉴 Tween 페이드, 전투 등)은 정상적으로 시간 기반 동작을 했음. 즉 일반 게임 진행 중엔 문제 없고, 이 특정 "거의 빈 Control 하나뿐인" 디버그 씬에서만 재현됨 — 원인 미상, 프로덕션 영향 여부 불명확이라 더 안 팜.
 
-**다음 액션 (구현 방향 결정 필요, 사용자 판단)**: `FS`가 외부에서 원천적으로 안 닿으므로 현재 방식은 폐기해야 함. 후보:
-1. Godot가 `user://` 쓰기 시 내부적으로 자동 동기화를 하는지(안 하는지) 자체를 다시 확인하고, 맞다면 ADR-0001의 "Alternative 1"(FileAccess.close() 성공만으로 신뢰) 쪽으로 선회 — 단, 콜백이 없어 "언제 끝났는지" 알 방법이 없다는 원래 우려는 그대로 남음.
-2. Godot 4.7 최신 문서에서 `JavaScriptBridge`가 FS 동기화용으로 제공하는 다른 공식 API가 있는지 확인(이번 세션엔 엔진 레퍼런스 라이브러리에 web export 전용 문서가 없다고 ADR 자체가 이미 flag해둠).
-3. `OS.get_user_data_dir()`/`user://` персистence를 완전히 다른 방식(예: 브라우저 `localStorage` 직접 사용, `IndexedDB` API 직접 조작)으로 우회하는 근본적 재설계 — 스코프 큼.
-상세 로그/재현 스크린샷 근거는 이 세션 기록 참조, `save_bridge_debug.gd`에 최종 진단 버전 남겨둠(재현 가능).
+**결정 (2026-08-02, 사용자 선택)**: 대안 3(웹 영속화를 `localStorage`로 완전 재설계)으로 진행. `localStorage`/`window`/`document`는 이번 진단에서 `eval()`로 실제 접근 가능함이 이미 확인된 상태였고(`FS`와 달리 브라우저 표준 전역 API), `localStorage.setItem()/getItem()`이 동기식이라 애초에 ADR-0001이 필요로 했던 "완료 확인 콜백" 자체가 불필요해짐(호출이 안 던지면 이미 쓰기가 끝난 것).
+
+**구현 완료**: `save_manager.gd` 전면 재설계 — 웹 분기에서 `user://`+`FileAccess`+`FS.syncfs()` 대신 `JavaScriptBridge.eval()`로 `localStorage.setItem/getItem`을 직접 호출(payload는 Base64로 감싸서 JS 문자열 리터럴 이스케이핑 문제 원천 차단). 비동기 콜백/타임아웃 관련 코드(`_confirm_durable_write`, `_on_indexeddb_sync_done`, `_on_sync_timeout`, `_sync_timeout_timer`, `_ready()`의 `GodotSaveBridge` 등록) 전부 삭제 — 더 이상 필요 없음. 데스크톱 경로는 완전히 그대로. 테스트도 새 흐름에 맞게 재작성(`save_manager_test.gd`), 182/182 GUT 통과.
+
+**실브라우저 최종 검증 (`save_bridge_debug.gd` 최종본, round 6)**: 실제 웹 빌드에서 `SaveManager.save()` → 메모리 초기화 → `SaveManager.load_from_disk()` 전체 왕복 성공 확인 — `save() returned true`, `reloaded section: { "ts": 1390.0, "value": 42.0 }`, `PASS`. **ADR-0001의 실질적 목표(웹에서 저장이 실제로 됐는지 확인 가능)가 이번에 진짜로 달성됨.**
 
 ## 결과 (2026-08-02, Godot 4.7.1, 헤드리스만)
 

@@ -14,7 +14,6 @@ func before_each() -> void:
 func after_each() -> void:
 	SaveManager._web_override = null
 	SaveManager._js_bridge = JavaScriptBridge
-	SaveManager._sync_timeout_timer = null
 
 func after_all() -> void:
 	var dir := DirAccess.open("user://")
@@ -142,55 +141,65 @@ func test_successful_save_returns_true_and_emits_save_succeeded() -> void: # AC2
 	assert_true(ok)
 	assert_true(fired[0])
 
-## ADR-0001 stage 2 -- web durability confirmation via FS.syncfs(). Mirrors
-## ad_manager_test.gd's mock-bridge pattern (ADR-0003's shared DI convention).
+## Web save/load via localStorage (see save_manager.gd header for why this
+## replaced the original FS.syncfs() design -- that approach was confirmed
+## unworkable against a real Godot 4.7.1 web export on 2026-08-02). Mirrors
+## ad_manager_test.gd's mock-bridge pattern (ADR-0003's shared DI convention),
+## except the mock here also returns configurable eval() results since the
+## web path is synchronous (no callback relay to simulate).
 
-func test_web_save_evals_syncfs_and_defers_save_succeeded_until_callback() -> void:
+func test_web_save_calls_localStorage_setItem_and_succeeds() -> void:
 	var mock := MockJsBridge.new()
+	mock.eval_return_value = "ok"
 	SaveManager._web_override = true
 	SaveManager._js_bridge = mock
 	var fired := [false]
 	SaveManager.save_succeeded.connect(func(): fired[0] = true)
 
 	SaveManager.save_section("x", 1)
-	var ok := SaveManager.save() # stage 1 (vFS write) return value, unaffected by stage 2
+	var ok := SaveManager.save()
 
-	assert_true(ok, "return value is stage 1 only -- see save_manager.gd header")
-	assert_false(fired[0], "save_succeeded must wait for the syncfs callback on web")
-	var syncfs_calls: Array = mock.eval_calls.filter(func(s): return s.contains("FS.syncfs"))
-	assert_eq(syncfs_calls.size(), 1)
-
-	SaveManager._on_indexeddb_sync_done(null) # simulate JS calling back with no error
-
+	assert_true(ok)
 	assert_true(fired[0])
+	var set_calls: Array = mock.eval_calls.filter(func(s): return s.contains("localStorage.setItem"))
+	assert_eq(set_calls.size(), 1)
 
-func test_web_syncfs_error_emits_save_failed() -> void:
+func test_web_save_failure_emits_save_failed() -> void:
 	var mock := MockJsBridge.new()
+	mock.eval_return_value = "error:QuotaExceededError"
 	SaveManager._web_override = true
 	SaveManager._js_bridge = mock
 	var failed_reason := [""]
 	SaveManager.save_failed.connect(func(reason): failed_reason[0] = reason)
 
 	SaveManager.save_section("x", 1)
-	SaveManager.save()
-	SaveManager._on_indexeddb_sync_done("some browser error")
+	var ok := SaveManager.save()
 
-	assert_eq(failed_reason[0], "indexeddb_sync_failed")
+	assert_false(ok)
+	assert_eq(failed_reason[0], "write_failed")
 
-func test_web_syncfs_timeout_emits_save_failed() -> void:
+func test_web_load_decodes_base64_payload_from_localStorage() -> void:
 	var mock := MockJsBridge.new()
+	var payload := {"schema_version": 1, "sections": {"x": 1.0}}
+	mock.eval_return_value = Marshalls.utf8_to_base64(JSON.stringify(payload))
 	SaveManager._web_override = true
 	SaveManager._js_bridge = mock
-	var failed_reason := [""]
-	SaveManager.save_failed.connect(func(reason): failed_reason[0] = reason)
 
-	SaveManager.save_section("x", 1)
-	SaveManager.save()
-	SaveManager._on_sync_timeout() # simulate the failsafe firing instead of waiting 5s
+	SaveManager.load_from_disk()
 
-	assert_eq(failed_reason[0], "indexeddb_sync_timeout")
+	assert_eq(SaveManager.get_section("x"), 1.0)
 
-func test_non_web_save_confirms_immediately_without_eval() -> void:
+func test_web_load_with_no_save_is_not_an_error() -> void:
+	var mock := MockJsBridge.new()
+	mock.eval_return_value = ""
+	SaveManager._web_override = true
+	SaveManager._js_bridge = mock
+
+	SaveManager.load_from_disk()
+
+	assert_eq(SaveManager.get_section("anything"), null)
+
+func test_non_web_save_never_calls_eval() -> void:
 	var mock := MockJsBridge.new()
 	SaveManager._web_override = false
 	SaveManager._js_bridge = mock
@@ -203,21 +212,16 @@ func test_non_web_save_confirms_immediately_without_eval() -> void:
 	assert_true(fired[0])
 	assert_eq(mock.eval_calls.size(), 0)
 
-class MockBridgeObject:
-	var onSyncDone: Callable
-
-class MockWindow:
-	var GodotSaveBridge := MockBridgeObject.new()
-
 class MockJsBridge:
 	var eval_calls: Array[String] = []
-	var _window := MockWindow.new()
+	var eval_return_value = null # configurable per test -- web save/load is synchronous
 
-	func eval(code: String, _use_strict_mode: bool = false) -> void:
+	func eval(code: String, _use_strict_mode: bool = false):
 		eval_calls.append(code)
+		return eval_return_value
 
 	func get_interface(_name: String):
-		return _window
+		return null
 
 	func create_callback(method: Callable) -> Callable:
 		return method
