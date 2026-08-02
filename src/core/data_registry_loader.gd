@@ -20,8 +20,14 @@ static func load_all(folder_path: String, reject_if_invalid: Callable) -> Dictio
 	dir.list_dir_begin()
 	var filename := dir.get_next()
 	while filename != "":
-		if not dir.current_is_dir() and filename.ends_with(".tres"):
-			filenames.append(filename)
+		# Exported PCKs (web export confirmed, 2026-08-02) list resource files
+		# with a ".remap" suffix appended (e.g. "foo.tres.remap") instead of
+		# the bare "foo.tres" that editor/desktop-from-source runs see -- load()
+		# still resolves the canonical unremapped path fine, so just strip it
+		# before the extension check.
+		var clean_name := filename.trim_suffix(".remap")
+		if not dir.current_is_dir() and clean_name.ends_with(".tres"):
+			filenames.append(clean_name)
 		filename = dir.get_next()
 	dir.list_dir_end()
 	filenames.sort()

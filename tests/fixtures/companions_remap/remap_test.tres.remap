@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="CompanionData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/core/companion_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "remap_test_id"
+name = "Remap Test"
+description = ""
+class_type = "balance"
+portrait_id = ""
+color_accent = Color(1, 1, 1, 1)
+base_hp = 100
+base_atk = 15
+base_def = 10
+base_spd = 5
+skill_id = "skill_slash"
+is_hidden = false
+unlock_condition_id = ""

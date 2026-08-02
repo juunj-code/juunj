@@ -1,0 +1,10 @@
+Noto Sans KR (NotoSansKR-Regular.ttf, variable font)
+Source: https://github.com/google/fonts/tree/main/ofl/notosanskr
+License: SIL Open Font License 1.1 (https://openfontlicense.org)
+Copyright 2014-2021 Adobe (http://www.adobe.com/), with Reserved Font Name
+'Source'. Noto is a trademark of Google LLC.
+
+Used as the project's default GUI font (project.godot [gui] theme/custom_font)
+to render Korean UI text in the HTML5/web export -- the engine's built-in
+default font has no CJK glyph coverage and falls back to tofu boxes on web,
+where OS font fallback isn't available (see 2026-08-02 web export smoke test).
