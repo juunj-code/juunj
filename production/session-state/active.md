@@ -86,6 +86,7 @@
 - [x] 보스 스탯 밸런스 재검토 완료 (2026-08-02) — `enemy_boss_01` 150/15/8로 조정, GDD 동기화, `boss_balance_test.gd` 회귀 테스트 추가
 - [x] art-bible Section 5(상태이상 아이콘 시스템) 작성 완료 (2026-08-02) — 프레임/색상/픽토그램 규칙 정의. Section 6-9는 계속 보류(게이트 아님)
 - [x] 상태이상 아이콘 에셋 생성 + 배선 완료 (2026-08-02) — 사용자 승인으로 Higgsfield `nano_banana_pro` 사용(6 크레딧). poison(빨강 해골)/stun(빨강 소용돌이)/defense_up(초록 방패+화살표) 3종을 `assets/art/icons/`에 저장, `StatusEffect.icon_id` 채움, `battle_screen.gd`의 상태이상 표시를 텍스트(`이름(턴)`)에서 아이콘+턴수 인라인 표시로 교체(`#20 UI/HUD` AC8 완성). 헤드리스 스모크 체크(`prototypes/status-icon-smoke/`)로 배선 자체가 에러 없이 도는 것 확인 + 아이콘 PNG 3개 생성 직후 개별 육안 확인 완료. **단, 실제 화면 배치/크기감 최종 확인은 에디터 F6 사람 확인 대기**(ADVISORY, 게이트 아님 — 스모크 체크가 헤드리스 렌더 한계로 스크린샷을 못 찍음, 근거는 프로토타입 README 참조). 176/176 GUT 통과.
+- [x] 적 스프라이트 4종 생성 + 배선 완료 (2026-08-02) — 사용자 승인, Higgsfield `nano_banana_pro`(8 크레딧). 고블린 정찰병(소형, 삼각 돌출 2개)/떠도는 병사(중형, 비대칭 어깨)/돌 수문장(비대칭 거대 주먹+균열 노치)/바람의 수호자(보스, 내부 네거티브 스페이스 링 형태) — 전부 art-bible 3-1 실루엣 규칙 충족 확인(육안). 몸 전체는 냉석/안개 청회색, 위협홍은 눈/균열 포인트로만(art-bible 4-2에 이 규칙 명문화, 기존 rim-light 색 서술 모호함도 같이 정리). `EnemyData.sprite_id` 채움, `TurnBattle._build_enemy_units()`에 `sprite_id` 전달 추가, `battle_screen.gd`가 적 유닛 줄 상단에 64×64 스프라이트 렌더. 헤드리스 스모크(`prototypes/status-icon-smoke/`, enemy_tank_01 재사용)로 배선 에러 없음 확인. 176/176 GUT 통과. 최종 화면 배치는 상태이상 아이콘과 동일하게 에디터 F6 확인 대기(ADVISORY).
 
 ## 전체 개발 진행률 스냅샷 (2026-07-26, 사용자 질의 응답 기록)
 

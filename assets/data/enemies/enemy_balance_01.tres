@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "enemy_balance_01"
 name = "떠도는 병사"
-sprite_id = ""
+sprite_id = "res://assets/art/sprites/enemy_balance_01.png"
 base_hp = 45
 base_atk = 13
 base_def = 7

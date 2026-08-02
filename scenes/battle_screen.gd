@@ -46,8 +46,18 @@ func _ready() -> void:
 
 	_battle.run_battle()
 
+const _ENEMY_SPRITE_SIZE := Vector2(64, 64) ## design/art/art-bible.md Section 3-1
+
 func _build_rows(units: Array, container: VBoxContainer) -> void:
 	for unit in units:
+		var sprite_id: String = unit.get("sprite_id", "")
+		if sprite_id != "":
+			var sprite := TextureRect.new()
+			sprite.texture = load(sprite_id)
+			sprite.custom_minimum_size = _ENEMY_SPRITE_SIZE
+			sprite.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+			container.add_child(sprite)
+
 		var label := Label.new()
 		container.add_child(label)
 		if not _labels.has(unit["id"]):

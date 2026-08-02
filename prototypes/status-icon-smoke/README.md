@@ -38,6 +38,10 @@ godot --headless --path . res://prototypes/status-icon-smoke/StatusIconSmoke.tsc
 3. 파티 쪽 유닛 줄에 poison(빨강 해골)/stun(빨강 소용돌이)/defense_up(초록 방패+화살표)
    아이콘 3개 + 잔여 턴수 숫자가 나란히 보이는지 확인.
 
+**추가 (2026-08-02)**: `enemy_tank_01`에 `sprite_id`가 채워진 뒤로 이 스모크가
+`battle_screen.gd`의 적 스프라이트 `load()`/`TextureRect` 배선도 같이 검증한다
+(같은 씬을 재사용, 별도 스크립트 안 만듦).
+
 ## 결과 (2026-08-02, Godot 4.7.1, 헤드리스만)
 
 | 확인 항목 | 결과 |

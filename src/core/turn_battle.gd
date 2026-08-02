@@ -64,7 +64,7 @@ func _build_enemy_units(enemies: Array) -> Array:
 			"base_atk": data.base_atk, "base_def": data.base_def,
 			"spd": data.base_spd, "current_sp": e.current_sp,
 			"active_effects": e.active_effects, "skill_id": data.skill_id,
-			"is_boss": data.is_boss, "run_state": e,
+			"is_boss": data.is_boss, "sprite_id": data.sprite_id, "run_state": e,
 		})
 	return units
 

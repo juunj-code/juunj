@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "enemy_speed_01"
 name = "고블린 정찰병"
-sprite_id = ""
+sprite_id = "res://assets/art/sprites/enemy_speed_01.png"
 base_hp = 30
 base_atk = 16
 base_def = 4
