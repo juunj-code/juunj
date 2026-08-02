@@ -11,6 +11,11 @@ func before_each() -> void:
 			dir.remove(f)
 	SaveManager._sections = {}
 
+func after_each() -> void:
+	SaveManager._web_override = null
+	SaveManager._js_bridge = JavaScriptBridge
+	SaveManager._sync_timeout_timer = null
+
 func after_all() -> void:
 	var dir := DirAccess.open("user://")
 	for f in ["savegame.dat", "savegame.dat.tmp", "savegame.dat.corrupted.bak"]:
@@ -136,3 +141,83 @@ func test_successful_save_returns_true_and_emits_save_succeeded() -> void: # AC2
 
 	assert_true(ok)
 	assert_true(fired[0])
+
+## ADR-0001 stage 2 -- web durability confirmation via FS.syncfs(). Mirrors
+## ad_manager_test.gd's mock-bridge pattern (ADR-0003's shared DI convention).
+
+func test_web_save_evals_syncfs_and_defers_save_succeeded_until_callback() -> void:
+	var mock := MockJsBridge.new()
+	SaveManager._web_override = true
+	SaveManager._js_bridge = mock
+	var fired := [false]
+	SaveManager.save_succeeded.connect(func(): fired[0] = true)
+
+	SaveManager.save_section("x", 1)
+	var ok := SaveManager.save() # stage 1 (vFS write) return value, unaffected by stage 2
+
+	assert_true(ok, "return value is stage 1 only -- see save_manager.gd header")
+	assert_false(fired[0], "save_succeeded must wait for the syncfs callback on web")
+	var syncfs_calls: Array = mock.eval_calls.filter(func(s): return s.contains("FS.syncfs"))
+	assert_eq(syncfs_calls.size(), 1)
+
+	SaveManager._on_indexeddb_sync_done(null) # simulate JS calling back with no error
+
+	assert_true(fired[0])
+
+func test_web_syncfs_error_emits_save_failed() -> void:
+	var mock := MockJsBridge.new()
+	SaveManager._web_override = true
+	SaveManager._js_bridge = mock
+	var failed_reason := [""]
+	SaveManager.save_failed.connect(func(reason): failed_reason[0] = reason)
+
+	SaveManager.save_section("x", 1)
+	SaveManager.save()
+	SaveManager._on_indexeddb_sync_done("some browser error")
+
+	assert_eq(failed_reason[0], "indexeddb_sync_failed")
+
+func test_web_syncfs_timeout_emits_save_failed() -> void:
+	var mock := MockJsBridge.new()
+	SaveManager._web_override = true
+	SaveManager._js_bridge = mock
+	var failed_reason := [""]
+	SaveManager.save_failed.connect(func(reason): failed_reason[0] = reason)
+
+	SaveManager.save_section("x", 1)
+	SaveManager.save()
+	SaveManager._on_sync_timeout() # simulate the failsafe firing instead of waiting 5s
+
+	assert_eq(failed_reason[0], "indexeddb_sync_timeout")
+
+func test_non_web_save_confirms_immediately_without_eval() -> void:
+	var mock := MockJsBridge.new()
+	SaveManager._web_override = false
+	SaveManager._js_bridge = mock
+	var fired := [false]
+	SaveManager.save_succeeded.connect(func(): fired[0] = true)
+
+	SaveManager.save_section("x", 1)
+	SaveManager.save()
+
+	assert_true(fired[0])
+	assert_eq(mock.eval_calls.size(), 0)
+
+class MockBridgeObject:
+	var onSyncDone: Callable
+
+class MockWindow:
+	var GodotSaveBridge := MockBridgeObject.new()
+
+class MockJsBridge:
+	var eval_calls: Array[String] = []
+	var _window := MockWindow.new()
+
+	func eval(code: String, _use_strict_mode: bool = false) -> void:
+		eval_calls.append(code)
+
+	func get_interface(_name: String):
+		return _window
+
+	func create_callback(method: Callable) -> Callable:
+		return method

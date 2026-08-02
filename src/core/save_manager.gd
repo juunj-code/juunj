@@ -4,18 +4,35 @@ extends Node
 ## ponytail: implements the synchronous core (section API, atomic write via
 ## separately-callable _write_temp()/_swap() per the GDD's own AC4 testability
 ## note, schema_version, corruption detection, size budget) against real
-## FileAccess -- this is correct and fully testable on desktop today. Deferred:
-## the retry/timeout/queue state machine (SAVE_WRITE_TIMEOUT_MS, exponential
-## backoff, SAVE_LOCK_QUEUE_MAX) -- that machinery exists specifically to
-## paper over HTML5/IndexedDB's unverified async write durability (ADR-0001,
-## still Proposed), which doesn't exist on synchronous desktop FileAccess.
-## Add when ADR-0001 is Accepted and there's a real web build to test against.
+## FileAccess -- this is correct and fully testable on desktop today.
+##
+## ADR-0001 stage 2 (IndexedDB durable-sync confirmation via FS.syncfs(),
+## same JS-bridge DI pattern as ad_manager.gd/ADR-0003) is implemented below.
+## save()'s bool RETURN VALUE still means stage 1 only (vFS write succeeded)
+## -- unchanged from before, so ProgressManager.commit_run_end()'s synchronous
+## use of it keeps working as-is. The save_succeeded/save_failed SIGNALS are
+## what ADR-0001 actually governs: on web they now wait for stage 2 (durable
+## confirm) before firing; on non-web stage 2 is a same-frame passthrough so
+## signal timing is unchanged there. Nothing currently listens to those
+## signals (checked 2026-08-02), so this split costs no caller a migration
+## today -- a future "저장 중..." web UI should listen to the signals, not
+## the return value, to get the real durability guarantee.
+##
+## Still deferred: the retry/timeout/queue *state machine* (exponential
+## backoff, SAVE_LOCK_QUEUE_MAX) ADR-0001 describes for repeated failures --
+## its timing constants are explicitly unmeasured placeholders in the ADR
+## (Validation Criteria needs real mobile Safari/Chrome data first). Built
+## instead: a single SAVE_SYNC_TIMEOUT_MS failsafe (same shape as
+## ad_manager.gd's AD_TIMEOUT_MS, no retry loop) so a hung/missing JS
+## callback can't wedge the save flow forever. Add real retry/backoff once
+## ADR-0001 is Accepted with measured numbers.
 
 const SCHEMA_VERSION := 1
 const SAVE_PATH := "user://savegame.dat"
 const TEMP_PATH := "user://savegame.dat.tmp"
 const SAVE_FILE_SIZE_WARN_BYTES := 131072
 const SAVE_FILE_SIZE_BUDGET_BYTES := 262144
+const SAVE_SYNC_TIMEOUT_MS := 5000
 ## JSON has no int type -- numbers always round-trip as float (e.g. saved
 ## int 3 loads back as 3.0). Consumers reading numeric section fields should
 ## int()-cast if they need an int. This is a JSON property, not a bug here.
@@ -26,9 +43,21 @@ signal load_completed
 signal save_corrupted_and_reset
 
 var _sections: Dictionary = {}
+var _js_bridge = JavaScriptBridge # DI 시임 -- 테스트에서 mock으로 교체 (ADR-0003과 동일 패턴)
+var _web_override = null # DI 시임 -- true/false로 강제, null=실제 OS 값 사용
+var _sync_timeout_timer: SceneTreeTimer
 
 func _ready() -> void:
 	load_from_disk()
+	if _is_web():
+		_js_bridge.eval("window.GodotSaveBridge = {};", true)
+		var bridge = _js_bridge.get_interface("window").GodotSaveBridge
+		bridge.onSyncDone = _js_bridge.create_callback(_on_indexeddb_sync_done)
+
+func _is_web() -> bool:
+	if _web_override != null:
+		return _web_override
+	return OS.has_feature("web")
 
 func save_section(name: String, data: Variant) -> void:
 	_sections[name] = data
@@ -37,6 +66,7 @@ func get_section(name: String) -> Variant:
 	return _sections.get(name)
 
 ## Explicit trigger only -- nothing calls this automatically (Core Rule 2).
+## Return value is stage 1 (vFS write) only -- see file header re: signals.
 func save() -> bool:
 	var payload := {"schema_version": SCHEMA_VERSION, "sections": _sections}
 	var json_str := JSON.stringify(payload)
@@ -56,8 +86,33 @@ func save() -> bool:
 		save_failed.emit("swap_failed")
 		return false
 
-	save_succeeded.emit()
+	_confirm_durable_write()
 	return true
+
+## ADR-0001 stage 2. Non-web: durability isn't in question (real disk via
+## FileAccess), so confirm immediately. Web: ask the browser to flush the
+## Emscripten virtual FS to IndexedDB and wait for its callback, with a
+## single timeout failsafe so a missing/hung callback can't wedge forever.
+func _confirm_durable_write() -> void:
+	if not _is_web():
+		_on_indexeddb_sync_done(null)
+		return
+	_sync_timeout_timer = get_tree().create_timer(SAVE_SYNC_TIMEOUT_MS / 1000.0)
+	_sync_timeout_timer.timeout.connect(_on_sync_timeout)
+	_js_bridge.eval("FS.syncfs(false, function(err) { GodotSaveBridge.onSyncDone(err); });")
+
+func _on_indexeddb_sync_done(err) -> void: # JS에서 GodotSaveBridge.onSyncDone(err) 호출 시
+	if _sync_timeout_timer:
+		_sync_timeout_timer.timeout.disconnect(_on_sync_timeout)
+		_sync_timeout_timer = null
+	if err:
+		save_failed.emit("indexeddb_sync_failed")
+	else:
+		save_succeeded.emit()
+
+func _on_sync_timeout() -> void:
+	_sync_timeout_timer = null
+	save_failed.emit("indexeddb_sync_timeout")
 
 ## Exposed separately so tests can simulate "process killed between temp-write
 ## and swap" by calling this and never calling _swap() (GDD AC4 testability note).

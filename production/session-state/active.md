@@ -96,6 +96,11 @@
   - **ADR-0001 (로컬 세이브 durability)**: 여전히 Proposed. 이 ADR이 요구하는 `FS.syncfs()` JS 브릿지 자체가 아직 코드로 구현 안 됨(데스크톱 동기 코어만 존재), 그리고 Validation Criteria가 명시적으로 실제 모바일 Safari/Chrome 20회+ 실측을 요구 — 이번 세션 도구로는 불가능, 손 못 댐.
   - **환경 메모**: Godot 4.7.1 export templates(~1.28GB)를 로컬 `%APPDATA%/Godot/export_templates/4.7.1.stable/`에 설치함(레포에는 없음, 다른 머신에서 웹 익스포트 재현하려면 재설치 필요). `export_presets.cfg`는 이 프로젝트 기존 `.gitignore`가 이미 제외 설정되어 있어(일반적으론 커밋 권장이지만 기존 컨벤션 존중해 그대로 둠) 커밋하지 않음 — 필요 시 이 파일 내용을 세션 로그에서 복원 가능.
 
+- [x] **ADR-0001 2단계(로컬세이브 IndexedDB durability 확인) 구현** (2026-08-02) — `save_manager.gd`에 ADR-0003과 동일한 JS 브릿지 DI 패턴(`_js_bridge`/`_web_override` 시임, `_ready()`에서 `GodotSaveBridge.onSyncDone` 콜백 사전 등록) 적용. 웹에서는 `_swap()` 성공 후 `FS.syncfs()` 콜백을 기다린 뒤에만 `save_succeeded`/`save_failed` 시그널 발신, 비웹은 즉시 발신(기존과 동일). **의도적 스코프 분리**: `save()`의 bool 리턴값은 여전히 1단계(가상 FS 쓰기)만 의미 — `ProgressManager.commit_run_end()`가 이 리턴값을 동기적으로 쓰고 있어서 그걸 깨지 않으려고 리턴값과 시그널의 의미를 의도적으로 분리함(현재 이 시그널을 구독하는 곳이 실제로 없어서 아무 캐러도 마이그레이션 불필요, 주석에 명시). 재시도/지수백오프/큐 상태머신(ADR이 언급하는)은 여전히 구현 안 함 — 타이밍 상수가 ADR 자신도 "실측 전 placeholder"로 표시한 값들이라 지금 만드는 건 추측성 코드(YAGNI). 대신 `AdManager`와 동일한 단일 타임아웃 실패 안전장치(`SAVE_SYNC_TIMEOUT_MS`)만 추가.
+  - **테스트**: `ad_manager_test.gd`의 mock 브릿지 패턴을 그대로 재사용해 `save_manager_test.gd`에 4개 추가(웹 성공/에러/타임아웃/비웹 즉시확인). 181/181 GUT 통과.
+  - **실브라우저 검증**: 웹 빌드 재익스포트 후 부팅 시 `_ready()`의 `window.GodotSaveBridge = {}` 등록 + `create_callback()`이 콘솔 에러 없이 실행됨을 확인. 이후 실제 전투를 여러 판 진행하며(적 처치 포함) 콘솔 에러 0건 유지 확인. **단, 실제 런 종료(`RunManager.end_run()` → `SaveManager.save()` → 진짜 `FS.syncfs()` 콜백 왕복)까지는 도달 못함** — 3층 던전을 수동 클릭으로 다 돌기엔 시간이 오래 걸려 중단. 즉 "JS 브릿지 등록과 배선 자체는 에러 없음"까지만 실증됐고, "`FS.syncfs`가 이 Emscripten 빌드에서 실제로 존재/동작하는지"는 미확인 — 다음 세션에서 던전을 끝까지 밀어보거나 디버그 하네스로 `RunManager.end_run()`을 직접 호출해 확인할 것.
+  - **여전히 남음**: ADR-0001 Validation Criteria가 요구하는 모바일 Safari/Chrome 20회+ 실측, 탭 강제종료 후 재시작 데이터 보존 확인 — 이번 세션 도구로는 불가능. ADR은 계속 Proposed 유지(ADR 불변 기록 컨벤션에 따라 본문 수정 안 함).
+
 ## 전체 개발 진행률 스냅샷 (2026-07-26, 사용자 질의 응답 기록)
 
 기획(GDD)은 MVP 기준 사실상 완료, 아키텍처 청사진도 완료. 하지만 전체 게임 개발 대비로는 **약 8~12%** 수준 — 실제 코드/에셋/테스트/엔진 프로젝트 자체가 전무한 상태(기획+아키텍처는 보통 전체 공수의 10~20%). 이 비율은 다음 마일스톤 진행에 따라 계속 갱신할 것.
