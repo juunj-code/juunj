@@ -20,7 +20,7 @@ extends Control
 var _battle: TurnBattle
 var _labels: Dictionary = {} # id -> Array[Label]
 var _sp_labels: Dictionary = {} # id -> Array[Label]
-var _status_labels: Dictionary = {} # id -> Array[Label]
+var _status_rows: Dictionary = {} # id -> Array[HBoxContainer]
 var _base_hp: Dictionary = {} # id -> int
 var _current_unit: Dictionary = {}
 
@@ -63,18 +63,35 @@ func _build_rows(units: Array, container: VBoxContainer) -> void:
 		_sp_labels[unit["id"]].append(sp_label)
 		sp_label.text = HudRules.sp_dots(unit["current_sp"])
 
-		var status_label := Label.new()
-		container.add_child(status_label)
-		if not _status_labels.has(unit["id"]):
-			_status_labels[unit["id"]] = []
-		_status_labels[unit["id"]].append(status_label)
-		_render_status_label(status_label, unit["active_effects"])
+		var status_row := HBoxContainer.new()
+		container.add_child(status_row)
+		if not _status_rows.has(unit["id"]):
+			_status_rows[unit["id"]] = []
+		_status_rows[unit["id"]].append(status_row)
+		_render_status_row(status_row, unit["active_effects"])
 
 func _render_label(label: Label, id: String, hp: int) -> void:
 	label.text = "%s  %d/%d HP" % [id, hp, _base_hp[id]]
 
-func _render_status_label(label: Label, effects: Array) -> void:
-	label.text = ", ".join(effects.map(func(e): return "%s(%d)" % [e.name, e.duration]))
+const _STATUS_ICON_SIZE := Vector2(24, 24) ## design/art/art-bible.md Section 5 icon frame
+
+func _render_status_row(row: HBoxContainer, effects: Array) -> void:
+	for child in row.get_children():
+		child.queue_free()
+	for effect in effects:
+		if effect.icon_id != "":
+			var icon := TextureRect.new()
+			icon.texture = load(effect.icon_id)
+			icon.custom_minimum_size = _STATUS_ICON_SIZE
+			icon.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+			row.add_child(icon)
+		else:
+			var name_label := Label.new()
+			name_label.text = effect.name
+			row.add_child(name_label)
+		var duration_label := Label.new()
+		duration_label.text = "(%d)" % effect.duration
+		row.add_child(duration_label)
 
 func _on_unit_hp_changed(unit_id: String, new_hp: int) -> void:
 	for label in _labels.get(unit_id, []):
@@ -85,8 +102,8 @@ func _on_unit_sp_changed(unit_id: String, new_sp: int) -> void:
 		label.text = HudRules.sp_dots(new_sp)
 
 func _on_status_effects_changed(unit_id: String, effects: Array) -> void:
-	for label in _status_labels.get(unit_id, []):
-		_render_status_label(label, effects)
+	for row in _status_rows.get(unit_id, []):
+		_render_status_row(row, effects)
 
 func _on_turn_started(unit_id: String) -> void:
 	_turn_label.text = "%s의 차례" % unit_id

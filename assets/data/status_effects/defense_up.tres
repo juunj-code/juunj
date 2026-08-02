@@ -10,3 +10,4 @@ type = "STAT_MODIFY"
 value = 8
 stat_target = "def"
 duration = 2
+icon_id = "res://assets/art/icons/status_defense_up.png"

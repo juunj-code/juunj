@@ -1,13 +1,13 @@
 # Status Effect Icon Generation Prompts
 
-Prepared 2026-08-02. Blocked on generation: Gemini (nanobanana) free-tier quota
-is 0 for `gemini-3.1-flash-image` (same block companion portraits hit on
-2026-07-31, see `design/art/portrait-prompts.md` — resolved once quota opened
-up). Higgsfield not attempted here — has real credit cost, needs explicit
-user go-ahead before spending. Run these once nanobanana is unblocked (or the
-user approves a Higgsfield spend) — square 1:1, save to
-`assets/art/icons/status_<id>.png`, then set each `StatusEffect.icon_id` in
-`assets/data/status_effects/*.tres` to the resulting `res://` path.
+Prepared 2026-08-02. **Generated 2026-08-02** via Higgsfield `nano_banana_pro`
+(user approved the credit spend — 2 credits/image, 6 total) after nanobanana
+(Gemini free tier, quota 0) was blocked again, same as the companion portrait
+block on 2026-07-31. Saved to `assets/art/icons/status_<id>.png`,
+`StatusEffect.icon_id` set on all 3 `.tres` files, wired into
+`scenes/battle_screen.gd` (icon + duration replaces the old name+duration
+text). Prompts below kept for reference / regenerating if the art direction
+changes.
 
 Spec source: `design/art/art-bible.md` Section 5 (아이콘 프레임/색상/픽토그램 규칙).
 

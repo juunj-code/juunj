@@ -10,3 +10,4 @@ type = "DOT"
 value = 5
 stat_target = ""
 duration = 3
+icon_id = "res://assets/art/icons/status_poison.png"

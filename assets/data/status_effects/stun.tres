@@ -10,3 +10,4 @@ type = "SKIP_TURN"
 value = 0
 stat_target = ""
 duration = 1
+icon_id = "res://assets/art/icons/status_stun.png"

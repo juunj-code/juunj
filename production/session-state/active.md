@@ -85,7 +85,7 @@
 - [ ] art-bible 섹션 5-9 작성 (섹션 1-4만 완료, 코딩 진행 중 필요할 때 채움 — 게이트 아님)
 - [x] 보스 스탯 밸런스 재검토 완료 (2026-08-02) — `enemy_boss_01` 150/15/8로 조정, GDD 동기화, `boss_balance_test.gd` 회귀 테스트 추가
 - [x] art-bible Section 5(상태이상 아이콘 시스템) 작성 완료 (2026-08-02) — 프레임/색상/픽토그램 규칙 정의. Section 6-9는 계속 보류(게이트 아님)
-- [ ] 상태이상 아이콘 에셋 생성 — **차단**: nanobanana(Gemini) 무료 쿼터 0(companion 초상화 때와 동일 증상), Higgsfield는 실제 크레딧 소모라 사용자 승인 없이 미시도. 프롬프트는 `design/art/status-icon-prompts.md`에 준비 완료, 쿼터 풀리면 바로 생성 가능. `StatusEffect.icon_id` 필드는 미리 추가해둠(`portrait_id`와 동일 패턴) — BattleScreen 렌더 교체는 실제 에셋 나온 뒤에(지금 하면 검증 불가능한 죽은 코드).
+- [x] 상태이상 아이콘 에셋 생성 + 배선 완료 (2026-08-02) — 사용자 승인으로 Higgsfield `nano_banana_pro` 사용(6 크레딧). poison(빨강 해골)/stun(빨강 소용돌이)/defense_up(초록 방패+화살표) 3종을 `assets/art/icons/`에 저장, `StatusEffect.icon_id` 채움, `battle_screen.gd`의 상태이상 표시를 텍스트(`이름(턴)`)에서 아이콘+턴수 인라인 표시로 교체(`#20 UI/HUD` AC8 완성). 헤드리스 스모크 체크(`prototypes/status-icon-smoke/`)로 배선 자체가 에러 없이 도는 것 확인 + 아이콘 PNG 3개 생성 직후 개별 육안 확인 완료. **단, 실제 화면 배치/크기감 최종 확인은 에디터 F6 사람 확인 대기**(ADVISORY, 게이트 아님 — 스모크 체크가 헤드리스 렌더 한계로 스크린샷을 못 찍음, 근거는 프로토타입 README 참조). 176/176 GUT 통과.
 
 ## 전체 개발 진행률 스냅샷 (2026-07-26, 사용자 질의 응답 기록)
 
