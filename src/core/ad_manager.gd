@@ -34,17 +34,24 @@ func show_interstitial(on_complete: Callable) -> void:
 	if _pending_callback: # 재진입 가드 -- AC7
 		return
 
+	# ponytail (2026-08-02): 실브라우저 검증 중 발견 -- create_callback()으로 만든
+	# JS->GDScript 콜백이 이 Godot 4.7.1 웹 익스포트에서 릴레이되지 않음(직접
+	# window.GodotAdBridge.adCompleted() 수동 호출해도 GDScript 쪽 미도달, 5초
+	# 타임아웃 폴백도 발화 안 함 -- prototypes/ad-callback-smoke/README.md 참조).
+	# ad SDK가 아직 없는(현재 MVP 100%) 경로는 eval()의 동기 반환값으로 우회해서
+	# 콜백 릴레이 자체를 안 탄다. SDK 존재 시의 비동기 경로는 그대로 남겨두지만
+	# 실제 SDK 붙기 전까진 검증 불가 -- 붙이는 시점에 반드시 재검증 필요.
+	var has_ad_sdk: bool = _js_bridge.eval(
+		"!!(window.adManager && window.adManager.showInterstitial)", true
+	)
+	if not has_ad_sdk:
+		on_complete.call()
+		return
+
 	_pending_callback = on_complete
 	_timeout_timer = get_tree().create_timer(AD_TIMEOUT_MS / 1000.0)
 	_timeout_timer.timeout.connect(_on_ad_timeout)
-
-	_js_bridge.eval("""
-		if (window.adManager && window.adManager.showInterstitial) {
-			window.adManager.showInterstitial();
-		} else {
-			GodotAdBridge.adCompleted();
-		}
-	""")
+	_js_bridge.eval("window.adManager.showInterstitial();")
 
 func _on_ad_completed() -> void: # JS에서 GodotAdBridge.adCompleted() 호출 시
 	if _timeout_timer:

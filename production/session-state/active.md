@@ -104,6 +104,8 @@
   - **여전히 남음**: ADR-0001 Validation Criteria가 요구하는 모바일 Safari/Chrome 20회+ 실측, 탭 강제종료 후 재시작 데이터 보존 확인 — 이번 세션 도구로는 불가능. ADR은 계속 Proposed 유지(ADR 불변 기록 컨벤션에 따라 본문 수정 안 함).
   - **재설계 완료 (2026-08-02, 사용자 결정)**: `FS`가 전역에 없다는 근본 원인이 확정되자 사용자가 "웹 저장 경로를 `localStorage`로 완전 교체"를 선택. `save_manager.gd` 전면 재작성 — 웹 분기는 `user://`+`FS.syncfs()` 대신 `JavaScriptBridge.eval()`로 `localStorage.setItem/getItem`을 Base64로 감싸 직접 호출(동기식이라 콜백/타임아웃 로직 자체가 불필요해져 관련 코드 전부 삭제, 데스크톱 경로는 무변경). 테스트 재작성, 182/182 GUT 통과. **실제 웹 빌드에서 `save()` → 메모리 초기화 → `load_from_disk()` 전체 왕복 성공 확인**(`PASS`, 값 정확히 복원) — ADR-0001의 실질 목표(웹에서 저장 확인 가능)가 실제로 달성됨. 남은 건 여전히 모바일 실기기 검증뿐(ADR Proposed 유지). 상세: `prototypes/status-icon-smoke/README.md`.
 
+**AdManager JS→GDScript 콜백 릴레이 버그 발견+수정 (2026-08-02)** — 던전 플레이스루로 패배 흐름을 검증하던 중 `RunResultScreen`의 "메인메뉴로" 버튼이 실제 웹 빌드에서 클릭해도 반응 없는 걸 발견(3번 클릭+11초 이상 대기). 원인 추적: `AdManager.show_interstitial()`의 `create_callback()` 기반 JS→GDScript 콜백이 이 Godot 4.7.1 웹 익스포트에서 릴레이되지 않음 — 콘솔에서 `window.GodotAdBridge.adCompleted()`를 수동 호출해도 GDScript `_on_ad_completed()`가 실행되지 않고, 5초 타임아웃 폴백도 발화 안 함. 같은 세션 초반 ADR-0001에서 확인한 문제(GDScript→JS 방향, `FS` 전역 부재)와 정반대 방향의 동일 계열 버그. `prototypes/ad-callback-smoke/`(단독 씬 + 화면 Label)로 격리 재현·검증. **수정**: SDK 존재 여부를 `eval()`의 동기 반환값으로 먼저 확인 → SDK 없으면(현재 MVP 100% 케이스) 깨진 비동기 릴레이를 아예 안 타고 `on_complete.call()` 즉시 호출. SDK 있는 경로는 기존 비동기 콜백 그대로 두되 미검증(실제 SDK 붙는 시점에 재검증 필수 — Open Questions에 추가). `ad_manager.gd`/`ad_manager_test.gd` 수정, 182/182 GUT 통과. 프로토타입 씬으로 재익스포트→실브라우저 로드해 "CALLBACK FIRED" 즉시 표시 확인 후 `main_scene`을 `Boot.tscn`으로 원복, 프로덕션 웹 빌드 재익스포트 완료.
+
 ## 전체 개발 진행률 스냅샷 (2026-07-26, 사용자 질의 응답 기록)
 
 기획(GDD)은 MVP 기준 사실상 완료, 아키텍처 청사진도 완료. 하지만 전체 게임 개발 대비로는 **약 8~12%** 수준 — 실제 코드/에셋/테스트/엔진 프로젝트 자체가 전무한 상태(기획+아키텍처는 보통 전체 공수의 10~20%). 이 비율은 다음 마일스톤 진행에 따라 계속 갱신할 것.
@@ -162,7 +164,7 @@
 ## Open Questions
 
 - ADR-0001/0003/0004 (전부 ⚠️HIGH) — 문서상 결정은 내려졌으나 실제 브라우저/기기로 검증된 적 없음. 각 ADR의 "Verification Required" 항목이 실제 구현 전 필수 체크리스트. (ADR-0011은 2026-07-27 실측 완료, Accepted로 전환됨 — 더 이상 미해결 아님.)
-- 광고 SDK 구체 선택 (AdSense/AdMob Web/파트너) — ADR-0003에서 패턴은 정했지만 SDK 자체는 미선택.
+- 광고 SDK 구체 선택 (AdSense/AdMob Web/파트너) — ADR-0003에서 패턴은 정했지만 SDK 자체는 미선택. **추가(2026-08-02)**: SDK 붙이는 시점에 `AdManager`의 SDK-존재 분기(비동기 `create_callback` 콜백 경로)를 실브라우저로 반드시 재검증할 것 — no-SDK 경로만 이번에 실증됨, `prototypes/ad-callback-smoke/README.md` 참조.
 - 런-결과: 메인메뉴 전환 광고 게이트 배치가 "실패해도 남는 것" 판타지와 다소 긴장 관계 — 재도전 기능 설계 시 재검토.
 - 파티 구성: 이전 파티 선택 유지 여부 (MVP: 초기화, Full Vision: 편의성 개선).
 - ~~**보스 스탯 밸런스**~~ — 2026-08-02 해결, 위 "Current Task" 참조.

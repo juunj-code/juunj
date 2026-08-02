@@ -24,16 +24,18 @@ func test_non_web_calls_on_complete_immediately() -> void: # AC2
 
 func test_web_show_interstitial_evals_showInterstitial_exactly_once() -> void: # AC1
 	var mock := MockJsBridge.new()
+	mock.eval_return_value = true # SDK present
 	AdManager._web_override = true
 	AdManager._js_bridge = mock
 
 	AdManager.show_interstitial(func(): pass)
 
-	var dispatch_calls: Array = mock.eval_calls.filter(func(s): return s.contains("showInterstitial"))
+	var dispatch_calls: Array = mock.eval_calls.filter(func(s): return s.contains("showInterstitial()"))
 	assert_eq(dispatch_calls.size(), 1)
 
 func test_ad_completed_fires_on_complete() -> void: # AC3
 	var mock := MockJsBridge.new()
+	mock.eval_return_value = true # SDK present
 	AdManager._web_override = true
 	AdManager._js_bridge = mock
 	var called := [false]
@@ -45,6 +47,7 @@ func test_ad_completed_fires_on_complete() -> void: # AC3
 
 func test_timeout_fires_callback_when_ad_never_responds() -> void: # AC4
 	var mock := MockJsBridge.new()
+	mock.eval_return_value = true # SDK present
 	AdManager._web_override = true
 	AdManager._js_bridge = mock
 	var called := [false]
@@ -54,19 +57,29 @@ func test_timeout_fires_callback_when_ad_never_responds() -> void: # AC4
 
 	assert_true(called[0])
 
-func test_dispatch_eval_falls_back_to_ad_completed_when_sdk_missing() -> void: # AC6
+## AC6, revised 2026-08-02: real browser verification found create_callback()'s
+## JS->GDScript relay never fires in this Godot 4.7.1 web export (manual
+## window.GodotAdBridge.adCompleted() calls and the 5s timeout both silently
+## no-op -- see prototypes/ad-callback-smoke/README.md). The no-SDK case (100%
+## of the current MVP, since no ad SDK is integrated yet) now bypasses that
+## broken relay entirely via eval()'s synchronous return value instead of
+## routing through a JS-side if/else + GodotAdBridge.adCompleted() callback.
+func test_sdk_missing_completes_synchronously_without_dispatch() -> void: # AC6
 	var mock := MockJsBridge.new()
+	mock.eval_return_value = false # no SDK
 	AdManager._web_override = true
 	AdManager._js_bridge = mock
+	var called := [false]
 
-	AdManager.show_interstitial(func(): pass)
+	AdManager.show_interstitial(func(): called[0] = true)
 
-	var dispatch_call: String = mock.eval_calls.filter(func(s): return s.contains("showInterstitial"))[0]
-	assert_true(dispatch_call.contains("window.adManager"))
-	assert_true(dispatch_call.contains("GodotAdBridge.adCompleted()"))
+	assert_true(called[0])
+	var dispatch_calls: Array = mock.eval_calls.filter(func(s): return s.contains("showInterstitial()"))
+	assert_eq(dispatch_calls.size(), 0) # never reached the broken async relay
 
 func test_reentrant_call_ignored_while_pending() -> void: # AC7
 	var mock := MockJsBridge.new()
+	mock.eval_return_value = true # SDK present -- only reachable once pending
 	AdManager._web_override = true
 	AdManager._js_bridge = mock
 	var first_called := [false]
@@ -78,24 +91,19 @@ func test_reentrant_call_ignored_while_pending() -> void: # AC7
 
 	assert_true(first_called[0])
 	assert_false(second_called[0])
-	var dispatch_calls: Array = mock.eval_calls.filter(func(s): return s.contains("showInterstitial"))
+	var dispatch_calls: Array = mock.eval_calls.filter(func(s): return s.contains("showInterstitial()"))
 	assert_eq(dispatch_calls.size(), 1) # second call didn't re-dispatch
-
-class MockBridgeObject:
-	var adCompleted: Callable
-
-class MockWindow:
-	var GodotAdBridge := MockBridgeObject.new()
 
 class MockJsBridge:
 	var eval_calls: Array[String] = []
-	var _window := MockWindow.new()
+	var eval_return_value = null # configurable per test -- the SDK-presence check is synchronous
 
-	func eval(code: String, _use_strict_mode: bool = false) -> void:
+	func eval(code: String, _use_strict_mode: bool = false):
 		eval_calls.append(code)
+		return eval_return_value
 
 	func get_interface(_name: String):
-		return _window
+		return null
 
 	func create_callback(method: Callable) -> Callable:
 		return method
