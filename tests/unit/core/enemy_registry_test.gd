@@ -42,7 +42,7 @@ func test_boss_enemy_stats_within_range() -> void: # AC7
 	assert_true(boss.is_boss)
 	assert_between(boss.base_hp, 150, 300)
 	assert_between(boss.base_atk, 15, 25)
-	assert_between(boss.base_def, 10, 20)
+	assert_between(boss.base_def, 8, 20) # lowered from 10 2026-08-02, see design/gdd/적-데이터.md Tuning Knobs
 	assert_between(boss.base_spd, 4, 9)
 
 func test_duplicate_id_keeps_sorted_first_file() -> void: # AC8
