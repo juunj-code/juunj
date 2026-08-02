@@ -6,6 +6,19 @@ extends Node
 ## note, schema_version, corruption detection, size budget) against real
 ## FileAccess -- this is correct and fully testable on desktop today.
 ##
+## KNOWN BROKEN on real web builds (confirmed 2026-08-02, see
+## prototypes/status-icon-smoke/README.md): `FS` is not a global JS symbol
+## reachable from JavaScriptBridge.eval() in this Godot 4.7.1 web export --
+## Emscripten's Module/FS live in a closure the export doesn't expose on
+## `window`. _confirm_durable_write()'s eval() call below throws
+## ReferenceError every time on web, so _on_indexeddb_sync_done() and the
+## timeout failsafe never fire and save_succeeded/save_failed never emit on
+## web. Desktop/editor path (the `not _is_web()` branch) is unaffected and
+## correct. Needs a redesign, not a patch -- see the README for candidate
+## directions (trust Godot's own internal user:// sync instead of calling
+## FS.syncfs() ourselves, or find whichever API surface, if any, Godot 4.7
+## actually exposes for this). Left as-is rather than half-fixed blind.
+##
 ## ADR-0001 stage 2 (IndexedDB durable-sync confirmation via FS.syncfs(),
 ## same JS-bridge DI pattern as ad_manager.gd/ADR-0003) is implemented below.
 ## save()'s bool RETURN VALUE still means stage 1 only (vFS write succeeded)
