@@ -8,12 +8,18 @@ extends Node
 ## unverified). Real-web-build measurement (2026-08-03, ADR-0004 Last Verified)
 ## found ResourceLoader.load() blocking 27-48ms for DungeonExploration/
 ## BattleScreen -- over the 16.6ms frame budget, all of it in the resource
-## load itself (scene swap is <2ms). Fixed by firing load_threaded_request()
-## before the ~300ms fade-in Tween instead of loading synchronously after it --
-## load_threaded_get() then just picks up the (usually-finished) background
-## load. No SceneTransitionRules timeout/indicator plumbing added: the fade
-## already comfortably covers every measured load time, and load_threaded_get()
-## still blocks safely as a fallback if a future scene doesn't fit.
+## load itself (scene swap is <2ms). Fixed per Godot's documented threaded-load
+## pattern: load_threaded_request() before the fade-in Tween, then poll
+## load_threaded_get_status() once per frame while the fade runs (this is what
+## actually advances the load in the non-threaded/degraded case -- without
+## polling, the "background" load does not progress at all until get() is
+## called). load_threaded_get() after the fade then just blocks on whatever
+## sliver is left, usually ~0ms since the ~300ms fade is far longer than any
+## measured load. No SceneTransitionRules timeout/indicator plumbing added:
+## the fade already comfortably covers every measured load time, and
+## load_threaded_get() still blocks safely as a fallback if a future scene
+## doesn't fit. Re-measure in a real web build if scenes grow heavier --
+## Chrome wasn't reachable to re-confirm exact ms after this rewrite.
 
 const SCENE_PATHS := {
 	"S-01": "res://scenes/Boot.tscn",
@@ -60,6 +66,7 @@ func go_to(scene_id: String, transition: String, color: Color = Color.WHITE) -> 
 	var use_threaded_load := not OS.has_feature("headless")
 	if use_threaded_load:
 		ResourceLoader.load_threaded_request(scene_path)
+		_poll_loading(scene_path) # unawaited -- runs concurrently with the fade below
 	var durations := SceneTransitionRules.transition_durations(transition)
 	var overlay_color := Color.BLACK if transition == SceneTransitionRules.TRANSITION_FADE else SceneTransitionRules.resolve_flash_color(color)
 
@@ -76,6 +83,13 @@ func go_to(scene_id: String, transition: String, color: Color = Color.WHITE) -> 
 	# cosmetic fade-out finishes would silently drop a real transition.
 	_is_transitioning = false
 	await _fade(overlay_color, 1.0, 0.0, durations["out_ms"] / 1000.0)
+
+## Advances a load_threaded_request() in progress by polling get_status() once
+## per frame -- required even on platforms without real thread support, since
+## the "background" load only makes progress when this status check is called.
+func _poll_loading(scene_path: String) -> void:
+	while ResourceLoader.load_threaded_get_status(scene_path) == ResourceLoader.THREAD_LOAD_IN_PROGRESS:
+		await get_tree().process_frame
 
 func _fade(color: Color, from_alpha: float, to_alpha: float, duration_sec: float) -> void:
 	if _active_tween and _active_tween.is_valid():
