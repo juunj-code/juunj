@@ -108,6 +108,8 @@
 
 **AdManager JS→GDScript 콜백 릴레이 버그 발견+수정 (2026-08-02)** — 던전 플레이스루로 패배 흐름을 검증하던 중 `RunResultScreen`의 "메인메뉴로" 버튼이 실제 웹 빌드에서 클릭해도 반응 없는 걸 발견(3번 클릭+11초 이상 대기). 원인 추적: `AdManager.show_interstitial()`의 `create_callback()` 기반 JS→GDScript 콜백이 이 Godot 4.7.1 웹 익스포트에서 릴레이되지 않음 — 콘솔에서 `window.GodotAdBridge.adCompleted()`를 수동 호출해도 GDScript `_on_ad_completed()`가 실행되지 않고, 5초 타임아웃 폴백도 발화 안 함. 같은 세션 초반 ADR-0001에서 확인한 문제(GDScript→JS 방향, `FS` 전역 부재)와 정반대 방향의 동일 계열 버그. `prototypes/ad-callback-smoke/`(단독 씬 + 화면 Label)로 격리 재현·검증. **수정**: SDK 존재 여부를 `eval()`의 동기 반환값으로 먼저 확인 → SDK 없으면(현재 MVP 100% 케이스) 깨진 비동기 릴레이를 아예 안 타고 `on_complete.call()` 즉시 호출. SDK 있는 경로는 기존 비동기 콜백 그대로 두되 미검증(실제 SDK 붙는 시점에 재검증 필수 — Open Questions에 추가). `ad_manager.gd`/`ad_manager_test.gd` 수정, 182/182 GUT 통과. 프로토타입 씬으로 재익스포트→실브라우저 로드해 "CALLBACK FIRED" 즉시 표시 확인 후 `main_scene`을 `Boot.tscn`으로 원복, 프로덕션 웹 빌드 재익스포트 완료.
 
+**ADR-0004 프레임 예산 초과 실제 수정 (2026-08-03, 사용자 부재 중 자율 진행)** — (c) 실측(S-04 27.6ms/S-05 48.7ms, 16.6ms 예산 초과)에 대한 실제 코드 수정 착수. `scene_manager.gd`에 남아있던 uncommitted 디버그 계측(`push_warning` 3곳, 중복 적 HP 표시 코스메틱 이슈를 데이터 레벨에서 재확인하던 조사— 데이터는 정상, 표시만 공유되는 기존 문서화된 한계로 재확인 완료)은 제거. 1차 수정(`load_threaded_request()`를 fade 앞으로 옮기고 fade 뒤에 `load_threaded_get()`)을 커밋(`ecba852`) 직후 자체 검토 중 결함 발견 — Godot의 non-thread(Regular) 웹 익스포트에서는 `load_threaded_get_status()`를 매 프레임 폴링하지 않으면 백그라운드 로드가 전혀 진행되지 않는다는 문서화된 동작을 놓쳤음(그냥 요청만 걸어두면 나중에 `get()` 호출 시 그 자리에서 전부 블로킹 — 실질적으로 아무것도 개선 안 됨). `_poll_loading()` 코루틴 추가(`await get_tree().process_frame` 루프)로 정정, 새 커밋(`ffeb44f`). 182/182 GUT 통과 유지. **미검증 항목**: 이 세션에서 Chrome 확장 연결 불가(사용자 부재) — 실제 웹 빌드에서 정확한 ms 재측정은 다음 세션으로 이월. 프로덕션 웹 빌드는 이 수정 반영해 재익스포트 완료.
+
 ## 전체 개발 진행률 스냅샷 (2026-07-26, 사용자 질의 응답 기록)
 
 기획(GDD)은 MVP 기준 사실상 완료, 아키텍처 청사진도 완료. 하지만 전체 게임 개발 대비로는 **약 8~12%** 수준 — 실제 코드/에셋/테스트/엔진 프로젝트 자체가 전무한 상태(기획+아키텍처는 보통 전체 공수의 10~20%). 이 비율은 다음 마일스톤 진행에 따라 계속 갱신할 것.
@@ -165,7 +167,7 @@
 
 ## Open Questions
 
-- ADR-0001/0003/0004 (전부 ⚠️HIGH) — 문서상 결정은 내려졌으나 실제 브라우저/기기로 검증된 적 없음. 각 ADR의 "Verification Required" 항목이 실제 구현 전 필수 체크리스트. (ADR-0011은 2026-07-27 실측 완료, Accepted로 전환됨 — 더 이상 미해결 아님. **ADR-0004는 2026-08-03 (c)/(d) 실측 완료, (b) itch.io 헤더 지원만 남음(배포 계정 필요) — Proposed 유지.**)
+- ADR-0001/0003/0004 (전부 ⚠️HIGH) — 문서상 결정은 내려졌으나 실제 브라우저/기기로 검증된 적 없음. 각 ADR의 "Verification Required" 항목이 실제 구현 전 필수 체크리스트. (ADR-0011은 2026-07-27 실측 완료, Accepted로 전환됨 — 더 이상 미해결 아님. **ADR-0004는 2026-08-03 (c)/(d) 실측 완료, (b) itch.io 헤더 지원만 남음(배포 계정 필요) — Proposed 유지. 같은 날 (c)가 지적한 프레임 예산 초과에 대한 실제 코드 수정도 착수(`_poll_loading()`, 커밋 `ffeb44f`) — 단 수정 후 정확한 ms 재측정은 Chrome 연결 불가로 다음 세션 이월.**)
 - 광고 SDK 구체 선택 (AdSense/AdMob Web/파트너) — ADR-0003에서 패턴은 정했지만 SDK 자체는 미선택. **추가(2026-08-02)**: SDK 붙이는 시점에 `AdManager`의 SDK-존재 분기(비동기 `create_callback` 콜백 경로)를 실브라우저로 반드시 재검증할 것 — no-SDK 경로만 이번에 실증됨, `prototypes/ad-callback-smoke/README.md` 참조.
 - 런-결과: 메인메뉴 전환 광고 게이트 배치가 "실패해도 남는 것" 판타지와 다소 긴장 관계 — 재도전 기능 설계 시 재검토.
 - 파티 구성: 이전 파티 선택 유지 여부 (MVP: 초기화, Full Vision: 편의성 개선).
