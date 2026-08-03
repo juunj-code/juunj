@@ -5,11 +5,15 @@ extends Node
 ## 씬-관리.md and architecture.md's `SceneManager` API Boundary.
 ##
 ## ponytail: ADR-0004 picked non-threaded export as the safe default (COOP/COEP
-## unverified), so scene loads here are synchronous (ResourceLoader.load() via
-## change_scene_to_file()) -- no load-progress/timeout/loading-indicator
-## plumbing, since local .tscn loads are effectively instant and there's
-## nothing to show progress for. Add threaded loading + SceneTransitionRules'
-## timeout/indicator thresholds if real web load times ever require it.
+## unverified). Real-web-build measurement (2026-08-03, ADR-0004 Last Verified)
+## found ResourceLoader.load() blocking 27-48ms for DungeonExploration/
+## BattleScreen -- over the 16.6ms frame budget, all of it in the resource
+## load itself (scene swap is <2ms). Fixed by firing load_threaded_request()
+## before the ~300ms fade-in Tween instead of loading synchronously after it --
+## load_threaded_get() then just picks up the (usually-finished) background
+## load. No SceneTransitionRules timeout/indicator plumbing added: the fade
+## already comfortably covers every measured load time, and load_threaded_get()
+## still blocks safely as a fallback if a future scene doesn't fit.
 
 const SCENE_PATHS := {
 	"S-01": "res://scenes/Boot.tscn",
@@ -49,11 +53,21 @@ func go_to(scene_id: String, transition: String, color: Color = Color.WHITE) -> 
 		push_warning("SceneManager.go_to: %s -> %s is not a declared transition edge" % [current_scene_id, scene_id])
 
 	_is_transitioning = true
+	var scene_path: String = SCENE_PATHS[scene_id]
+	# ponytail: threaded preload only under real (non-headless) runs -- GUT's
+	# headless desktop loads are already instant (nothing to hide behind the
+	# fade), and there's no reason to route through the threaded API there.
+	var use_threaded_load := not OS.has_feature("headless")
+	if use_threaded_load:
+		ResourceLoader.load_threaded_request(scene_path)
 	var durations := SceneTransitionRules.transition_durations(transition)
 	var overlay_color := Color.BLACK if transition == SceneTransitionRules.TRANSITION_FADE else SceneTransitionRules.resolve_flash_color(color)
 
 	await _fade(overlay_color, 0.0, 1.0, durations["in_ms"] / 1000.0)
-	get_tree().change_scene_to_file(SCENE_PATHS[scene_id])
+	if use_threaded_load:
+		get_tree().change_scene_to_packed(ResourceLoader.load_threaded_get(scene_path))
+	else:
+		get_tree().change_scene_to_file(scene_path)
 	current_scene_id = scene_id
 	# Flag drops here, not after the fade-out below -- "이중 전환 방지" only
 	# needs to prevent two change_scene_to_file() calls racing. The incoming
