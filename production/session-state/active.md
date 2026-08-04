@@ -180,7 +180,7 @@
 ## Open Questions
 
 - ADR-0001/0003/0004 (전부 ⚠️HIGH) — 문서상 결정은 내려졌으나 실제 브라우저/기기로 검증된 적 없음. 각 ADR의 "Verification Required" 항목이 실제 구현 전 필수 체크리스트. (ADR-0011은 2026-07-27 실측 완료, Accepted로 전환됨 — 더 이상 미해결 아님. **ADR-0004는 2026-08-03 (c)/(d) 실측 완료, 같은 날 (c)가 지적한 프레임 예산 초과 코드 수정 착수(`_poll_loading()`, 커밋 `ffeb44f`), 2026-08-04 실브라우저로 재측정 완료(S-02~S-05 전부 16.6ms 예산 내), 같은 날 (b) itch.io COOP/COEP 헤더 지원도 실측 확인("SharedArrayBuffer support" 옵션, `crossOriginIsolated: true` 확인) — Verification Required (a)~(d) 전부 완료. Threads 변형으로의 실제 전환은 별도 신규 ADR 대상이라 Status는 Proposed 유지.**)
-- ~~광고 SDK 구체 선택~~ — 2026-08-04 해결. AdSense H5 Games Ads(Ad Placement API)로 확정 및 연동, 실브라우저 검증 완료(위 "Current Task" 참조). **남은 항목**: itch.io 도메인이 실제 AdSense 계정에 승인된 사이트로 등록돼 있는지는 미확인(로컬 서버에서 검증했고 실제 광고 소재 표시가 아니라 콜백 relay/스크립트 로드만 확인됨) — 실제 광고 노출/수익 발생 여부는 계정 승인 이후 별도 확인 필요.
+- ~~광고 SDK 구체 선택~~ — 2026-08-04 해결. AdSense H5 Games Ads(Ad Placement API)로 확정 및 연동, 실브라우저 검증 완료(위 "Current Task" 참조). **단, 실제 수익화는 별도 블로커에 막혀 있음** — AdSense "Add site"가 서브도메인(`juunj.itch.io`)이 아니라 최상위 도메인(`itch.io`) 소유권 인증을 요구, itch.io는 제3자 소유 도메인이라 인증 불가 확인(2026-08-04, 실제 시도). **결론**: itch.io + 개인 AdSense 계정은 구조적으로 안 맞음 — itch.io는 계속 무료 배포처로 유지, 광고 수익화는 사용자가 나중에 가비아 등으로 자체 도메인을 구매한 뒤 그 도메인에 웹빌드를 별도 호스팅하는 시점으로 미룸. 코드(`AdManager`/`export_presets.cfg` head_include)는 도메인 비의존적이라 그때 그대로 재사용 가능, 추가 작업 불필요.
 - 런-결과: 메인메뉴 전환 광고 게이트 배치가 "실패해도 남는 것" 판타지와 다소 긴장 관계 — 재도전 기능 설계 시 재검토.
 - 파티 구성: 이전 파티 선택 유지 여부 (MVP: 초기화, Full Vision: 편의성 개선).
 - ~~**보스 스탯 밸런스**~~ — 2026-08-02 해결, 위 "Current Task" 참조.
