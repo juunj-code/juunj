@@ -18,8 +18,10 @@ extends Node
 ## measured load. No SceneTransitionRules timeout/indicator plumbing added:
 ## the fade already comfortably covers every measured load time, and
 ## load_threaded_get() still blocks safely as a fallback if a future scene
-## doesn't fit. Re-measure in a real web build if scenes grow heavier --
-## Chrome wasn't reachable to re-confirm exact ms after this rewrite.
+## doesn't fit. Re-confirmed in a real web build (2026-08-04): S-02 4.5ms,
+## S-03 1.0ms, S-04 1.3ms, S-05 1.4ms -- all now well under the 16.6ms
+## budget (previously 6.4/17.1/27.6/48.7ms). Re-measure if scenes grow
+## heavier.
 
 const SCENE_PATHS := {
 	"S-01": "res://scenes/Boot.tscn",
