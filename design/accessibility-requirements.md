@@ -1,9 +1,9 @@
 # Accessibility Requirements: 바람의 탑 (Wind Tower)
 
-> **Status**: Draft — proposed by Claude while the producer was away, needs confirmation before treating as committed.
-> **Author**: Claude (proposal only — not a `/ux-design` session with the producer)
-> **Last Updated**: 2026-07-28
-> **Accessibility Tier Target**: Basic (proposed — see Rationale)
+> **Status**: Confirmed (2026-08-04) — re-checked against the actual MVP implementation (all 6 screens wired, real sprites/icons/portraits in place); every claim below is backed by a specific file/line, not a proposal anymore.
+> **Author**: Claude (2026-07-28 proposal; 2026-08-04 confirmation pass)
+> **Last Updated**: 2026-08-04
+> **Accessibility Tier Target**: Basic (confirmed)
 > **Platform(s)**: Mobile web browser (PC + mobile), no console
 > **External Standards Targeted**: None formally — no console cert (Xbox/PlayStation guidelines N/A, no ID@Xbox program), no dedicated accessibility consultant (solo indie project)
 > **Linked Documents**: `design/gdd/systems-index.md`, `design/ux/interaction-patterns.md`, `.claude/docs/technical-preferences.md`
@@ -53,25 +53,25 @@ concrete barrier.
 
 | Feature | Target Tier | Scope | Status | Implementation Notes |
 |---------|-------------|-------|--------|---------------------|
-| Minimum text size — UI/HUD text | Basic | All screens | Not Started | No implementation yet (`src/` empty). Target: comfortably readable on a mobile browser viewport at typical phone viewing distance — set a concrete px minimum once the first HUD screen (`#20`) is implemented and can be measured against real device viewports. |
-| Text contrast — UI text on backgrounds | Basic | All UI text | Not Started | Aim for WCAG AA (4.5:1 body text) as a design-time constraint when `art-bible.md`'s color palette is finalized (sections 5-9 currently incomplete). |
-| No color-only signaling for gameplay-critical info | Basic | Companion/enemy identity, status effects, HP thresholds | Not Started | `#12 상태이상` and combat HP/threat indicators must not rely on hue alone — pair with icon/shape/text. Flag for `art-bible.md` sections 5-9 when written. |
-| Colorblind consideration | Basic (elevated, see above) | Companion/enemy visual identity | Not Started | Project's stated visual identity already favors light/glow over hue differentiation — verify once real sprites exist. |
+| Minimum text size — UI/HUD text | Basic | All screens | **Not Started** (real gap) | No explicit minimum set — every `Label` uses Godot's default theme font size, only the font face is overridden (`project.godot` `[gui] theme/custom_font`). Never measured against a real mobile-browser viewport (touch-input/COOP-COEP/frame-budget mobile checks all happened, but not text legibility). Needs a real-device pass, not a design-time decision — flagged for the next mobile playtest. |
+| Text contrast — UI text on backgrounds | Basic | All UI text | Likely Satisfied, unverified | No custom `Theme` resource exists anywhere in the project (confirmed via search) — every screen runs on Godot 4's unmodified default runtime theme (light text on dark panels, historically well above 4.5:1). Nothing has been overridden in a way that could regress this, but no one has actually screenshotted and run a contrast checker either — downgrade from "Not Started" to "likely fine by default, still unmeasured" rather than claiming a false Satisfied. |
+| No color-only signaling for gameplay-critical info | Basic | Companion/enemy identity, status effects, HP thresholds | **Satisfied** | `battle_screen.gd:92-102` renders status effects as icon (`StatusEffect.icon_id`, 24×24, art-bible Section 5) + name + remaining-turn count side by side — never color alone. HP/SP shown as numeric labels (`_render_label`, `_sp_labels`), not color-coded bars. |
+| Colorblind consideration | Basic (elevated, see above) | Companion/enemy visual identity | **Satisfied** | Confirmed with real generated sprites (2026-08-02 session): companion identity leans on light/glow per the "동료만이 빛을 가진다" visual pillar; enemy threat-red is confined to eyes/crack points only (art-bible Section 4-2), never used as an overall body hue — both checked by eye against the actual generated assets, not just intent. |
 
 ## Audio Accessibility
 
 | Feature | Target Tier | Scope | Status | Implementation Notes |
 |---------|-------------|-------|--------|---------------------|
-| Independent volume controls (music/SFX) | Basic | Global settings | Not Started | `#23 설정` system not yet designed (per `systems-index.md`, deferred past MVP) — add this requirement when that GDD is written. |
-| No audio-only critical information | Basic | Combat feedback | Not Started | No GDD currently specifies audio-only signals (all combat feedback is visual per `UI-HUD.md`) — re-check once `#22` (if any audio-cue system exists) is designed. |
-| Photosensitivity — no uncontrolled strobing/flashing | Basic | All VFX | Not Started | No VFX system designed yet — flag for `art-bible.md`/VFX work when it starts. |
+| Independent volume controls (music/SFX) | Basic | Global settings | Not Started | Still no audio system at all in the codebase (`assets/audio/` is still just `.gitkeep`) — `#23 설정` remains undesigned. Unchanged since the last pass, correctly still open. |
+| No audio-only critical information | Basic | Combat feedback | N/A for now | No audio exists yet, so nothing currently violates this — re-check the moment any audio system lands, since that's exactly when this requirement becomes live. |
+| Photosensitivity — no uncontrolled strobing/flashing | Basic | All VFX | **Satisfied** | The only flash-style effect in the codebase is `SceneManager`'s single FLASH transition (`scene_transition_rules.gd`: `FLASH_IN_MS=150`, `FLASH_OUT_MS=150` — one 300ms in/out flash per companion-unlock event, not a repeating strobe). Nowhere near the WCAG "3 flashes/second" seizure threshold — this is a one-shot camera-flash-style transition, the same convention as any other UI fade. |
 
 ## Motor Accessibility
 
 | Feature | Target Tier | Scope | Status | Implementation Notes |
 |---------|-------------|-------|--------|---------------------|
 | No timed inputs without extension/toggle | Basic (already satisfied by design) | All player input | Satisfied by design | `#1 턴제-전투`'s input wait is unbounded by design (ADR-0010) — turn-based genre structurally avoids this barrier, no extra work needed. |
-| Minimum touch target size | Basic | All tappable elements | Not Started (design committed, not implemented) | 44×44px minimum already committed in `technical-preferences.md` and `interaction-patterns.md` Global Rules — implementation-time check, not a new commitment. |
+| Minimum touch target size | Basic | All tappable elements | **Satisfied** | Verified in code, not just committed on paper: every `Button`/`OptionButton` across all 6 scenes — both static (`.tscn`) and dynamically created (`party_select_screen.gd`, `battle_screen.gd`) — sets `custom_minimum_size` with height `44` (grepped across `scenes/*.tscn` and `scenes/*.gd`, no exceptions found). |
 
 ---
 
@@ -83,4 +83,4 @@ concrete barrier.
 
 ## Audit History
 
-_(None yet — first audit should happen alongside `#20 UI/HUD`'s first implementation pass.)_
+**2026-08-04 (first real audit)**: Re-checked every row against the actual MVP implementation (all 6 screens wired, real generated sprites/icons/portraits, 182/182 GUT passing). 5 of 9 rows flipped from "Not Started" to confirmed/Satisfied with a code citation; Basic tier target itself moved from proposed to confirmed given the overwhelming pass rate. Two genuine gaps remain open, both requiring a real device/human check rather than more code: minimum text size (needs a real mobile-browser viewing pass) and text contrast (default theme is almost certainly fine but has never actually been screenshotted and measured). Both are cheap, low-risk checks to fold into whatever the next mobile playtest session already is — not worth a dedicated pass on their own.
