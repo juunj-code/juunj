@@ -10,6 +10,8 @@ Proposed
 
 ## Last Verified
 
+2026-08-04 — Verification Required 항목 (b) 실측 완료. itch.io Edit game 페이지의 "SharedArrayBuffer support (Experimental)" 임베드 옵션(폼 필드명 `embed[cdn_type]`)이 정확히 이 ADR이 찾던 COOP/COEP 스위치임을 발견. 실제로 켜고 저장한 뒤 배포된 게임 페이지(`juunj.itch.io/wind-tower`)에서 `window.crossOriginIsolated`가 `true`, `typeof SharedArrayBuffer !== 'undefined'`가 `true`로 실측 확인 — **itch.io는 COOP/COEP 헤더를 프로젝트별 옵트인으로 실제 지원한다.** (참고: 정적 에셋 CDN URL(`html-classic.itch.zone/html/.../index.html`)을 직접 `curl`/`Invoke-WebRequest`로 조회하면 이 헤더가 안 보임 — 헤더는 CDN 에셋 레벨이 아니라 itch.io가 서빙하는 게임 페이지/프레임 컨텍스트에서만 적용되는 것으로 보임, 실제 크로스오리진 격리 여부는 반드시 브라우저의 `crossOriginIsolated`로 확인해야 함.) 검증 목적 확인 후 해당 옵션은 다시 꺼서(`crossOriginIsolated: false` 재확인) 저장 — 지금 배포된 빌드는 여전히 Regular(비스레드) 변형이라 이 실험적 옵션이 불필요하고, itch.io 자신이 "페이지나 프로젝트가 깨질 수 있음"이라 경고하는 기능이라 실사용 없이 켜둘 이유가 없음. **결론**: itch.io 지원이 확인됐으므로 Ordering Note에 따라 Threads 변형 전환은 이 ADR을 수정하지 않고 별도 신규 ADR("Superseded by")로 다룰 것 — 이 세션에서는 검증만 완료, 실제 전환은 하지 않음.
+
 2026-08-03 — Verification Required 항목 (c)/(d) 실측 완료 (항목 (b) itch.io COOP/COEP 헤더 지원은 실제 itch.io 배포가 필요해 여전히 미검증, Status는 Proposed 유지).
 
 **(c) Regular 변형 프레임 예산 실측** — 실제 프로덕션 웹 빌드에서 `Time.get_ticks_usec()`로 `change_scene_to_file()` 호출 자체를 정밀 계측(자동화 환경의 `_process` delta 노이즈를 우회한 직접 측정). 결과: S-02(MainMenu) 6.40ms, S-03(PartySelect) 17.10ms, **S-04(DungeonExploration) 27.60ms, S-05(BattleScreen, 적 스프라이트 2장+초상화 로드) 48.70ms** — 16.6ms 예산을 확실히 초과. 단, 이건 지속적 프레임 드랍이 아니라 씬 전환 순간 단발성 히치(hitch)임 — 매 프레임 반복되는 병목이 아니라 로드 시점 1프레임만 영향. 리스크 표가 예견한 "무거운 씬 전환 시 눈에 띄는 프레임 드랍"이 실측으로 확인됨(Medium probability → Confirmed). Threads 전환 검토를 앞당길 근거가 됨(원 문서의 "초과 시 재검토" 조건 충족) — 단, 즉시 시각적으로 문제인지는 실사용자 체감 테스트가 별도로 필요.
@@ -180,7 +182,7 @@ N/A — 마이그레이션 대상이 되는 기존 시스템이 없다(첫 구�
 
 - [x] 첫 프로토타입 빌드(`/prototype roguelite-core` 또는 이후 실제 빌드)에서 Regular 변형으로 `DungeonExploration → BattleScreen` 전환 시 프레임 타임을 실측하고 16.6ms 예산 대비 기록. — 2026-08-03, 48.70ms 실측(예산 초과 확인), 위 "Last Verified" 참조.
 - [x] 탭을 Tween 진행 중(FADE 또는 FLASH) 30초 이상 백그라운드에 두었다가 재개했을 때, 재개 프레임의 delta 값과 Tween 종료값(정확히 1.0인지, NaN/오버슈트 없는지)을 로그로 확인. — 2026-08-03, `prototypes/tween-background-resume/`로 검증, 위 "Last Verified" 참조.
-- [ ] itch.io 실제 프로젝트 페이지에서 커스텀 응답 헤더(COOP/COEP) 설정 가능 여부를 문서 또는 실제 업로드 테스트로 확인하고 결과를 이 ADR의 후속 노트 또는 별도 ADR에 기록. — 미검증, 실제 itch.io 배포 필요.
+- [x] itch.io 실제 프로젝트 페이지에서 커스텀 응답 헤더(COOP/COEP) 설정 가능 여부를 문서 또는 실제 업로드 테스트로 확인하고 결과를 이 ADR의 후속 노트 또는 별도 ADR에 기록. — 2026-08-04, "SharedArrayBuffer support" 임베드 옵션으로 지원 확인(`crossOriginIsolated: true` 실측), 위 "Last Verified" 참조. 이 ADR의 Verification Required (a)~(d) 전부 완료됨 — 단, Status는 여전히 Proposed 유지(Threads 변형으로의 실제 전환은 별도 신규 ADR 대상, Ordering Note 참조).
 
 ## GDD Requirements Addressed
 

@@ -112,6 +112,10 @@
 
 **ADR-0004 프레임 예산 수정 실측 재확인 완료 (2026-08-04)** — `scene_manager.gd`의 `go_to()`에 `Time.get_ticks_usec()` 기반 임시 계측(`push_warning`)을 넣어 웹 빌드 재익스포트 → 로컬 서버 → claude-in-chrome 실브라우저로 Boot→MainMenu→PartySelect→Dungeon→Battle 실제 플레이하며 콘솔 로그로 측정. 결과: S-02 4.50ms / S-03 1.00ms / S-04 1.30ms / S-05 1.40ms — 전부 16.6ms 예산 내 (수정 전 6.4/17.1/27.6/48.7ms 대비 큰 폭 개선, `_poll_loading()` 수정이 실제로 효과 있었음 확정). 임시 계측 코드 제거하고 파일 상단 doc comment를 실측치로 갱신, 182/182 GUT 재확인, 프로덕션 웹 빌드 재익스포트 완료. ADR-0004는 여전히 (b) itch.io COOP/COEP 헤더 검증(배포 계정 필요)만 남아 Proposed 유지 — 그 외 (c)/(d)는 완전 종결.
 
+**itch.io 최초 배포 완료 (2026-08-04)** — `https://juunj.itch.io/wind-tower` 페이지 생성(Kind=HTML, Draft, Mobile friendly 켬, 자동시작 끔 — 오디오 autoplay 정책 대응). butler CLI 설치(`broth`에서 windows-amd64 최신, `~/.local/butler/butler.exe`, PATH 등록) 및 `butler login`으로 계정 인증(이메일 인증 1회 선행 필요했음). `build/web/`을 `juunj/wind-tower:html` 채널로 push(v0.1.0, 61.61 MiB, build #1856821) — ADR-0004의 마지막 미검증 항목 (b) itch.io COOP/COEP 헤더 지원을 실측할 수 있는 실제 배포 대상이 이제 존재함(이번 세션엔 헤더 자체는 아직 확인 안 함). "playable in browser" 채널 태그를 Edit game 페이지에서 수동 적용 완료, 브라우저로 재방문해 "Run game" 버튼(임베드 플레이, 다운로드 링크 아님) 뜨는 것 확인. 이후 업데이트는 `butler push ./build/web juunj/wind-tower:html --userversion <새버전>`으로 diff만 재업로드.
+
+**ADR-0004 (b) itch.io COOP/COEP 헤더 지원 실측 완료 (2026-08-04)** — 배포 직후 바로 이어서 검증. Edit game 페이지의 "SharedArrayBuffer support (Experimental)" 임베드 옵션(폼 필드 `embed[cdn_type]`)이 COOP/COEP 스위치임을 발견, 실제로 켜고 저장 후 게임 페이지에서 `window.crossOriginIsolated === true` / `typeof SharedArrayBuffer !== 'undefined'`로 실측 확인 — **itch.io는 COOP/COEP를 프로젝트별 옵트인으로 실제 지원**. 검증 후 옵션은 다시 꺼서 원복(`crossOriginIsolated: false` 재확인 완료) — 현재 빌드가 Regular(비스레드) 변형이라 당장 불필요하고 itch 자신이 실험적/파손 위험을 경고하는 옵션이라 실사용 없이 켜둘 이유가 없었음. ADR-0004의 Verification Required (a)~(d) 전부 완료됐으나 Status는 여전히 Proposed 유지 — Threads 변형으로의 실제 전환은 이 ADR을 수정하지 않고 별도 신규 ADR로 처리하는 게 Ordering Note 방침(지금은 검증만, 전환은 안 함). 상세는 `docs/architecture/adr-0004-scene-threaded-loading-coop-coep.md`의 "Last Verified" 섹션 참조.
+
 ## 전체 개발 진행률 스냅샷 (2026-07-26, 사용자 질의 응답 기록)
 
 기획(GDD)은 MVP 기준 사실상 완료, 아키텍처 청사진도 완료. 하지만 전체 게임 개발 대비로는 **약 8~12%** 수준 — 실제 코드/에셋/테스트/엔진 프로젝트 자체가 전무한 상태(기획+아키텍처는 보통 전체 공수의 10~20%). 이 비율은 다음 마일스톤 진행에 따라 계속 갱신할 것.
@@ -169,7 +173,7 @@
 
 ## Open Questions
 
-- ADR-0001/0003/0004 (전부 ⚠️HIGH) — 문서상 결정은 내려졌으나 실제 브라우저/기기로 검증된 적 없음. 각 ADR의 "Verification Required" 항목이 실제 구현 전 필수 체크리스트. (ADR-0011은 2026-07-27 실측 완료, Accepted로 전환됨 — 더 이상 미해결 아님. **ADR-0004는 2026-08-03 (c)/(d) 실측 완료, 같은 날 (c)가 지적한 프레임 예산 초과 코드 수정 착수(`_poll_loading()`, 커밋 `ffeb44f`), 2026-08-04 실브라우저로 재측정 완료(S-02~S-05 전부 16.6ms 예산 내) — (b) itch.io COOP/COEP 헤더 지원만 남음(배포 계정 필요), Proposed 유지.**)
+- ADR-0001/0003/0004 (전부 ⚠️HIGH) — 문서상 결정은 내려졌으나 실제 브라우저/기기로 검증된 적 없음. 각 ADR의 "Verification Required" 항목이 실제 구현 전 필수 체크리스트. (ADR-0011은 2026-07-27 실측 완료, Accepted로 전환됨 — 더 이상 미해결 아님. **ADR-0004는 2026-08-03 (c)/(d) 실측 완료, 같은 날 (c)가 지적한 프레임 예산 초과 코드 수정 착수(`_poll_loading()`, 커밋 `ffeb44f`), 2026-08-04 실브라우저로 재측정 완료(S-02~S-05 전부 16.6ms 예산 내), 같은 날 (b) itch.io COOP/COEP 헤더 지원도 실측 확인("SharedArrayBuffer support" 옵션, `crossOriginIsolated: true` 확인) — Verification Required (a)~(d) 전부 완료. Threads 변형으로의 실제 전환은 별도 신규 ADR 대상이라 Status는 Proposed 유지.**)
 - 광고 SDK 구체 선택 (AdSense/AdMob Web/파트너) — ADR-0003에서 패턴은 정했지만 SDK 자체는 미선택. **추가(2026-08-02)**: SDK 붙이는 시점에 `AdManager`의 SDK-존재 분기(비동기 `create_callback` 콜백 경로)를 실브라우저로 반드시 재검증할 것 — no-SDK 경로만 이번에 실증됨, `prototypes/ad-callback-smoke/README.md` 참조.
 - 런-결과: 메인메뉴 전환 광고 게이트 배치가 "실패해도 남는 것" 판타지와 다소 긴장 관계 — 재도전 기능 설계 시 재검토.
 - 파티 구성: 이전 파티 선택 유지 여부 (MVP: 초기화, Full Vision: 편의성 개선).
