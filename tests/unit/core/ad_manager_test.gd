@@ -22,7 +22,7 @@ func test_non_web_calls_on_complete_immediately() -> void: # AC2
 
 	assert_true(called[0])
 
-func test_web_show_interstitial_evals_showInterstitial_exactly_once() -> void: # AC1
+func test_web_show_interstitial_evals_adBreak_exactly_once() -> void: # AC1
 	var mock := MockJsBridge.new()
 	mock.eval_return_value = true # SDK present
 	AdManager._web_override = true
@@ -30,7 +30,7 @@ func test_web_show_interstitial_evals_showInterstitial_exactly_once() -> void: #
 
 	AdManager.show_interstitial(func(): pass)
 
-	var dispatch_calls: Array = mock.eval_calls.filter(func(s): return s.contains("showInterstitial()"))
+	var dispatch_calls: Array = mock.eval_calls.filter(func(s): return s.contains("adBreak("))
 	assert_eq(dispatch_calls.size(), 1)
 
 func test_ad_completed_fires_on_complete() -> void: # AC3
@@ -60,9 +60,10 @@ func test_timeout_fires_callback_when_ad_never_responds() -> void: # AC4
 ## AC6, revised 2026-08-02: real browser verification found create_callback()'s
 ## JS->GDScript relay never fires in this Godot 4.7.1 web export (manual
 ## window.GodotAdBridge.adCompleted() calls and the 5s timeout both silently
-## no-op -- see prototypes/ad-callback-smoke/README.md). The no-SDK case (100%
-## of the current MVP, since no ad SDK is integrated yet) now bypasses that
-## broken relay entirely via eval()'s synchronous return value instead of
+## no-op -- see prototypes/ad-callback-smoke/README.md). This case (still
+## reachable if the AdSense head_include snippet fails to load, e.g. script
+## blocked before it can even define the adBreak/adConfig polyfill) bypasses
+## that broken relay entirely via eval()'s synchronous return value instead of
 ## routing through a JS-side if/else + GodotAdBridge.adCompleted() callback.
 func test_sdk_missing_completes_synchronously_without_dispatch() -> void: # AC6
 	var mock := MockJsBridge.new()
@@ -74,7 +75,7 @@ func test_sdk_missing_completes_synchronously_without_dispatch() -> void: # AC6
 	AdManager.show_interstitial(func(): called[0] = true)
 
 	assert_true(called[0])
-	var dispatch_calls: Array = mock.eval_calls.filter(func(s): return s.contains("showInterstitial()"))
+	var dispatch_calls: Array = mock.eval_calls.filter(func(s): return s.contains("adBreak("))
 	assert_eq(dispatch_calls.size(), 0) # never reached the broken async relay
 
 func test_reentrant_call_ignored_while_pending() -> void: # AC7
@@ -91,7 +92,7 @@ func test_reentrant_call_ignored_while_pending() -> void: # AC7
 
 	assert_true(first_called[0])
 	assert_false(second_called[0])
-	var dispatch_calls: Array = mock.eval_calls.filter(func(s): return s.contains("showInterstitial()"))
+	var dispatch_calls: Array = mock.eval_calls.filter(func(s): return s.contains("adBreak("))
 	assert_eq(dispatch_calls.size(), 1) # second call didn't re-dispatch
 
 class MockJsBridge:

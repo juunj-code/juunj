@@ -116,6 +116,12 @@
 
 **ADR-0004 (b) itch.io COOP/COEP 헤더 지원 실측 완료 (2026-08-04)** — 배포 직후 바로 이어서 검증. Edit game 페이지의 "SharedArrayBuffer support (Experimental)" 임베드 옵션(폼 필드 `embed[cdn_type]`)이 COOP/COEP 스위치임을 발견, 실제로 켜고 저장 후 게임 페이지에서 `window.crossOriginIsolated === true` / `typeof SharedArrayBuffer !== 'undefined'`로 실측 확인 — **itch.io는 COOP/COEP를 프로젝트별 옵트인으로 실제 지원**. 검증 후 옵션은 다시 꺼서 원복(`crossOriginIsolated: false` 재확인 완료) — 현재 빌드가 Regular(비스레드) 변형이라 당장 불필요하고 itch 자신이 실험적/파손 위험을 경고하는 옵션이라 실사용 없이 켜둘 이유가 없었음. ADR-0004의 Verification Required (a)~(d) 전부 완료됐으나 Status는 여전히 Proposed 유지 — Threads 변형으로의 실제 전환은 이 ADR을 수정하지 않고 별도 신규 ADR로 처리하는 게 Ordering Note 방침(지금은 검증만, 전환은 안 함). 상세는 `docs/architecture/adr-0004-scene-threaded-loading-coop-coep.md`의 "Last Verified" 섹션 참조.
 
+**#18 광고 통합 — 실제 Ad SDK(Google AdSense H5 Games Ads) 연동 완료 (2026-08-04)** — 사용자가 이미 보유한 AdSense 계정(`ca-pub-2707110870063457`)으로 진행. 조사 결과 AdMob은 네이티브 모바일 SDK 전용이라 웹/HTML5 캔버스 게임엔 해당 없음("AdMob Web"이라는 옵션 자체가 존재하지 않음) — AdSense의 H5 Games Ads(Ad Placement API)가 이 프로젝트에 유일하게 맞는 실질적 선택지였음. itch.io는 게임 페이지 자체엔 광고 스크립트를 금지하지만 게임 파일 내부 광고는 명시적으로 금지하지 않음(다만 "광고 없는 프로젝트 선호"라 문화적으론 드묾) — 당장 막힌 건 아니라 진행.
+
+**구현**: `AdManager.show_interstitial()`을 플레이스홀더(`window.adManager.showInterstitial()`)에서 실제 `adBreak({type:'next', name:'run-result-return', adBreakDone: ...})` 호출로 교체 -- `adBreakDone`은 공식 문서상 광고 표시/스킵/에러/차단 여부와 무관하게 정확히 1회 보장되는 유일한 콜백이라 이걸로 GDScript 콜백을 재개(afterAd 대신 사용, exactly-once 보장이 이유). SDK 존재 판정도 `typeof adBreak === 'function'`으로 교체(head_include의 폴리필이 스크립트 로드 성패 무관하게 즉시 전역 정의하므로 존재 자체보다 나중에 adBreakDone이 알아서 실패를 흡수). `export_presets.cfg`의 `html/head_include`에 AdSense `<script>` 태그 + `adBreak`/`adConfig` 폴리필 주입(퍼블리셔 ID 하드코딩, 이 프로젝트 컨벤션상 `export_presets.cfg` 자체는 기존부터 gitignore 대상).
+
+**실브라우저 검증 + 중요 발견**: `prototypes/ad-callback-smoke/`(기존 하네스 재사용, `main_scene` 임시 교체 → 로컬 서버 → claude-in-chrome → 원복 패턴) 결과 `show_interstitial()` 호출 후 ~3초 내(5초 타임아웃보다 훨씬 전) "CALLBACK FIRED" 확인 — 타임아웃 폴백이 아니라 실제 `adBreakDone → window.GodotAdBridge.adCompleted()` 릴레이가 정상 작동. 네트워크 탭에서 `ep1.adtrafficquality.google/pagead/sodar` 요청(204)도 확인돼 SDK가 실제로 로드·실행 중임을 재확인. **2026-08-02엔 이 동일한 create_callback() 릴레이가 브라우저 DevTools 콘솔의 수동 호출로는 실패했었는데, 지금은 진짜 SDK 콜백 경로로는 성공** — 두 경로(콘솔 수동 vs SDK 내부 콜백)가 왜 다른 결과를 내는지는 미규명, 결과만 재확인. ADR-0003 Validation Criteria 전부 체크 완료, Status를 Proposed → **Accepted**로 전환(상세는 ADR-0003의 "Last Verified" 참조). 182/182 GUT 통과 유지, itch.io(`juunj/wind-tower:html`)에 v0.2.0으로 배포 완료(디버그 하네스는 로컬에서만 확인, 프로덕션 빌드는 `Boot.tscn`으로 원복한 뒤 재익스포트해 배포).
+
 ## 전체 개발 진행률 스냅샷 (2026-07-26, 사용자 질의 응답 기록)
 
 기획(GDD)은 MVP 기준 사실상 완료, 아키텍처 청사진도 완료. 하지만 전체 게임 개발 대비로는 **약 8~12%** 수준 — 실제 코드/에셋/테스트/엔진 프로젝트 자체가 전무한 상태(기획+아키텍처는 보통 전체 공수의 10~20%). 이 비율은 다음 마일스톤 진행에 따라 계속 갱신할 것.
@@ -174,7 +180,7 @@
 ## Open Questions
 
 - ADR-0001/0003/0004 (전부 ⚠️HIGH) — 문서상 결정은 내려졌으나 실제 브라우저/기기로 검증된 적 없음. 각 ADR의 "Verification Required" 항목이 실제 구현 전 필수 체크리스트. (ADR-0011은 2026-07-27 실측 완료, Accepted로 전환됨 — 더 이상 미해결 아님. **ADR-0004는 2026-08-03 (c)/(d) 실측 완료, 같은 날 (c)가 지적한 프레임 예산 초과 코드 수정 착수(`_poll_loading()`, 커밋 `ffeb44f`), 2026-08-04 실브라우저로 재측정 완료(S-02~S-05 전부 16.6ms 예산 내), 같은 날 (b) itch.io COOP/COEP 헤더 지원도 실측 확인("SharedArrayBuffer support" 옵션, `crossOriginIsolated: true` 확인) — Verification Required (a)~(d) 전부 완료. Threads 변형으로의 실제 전환은 별도 신규 ADR 대상이라 Status는 Proposed 유지.**)
-- 광고 SDK 구체 선택 (AdSense/AdMob Web/파트너) — ADR-0003에서 패턴은 정했지만 SDK 자체는 미선택. **추가(2026-08-02)**: SDK 붙이는 시점에 `AdManager`의 SDK-존재 분기(비동기 `create_callback` 콜백 경로)를 실브라우저로 반드시 재검증할 것 — no-SDK 경로만 이번에 실증됨, `prototypes/ad-callback-smoke/README.md` 참조.
+- ~~광고 SDK 구체 선택~~ — 2026-08-04 해결. AdSense H5 Games Ads(Ad Placement API)로 확정 및 연동, 실브라우저 검증 완료(위 "Current Task" 참조). **남은 항목**: itch.io 도메인이 실제 AdSense 계정에 승인된 사이트로 등록돼 있는지는 미확인(로컬 서버에서 검증했고 실제 광고 소재 표시가 아니라 콜백 relay/스크립트 로드만 확인됨) — 실제 광고 노출/수익 발생 여부는 계정 승인 이후 별도 확인 필요.
 - 런-결과: 메인메뉴 전환 광고 게이트 배치가 "실패해도 남는 것" 판타지와 다소 긴장 관계 — 재도전 기능 설계 시 재검토.
 - 파티 구성: 이전 파티 선택 유지 여부 (MVP: 초기화, Full Vision: 편의성 개선).
 - ~~**보스 스탯 밸런스**~~ — 2026-08-02 해결, 위 "Current Task" 참조.

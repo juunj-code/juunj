@@ -2,7 +2,7 @@
 
 ## Status
 
-Proposed
+Accepted (2026-08-04 — 실제 Ad SDK 연동 및 실브라우저 검증으로 Validation Criteria 전부 확인, 위 "Last Verified" 참조)
 
 ## Date
 
@@ -10,7 +10,9 @@ Proposed
 
 ## Last Verified
 
-2026-07-26
+2026-08-04 — 실제 Ad SDK(Google AdSense H5 Games Ads / Ad Placement API) 연동 완료, 실브라우저 검증. `AdManager.show_interstitial()`을 `window.adManager.showInterstitial()` 플레이스홀더에서 실제 `adBreak({type:'next', name:..., adBreakDone: ...})` 호출로 교체(`adBreakDone`은 공식 문서상 광고 표시/스킵/에러/차단과 무관하게 정확히 1회 보장되는 유일한 콜백이라 이걸로 `window.GodotAdBridge.adCompleted()`를 호출). `export_presets.cfg`의 `html/head_include`에 AdSense 스크립트 태그 + `adBreak`/`adConfig` 폴리필 주입.
+
+**중요 발견 — 2026-08-02의 "create_callback() 릴레이가 안 됨" 진단이 이 경로에는 적용되지 않음**: `prototypes/ad-callback-smoke/`를 로컬 서버로 재구동해 실측한 결과, `show_interstitial()` 호출 후 ~3초 내(5초 타임아웃보다 훨씬 전) "CALLBACK FIRED"가 표시됨 — 타임아웃 폴백이 아니라 실제 `adBreakDone → window.GodotAdBridge.adCompleted() → _on_ad_completed()` 릴레이가 정상 작동했다는 뜻. 네트워크 탭에서 `ep1.adtrafficquality.google/pagead/sodar` 요청(204)도 확인돼 SDK 자체가 실제로 로드·실행되고 있음도 함께 확인. 2026-08-02 당시엔 브라우저 DevTools 콘솔에서 수동으로 `window.GodotAdBridge.adCompleted()`를 호출해 릴레이 실패를 재현했었는데, 이번엔 진짜 비동기 SDK 콜백 경로로 도달했을 때 정상 동작함 — 두 경로의 차이(콘솔 수동 호출 vs SDK 내부 콜백)가 왜 다른 결과를 내는지는 이번 세션에서 추가로 조사하지 않음(원인 불명, 결과만 재확인). itch.io(`juunj/wind-tower:html`, v0.2.0)에 실제 배포 완료.
 
 ## Decision Makers
 
@@ -182,9 +184,9 @@ N/A — 마이그레이션 대상이 되는 기존 시스템이 없다(첫 구�
 
 ## Validation Criteria
 
-- [ ] 실제 Godot 4.6 웹 빌드에서 `JavaScriptBridge.create_callback()` + `get_interface("window")` 최소 재현 스니펫이 에러 없이 동작함을 확인.
-- [ ] `AdManager`의 GUT 테스트(mock `_js_bridge` 사용)가 `#18` GDD의 Acceptance Criteria 1,3,6,7을 모두 통과.
-- [ ] 재진입 가드가 실제로 타이머 누수(이전 리비전에서 발견된 버그)를 재발하지 않음을 확인.
+- [x] 실제 Godot 4.7.1 웹 빌드에서 `JavaScriptBridge.create_callback()` + `get_interface("window")` 최소 재현 스니펫이 에러 없이 동작함을 확인. — 2026-08-04, 실제 AdSense SDK 콜백 경로로 확인(위 "Last Verified" 참조). 단, DevTools 콘솔에서의 수동 호출은 여전히 실패 재현됨(2026-08-02) — 이 차이의 원인은 미규명.
+- [x] `AdManager`의 GUT 테스트(mock `_js_bridge` 사용)가 `#18` GDD의 Acceptance Criteria 1,3,6,7을 모두 통과. — 182/182 GUT 통과 유지(2026-08-04).
+- [x] 재진입 가드가 실제로 타이머 누수(이전 리비전에서 발견된 버그)를 재발하지 않음을 확인. — `test_reentrant_call_ignored_while_pending` (AC7) 통과 유지.
 
 ## GDD Requirements Addressed
 

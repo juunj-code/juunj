@@ -38,12 +38,14 @@ func show_interstitial(on_complete: Callable) -> void:
 	# JS->GDScript 콜백이 이 Godot 4.7.1 웹 익스포트에서 릴레이되지 않음(직접
 	# window.GodotAdBridge.adCompleted() 수동 호출해도 GDScript 쪽 미도달, 5초
 	# 타임아웃 폴백도 발화 안 함 -- prototypes/ad-callback-smoke/README.md 참조).
-	# ad SDK가 아직 없는(현재 MVP 100%) 경로는 eval()의 동기 반환값으로 우회해서
-	# 콜백 릴레이 자체를 안 탄다. SDK 존재 시의 비동기 경로는 그대로 남겨두지만
-	# 실제 SDK 붙기 전까진 검증 불가 -- 붙이는 시점에 반드시 재검증 필요.
-	var has_ad_sdk: bool = _js_bridge.eval(
-		"!!(window.adManager && window.adManager.showInterstitial)", true
-	)
+	# ad SDK가 없는 경로는 eval()의 동기 반환값으로 우회해서 콜백 릴레이 자체를
+	# 안 탄다. AdSense H5 Games Ads(Ad Placement API)를 2026-08-04 실연동 --
+	# `typeof adBreak`만 확인(head_include의 폴리필이 실 스크립트 로드 성패와
+	# 무관하게 항상 즉시 전역에 정의해둠). 이후 실제 광고 네트워크 요청이 막히거나
+	# (adblocker, 계정 미승인 등) 실패해도 공식 문서상 adBreakDone은 여전히
+	# 정확히 1회 호출되도록 보장되므로, 여기서 더 깐깐하게 확인할 필요가 없다 --
+	# 실브라우저 재검증은 여전히 필요(Open Questions 참조).
+	var has_ad_sdk: bool = _js_bridge.eval("typeof adBreak === 'function'", true)
 	if not has_ad_sdk:
 		on_complete.call()
 		return
@@ -51,7 +53,16 @@ func show_interstitial(on_complete: Callable) -> void:
 	_pending_callback = on_complete
 	_timeout_timer = get_tree().create_timer(AD_TIMEOUT_MS / 1000.0)
 	_timeout_timer.timeout.connect(_on_ad_timeout)
-	_js_bridge.eval("window.adManager.showInterstitial();")
+	# adBreakDone은 광고 표시/스킵/에러/차단 여부와 무관하게 정확히 1회 보장되는
+	# 유일한 콜백(공식 문서 명시) -- afterAd가 아니라 이걸로 재개해야 exactly-once가
+	# 보장된다. 5초 타임아웃은 스크립트 자체가 죽었을 때의 최후 방어선으로 유지.
+	_js_bridge.eval("""
+		adBreak({
+			type: 'next',
+			name: 'run-result-return',
+			adBreakDone: function() { window.GodotAdBridge.adCompleted(); }
+		});
+	""")
 
 func _on_ad_completed() -> void: # JS에서 GodotAdBridge.adCompleted() 호출 시
 	if _timeout_timer:
