@@ -24,7 +24,7 @@
 | 5 | 클라우드 세이브 (inferred) | Persistence | Full Vision | Not Started | — | #17 |
 | 6 | 전투 공식 | Core | MVP | Approved | design/gdd/전투-공식.md | #10, #11 |
 | 7 | 적 AI | Gameplay | MVP | Approved | design/gdd/적-AI.md | #11, #6, #10 |
-| 8 | 시너지 | Gameplay | Vertical Slice | Not Started | — | #10, #6 |
+| 8 | 시너지 | Gameplay | Vertical Slice | Designed (review pending) | design/gdd/시너지.md | #10, #6, #13 |
 | 9 | 히든 트리거 | Gameplay | MVP | Approved | design/gdd/히든-트리거.md | #2, #10, #14, #13, #4 |
 | 10 | 동료 데이터 | Core | MVP | Approved | design/gdd/동료-데이터.md | (없음) |
 | 11 | 적 데이터 | Core | MVP | Approved | design/gdd/적-데이터.md | (없음) |
@@ -166,11 +166,11 @@
 | 지표 | 수치 |
 |------|------|
 | 총 식별 시스템 수 | 23 |
-| 설계 문서 시작됨 | 18 |
+| 설계 문서 시작됨 | 19 |
 | 설계 문서 검토 완료 | 18 |
 | 설계 문서 승인됨 | 18 |
 | MVP 시스템 설계 완료 | 18 / 18 |
-| Vertical Slice 시스템 설계 완료 | 0 / 2 |
+| Vertical Slice 시스템 설계 완료 | 0 / 2 (#8 시너지 Designed, review pending — `/design-review`는 별도 세션에서) |
 
 ---
 

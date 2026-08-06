@@ -5,7 +5,19 @@
 
 ## Current Task
 
-**지난 세션 판단 필요 3건 전부 사용자 확인 완료 (2026-08-06)**:
+**#8 시너지 GDD 설계 완료 (2026-08-06)** — `/design-system 시너지`로 8개 필수 섹션 + Visual/Audio + UI + Open Questions 전부 작성. 파일: `design/gdd/시너지.md`.
+
+- **핵심 설계**: 파티 내 서로 다른 `class_type` 쌍(unordered pair)마다 flat ATK 보너스, 전투 시작 시 1회 계산 후 고정(재계산 없음), 파티 전원에게 동일 가산. `#6 전투-공식.md`이 미리 예고해둔 "공식① 수정된 atk 입력" 인터페이스 그대로 사용(범위 확장 안 함 — ATK만).
+- **MVP 6쌍 값** (systems-designer 페르소나 검토, 최댓값 시나리오까지 검증): tank-dealer +4, tank-balance +2, tank-support +2, dealer-balance +3, dealer-support +5, balance-support +3. 최대 스택 11(3인 파티, 서로 다른 3타입). 솔로 전투(2026-08-02 보스 밸런스 튜닝 대상)엔 전혀 영향 없음 확인.
+- **N명 확장 대비**: 사용자가 "동료 4명뿐인데 의미 있나" 지적 → 규칙 자체는 class_type 태그(4종 고정) 기반이라 로스터가 10명(Vertical Slice 계획값)으로 늘어도 구조 변경 없이 확장됨. 실제 동료 콘텐츠 추가(이름/사연/스탯/스킬/아트)는 오늘 다루지 않고 별도 작업으로 분리 — 사용자 명시적 결정.
+- **Acceptance Criteria**: qa-lead 페르소나 검토로 3건 보완(관측 방법 구체화, balance 커버리지 누락, 순서 무관성 미검증) — 최종 10개 GIVEN-WHEN-THEN.
+- **양방향 일관성 보정**: `턴제-전투.md`(이미 Approved)의 Upstream Dependencies에 `#8 시너지` 항목 추가(#4 장비가 추가됐던 것과 동일 패턴) — #8이 설계되기 전에는 없었던 의존성.
+- **레지스트리 반영**: `design/registry/entities.yaml`에 `synergy_bonus` formula 항목 추가(6쌍 값·재검증 트리거 포함).
+- **systems-index 갱신**: #8 상태 Not Started → Designed (review pending), 의존 시스템에 `#13`(런 상태 관리, 설계 중 발견된 Soft 의존) 추가.
+- **Creative Director 리뷰**: lean 모드라 스킵(헤더에 명시).
+- **다음 세션 필수**: `/design-review design/gdd/시너지.md`는 **반드시 새 세션에서** 실행(같은 세션에서 실행 금지 — 저자 컨텍스트가 섞여 독립 검토가 안 됨).
+
+이전 항목 (판단 필요 3건 해결):
 - 접근성 최소 텍스트 크기/대비 검증 시점 → **다음 모바일 플레이테스트 때 같이** (이미 `accessibility-requirements.md`에 그렇게 적혀있었음, 변경 없음).
 - 상태이상 아이콘 스펙(32×32) vs 실제(24×24) 불일치 → **스펙을 실제값(24×24)에 맞춰 정정**. `design/art/art-bible.md` Section 5-1과 "발견된 갭" 노트 갱신.
 - 초상화 원본 리사이즈/압축 정책 → **지금은 계속 보류** (에셋 11개뿐, 영향 없음). `art-bible.md`에 판단 완료로 기록.

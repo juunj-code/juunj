@@ -106,7 +106,28 @@ items: []
 #   output_range[min, max], added
 # Optional: expression (the actual formula), notes
 
-formulas: []
+formulas:
+  - name: synergy_bonus
+    status: active
+    source: design/gdd/시너지.md
+    referenced_by:
+      - design/gdd/시너지.md
+      - design/gdd/전투-공식.md
+      - design/gdd/턴제-전투.md
+      - design/gdd/런-상태-관리.md
+    variables:
+      - base_atk
+      - class_type (per party member)
+    output_range: [0, 11]
+    expression: "synergy_bonus = Σ SynergyTable[pair] for each unordered (class_type_a, class_type_b) pair present in the party"
+    notes: "MVP SynergyTable (6 pairs, flat int): tank-dealer=4, tank-balance=2,
+      tank-support=2, dealer-balance=3, dealer-support=5, balance-support=3.
+      Feeds into 전투-공식.md Formula ① as part of effective_atk (flat-additive
+      alongside weapon_bonus/status_modifier). Re-verify all 6 values when the
+      companion roster expands past 4 (Vertical Slice, #10 동료-데이터 확장) —
+      see 시너지.md Tuning Knobs."
+    added: "2026-08-06"
+    revised: ""
 
 # Example:
 #
