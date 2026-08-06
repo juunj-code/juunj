@@ -3,11 +3,12 @@ extends Node
 ## party/enemy runtime stats, floor/room position, discovered companions.
 ## See design/gdd/런-상태-관리.md.
 ##
-## ponytail: SceneManager (#19) and ProgressManager (#14) autoloads don't
-## exist yet, so calls to them go through defensive get_node_or_null() checks
-## (no-op if absent) plus an overridable Callable test seam. Once those
-## autoloads exist this needs no changes -- remove the seam only if it stops
-## earning its keep.
+## ponytail: SceneManager (#19) and ProgressManager (#14) autoloads now exist
+## (registered in project.godot), but calls to them still go through defensive
+## get_node_or_null() checks (no-op if absent) plus an overridable Callable
+## test seam -- kept for test isolation (e.g. swapping in a spy without the
+## real autoload in the tree). Remove the seam only if it stops earning its
+## keep.
 
 const MAX_FLOOR := 3
 

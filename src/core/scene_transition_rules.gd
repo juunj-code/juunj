@@ -2,15 +2,12 @@ class_name SceneTransitionRules
 extends RefCounted
 ## Pure decision logic for #19 씬 관리 -- transition timing, graph validation,
 ## flash color defaulting. No Node/Tween/scene dependency, so it's testable
-## without any real scene files existing. See design/gdd/씬-관리.md.
+## in isolation. See design/gdd/씬-관리.md.
 ##
-## ponytail: the engine-integrated SceneManager autoload (actual Tweens,
-## CanvasLayer overlays, ResourceLoader.load_threaded_request/get, real
-## scene_ready/scene_exited signals) is deferred -- there are no real scene
-## files yet (Boot/MainMenu/etc. .tscn don't exist), so building the Node
-## wiring now would be untestable against nothing. Add when #2/#3/#13 have
-## actual screens to transition between; this module is the tested contract
-## that Node will call into.
+## The engine-integrated half (actual Tweens, CanvasLayer overlays,
+## ResourceLoader.load_threaded_request/get) is SceneManager
+## (src/core/scene_manager.gd, autoload) -- this module is the tested
+## contract it calls into.
 
 const FADE_IN_MS := 300
 const FADE_OUT_MS := 300
