@@ -13,9 +13,11 @@ extends Control
 
 var _battle: TurnBattle
 var _labels: Dictionary = {} # "id#index" (TD-001) -> Label
+var _hp_bars: Dictionary = {} # "id#index" -> ProgressBar
 var _sp_labels: Dictionary = {} # "id#index" -> Label
 var _status_rows: Dictionary = {} # "id#index" -> HBoxContainer
 var _base_hp: Dictionary = {} # "id#index" -> int
+var _display_names: Dictionary = {} # unit_id -> String, for signals that only carry unit_id
 var _current_unit: Dictionary = {}
 
 static func _unit_key(id: String, index: int) -> String:
@@ -43,37 +45,99 @@ func _ready() -> void:
 
 	_battle.run_battle()
 
-const _ENEMY_SPRITE_SIZE := Vector2(64, 64) ## design/art/art-bible.md Section 3-1
+const _PORTRAIT_SIZE := Vector2(64, 64) ## design/art/art-bible.md Section 3-1
 
+## 2026-08-09: visual polish pass -- was flat sprite+label+label+row siblings
+## directly in the party/enemy VBoxContainer, which (a) let each unit's sprite/
+## portrait stretch to the full container width under EXPAND_FIT_WIDTH_
+## PROPORTIONAL (the "smeared into a wide box" look), and (b) showed raw
+## companion_id/enemy_id strings instead of display names. Now each unit gets
+## its own bordered card (CompanionData.color_accent as the border for
+## companions -- reusing the field #3's discovery flash already uses, no new
+## asset needed) with a centered, size-locked portrait/sprite and a real HP bar.
 func _build_rows(units: Array, container: VBoxContainer) -> void:
 	for unit in units:
 		var key := _unit_key(unit["id"], unit["index"])
-		var sprite_id: String = unit.get("sprite_id", "")
-		if sprite_id != "":
-			var sprite := TextureRect.new()
-			sprite.texture = load(sprite_id)
-			sprite.custom_minimum_size = _ENEMY_SPRITE_SIZE
-			sprite.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
-			container.add_child(sprite)
+		_display_names[unit["id"]] = _display_name(unit)
+		container.add_child(_build_card(unit, key))
 
-		var label := Label.new()
-		container.add_child(label)
-		_labels[key] = label
-		_base_hp[key] = unit["base_hp"]
-		_render_label(label, unit["id"], key, unit["current_hp"])
+func _display_name(unit: Dictionary) -> String:
+	if unit["is_companion"]:
+		return CompanionRegistry.get_by_id(unit["id"]).name
+	return EnemyRegistry.get_by_id(unit["id"]).name
 
-		var sp_label := Label.new()
-		container.add_child(sp_label)
-		_sp_labels[key] = sp_label
-		sp_label.text = HudRules.sp_dots(unit["current_sp"])
+func _portrait_path(unit: Dictionary) -> String:
+	if unit["is_companion"]:
+		return CompanionRegistry.get_by_id(unit["id"]).portrait_id
+	return unit.get("sprite_id", "")
 
-		var status_row := HBoxContainer.new()
-		container.add_child(status_row)
-		_status_rows[key] = status_row
-		_render_status_row(status_row, unit["active_effects"])
+func _accent_color(unit: Dictionary) -> Color:
+	if unit["is_companion"]:
+		return CompanionRegistry.get_by_id(unit["id"]).color_accent
+	return Color(0.45, 0.48, 0.55) # neutral -- EnemyData has no accent color field
 
-func _render_label(label: Label, id: String, key: String, hp: int) -> void:
-	label.text = "%s  %d/%d HP" % [id, hp, _base_hp[key]]
+func _build_card(unit: Dictionary, key: String) -> PanelContainer:
+	var card := PanelContainer.new()
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.14, 0.15, 0.18, 0.92)
+	style.border_color = _accent_color(unit)
+	style.set_border_width_all(2)
+	style.set_corner_radius_all(6)
+	style.set_content_margin_all(8)
+	card.add_theme_stylebox_override("panel", style)
+
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 4)
+	card.add_child(vbox)
+
+	var portrait_path := _portrait_path(unit)
+	if portrait_path != "":
+		var center := CenterContainer.new()
+		vbox.add_child(center)
+		var portrait := TextureRect.new()
+		portrait.texture = load(portrait_path)
+		portrait.custom_minimum_size = _PORTRAIT_SIZE
+		portrait.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+		portrait.size_flags_horizontal = Control.SIZE_SHRINK_CENTER # don't stretch to card width
+		center.add_child(portrait)
+
+	var name_label := Label.new()
+	name_label.text = _display_name(unit)
+	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(name_label)
+
+	var hp_bar := ProgressBar.new()
+	hp_bar.min_value = 0
+	hp_bar.max_value = unit["base_hp"]
+	hp_bar.value = unit["current_hp"]
+	hp_bar.show_percentage = false
+	hp_bar.custom_minimum_size = Vector2(0, 10)
+	vbox.add_child(hp_bar)
+	_hp_bars[key] = hp_bar
+
+	var label := Label.new()
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(label)
+	_labels[key] = label
+	_base_hp[key] = unit["base_hp"]
+	_render_label(label, key, unit["current_hp"])
+
+	var sp_label := Label.new()
+	sp_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(sp_label)
+	_sp_labels[key] = sp_label
+	sp_label.text = HudRules.sp_dots(unit["current_sp"])
+
+	var status_row := HBoxContainer.new()
+	status_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	vbox.add_child(status_row)
+	_status_rows[key] = status_row
+	_render_status_row(status_row, unit["active_effects"])
+
+	return card
+
+func _render_label(label: Label, key: String, hp: int) -> void:
+	label.text = "%d/%d HP" % [hp, _base_hp[key]]
 
 const _STATUS_ICON_SIZE := Vector2(24, 24) ## design/art/art-bible.md Section 5 icon frame
 
@@ -98,7 +162,9 @@ func _render_status_row(row: HBoxContainer, effects: Array) -> void:
 func _on_unit_hp_changed(unit_id: String, unit_index: int, new_hp: int) -> void:
 	var key := _unit_key(unit_id, unit_index)
 	if _labels.has(key):
-		_render_label(_labels[key], unit_id, key, new_hp)
+		_render_label(_labels[key], key, new_hp)
+	if _hp_bars.has(key):
+		_hp_bars[key].value = new_hp
 
 func _on_unit_sp_changed(unit_id: String, unit_index: int, new_sp: int) -> void:
 	var key := _unit_key(unit_id, unit_index)
@@ -111,7 +177,7 @@ func _on_status_effects_changed(unit_id: String, unit_index: int, effects: Array
 		_render_status_row(_status_rows[key], effects)
 
 func _on_turn_started(unit_id: String) -> void:
-	_turn_label.text = "%s의 차례" % unit_id
+	_turn_label.text = "%s의 차례" % _display_names.get(unit_id, unit_id)
 	for unit in _battle.party_units:
 		if unit["id"] == unit_id:
 			_current_unit = unit
@@ -150,7 +216,7 @@ func _show_targets(units: Array) -> void:
 		if unit["current_hp"] <= 0:
 			continue
 		var button := Button.new()
-		button.text = unit["id"]
+		button.text = _display_names.get(unit["id"], unit["id"])
 		button.custom_minimum_size = Vector2(0, 44)
 		button.pressed.connect(_battle.submit_target.bind(unit))
 		_target_container.add_child(button)
