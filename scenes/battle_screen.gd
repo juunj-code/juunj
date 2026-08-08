@@ -3,12 +3,6 @@ extends Control
 ## TurnBattle's #20 signal contract and forwards player choices back via
 ## submit_action()/submit_target(). AC1(HP)은 신호->렌더 그대로 바인딩(HudRules에
 ## 로직 없음, 여기서 직접 처리).
-##
-## ponytail: unit_hp_changed is keyed by unit_id, which two same-enemy_id units
-## in one battle can share (see TurnBattle's signal contract comment) -- both
-## labels update together instead of independently. Not fixed here; add a
-## per-instance index to the signal if a duplicate-enemy encounter needs to
-## disambiguate on screen.
 
 @onready var _party_container: VBoxContainer = %PartyContainer
 @onready var _enemy_container: VBoxContainer = %EnemyContainer
@@ -18,11 +12,14 @@ extends Control
 @onready var _target_container: VBoxContainer = %TargetContainer
 
 var _battle: TurnBattle
-var _labels: Dictionary = {} # id -> Array[Label]
-var _sp_labels: Dictionary = {} # id -> Array[Label]
-var _status_rows: Dictionary = {} # id -> Array[HBoxContainer]
-var _base_hp: Dictionary = {} # id -> int
+var _labels: Dictionary = {} # "id#index" (TD-001) -> Label
+var _sp_labels: Dictionary = {} # "id#index" -> Label
+var _status_rows: Dictionary = {} # "id#index" -> HBoxContainer
+var _base_hp: Dictionary = {} # "id#index" -> int
 var _current_unit: Dictionary = {}
+
+static func _unit_key(id: String, index: int) -> String:
+	return "%s#%d" % [id, index]
 
 func _ready() -> void:
 	if RunManager.state != "IN_COMBAT":
@@ -50,6 +47,7 @@ const _ENEMY_SPRITE_SIZE := Vector2(64, 64) ## design/art/art-bible.md Section 3
 
 func _build_rows(units: Array, container: VBoxContainer) -> void:
 	for unit in units:
+		var key := _unit_key(unit["id"], unit["index"])
 		var sprite_id: String = unit.get("sprite_id", "")
 		if sprite_id != "":
 			var sprite := TextureRect.new()
@@ -60,28 +58,22 @@ func _build_rows(units: Array, container: VBoxContainer) -> void:
 
 		var label := Label.new()
 		container.add_child(label)
-		if not _labels.has(unit["id"]):
-			_labels[unit["id"]] = []
-		_labels[unit["id"]].append(label)
-		_base_hp[unit["id"]] = unit["base_hp"]
-		_render_label(label, unit["id"], unit["current_hp"])
+		_labels[key] = label
+		_base_hp[key] = unit["base_hp"]
+		_render_label(label, unit["id"], key, unit["current_hp"])
 
 		var sp_label := Label.new()
 		container.add_child(sp_label)
-		if not _sp_labels.has(unit["id"]):
-			_sp_labels[unit["id"]] = []
-		_sp_labels[unit["id"]].append(sp_label)
+		_sp_labels[key] = sp_label
 		sp_label.text = HudRules.sp_dots(unit["current_sp"])
 
 		var status_row := HBoxContainer.new()
 		container.add_child(status_row)
-		if not _status_rows.has(unit["id"]):
-			_status_rows[unit["id"]] = []
-		_status_rows[unit["id"]].append(status_row)
+		_status_rows[key] = status_row
 		_render_status_row(status_row, unit["active_effects"])
 
-func _render_label(label: Label, id: String, hp: int) -> void:
-	label.text = "%s  %d/%d HP" % [id, hp, _base_hp[id]]
+func _render_label(label: Label, id: String, key: String, hp: int) -> void:
+	label.text = "%s  %d/%d HP" % [id, hp, _base_hp[key]]
 
 const _STATUS_ICON_SIZE := Vector2(24, 24) ## design/art/art-bible.md Section 5 icon frame
 
@@ -103,17 +95,20 @@ func _render_status_row(row: HBoxContainer, effects: Array) -> void:
 		duration_label.text = "(%d)" % effect.duration
 		row.add_child(duration_label)
 
-func _on_unit_hp_changed(unit_id: String, new_hp: int) -> void:
-	for label in _labels.get(unit_id, []):
-		_render_label(label, unit_id, new_hp)
+func _on_unit_hp_changed(unit_id: String, unit_index: int, new_hp: int) -> void:
+	var key := _unit_key(unit_id, unit_index)
+	if _labels.has(key):
+		_render_label(_labels[key], unit_id, key, new_hp)
 
-func _on_unit_sp_changed(unit_id: String, new_sp: int) -> void:
-	for label in _sp_labels.get(unit_id, []):
-		label.text = HudRules.sp_dots(new_sp)
+func _on_unit_sp_changed(unit_id: String, unit_index: int, new_sp: int) -> void:
+	var key := _unit_key(unit_id, unit_index)
+	if _sp_labels.has(key):
+		_sp_labels[key].text = HudRules.sp_dots(new_sp)
 
-func _on_status_effects_changed(unit_id: String, effects: Array) -> void:
-	for row in _status_rows.get(unit_id, []):
-		_render_status_row(row, effects)
+func _on_status_effects_changed(unit_id: String, unit_index: int, effects: Array) -> void:
+	var key := _unit_key(unit_id, unit_index)
+	if _status_rows.has(key):
+		_render_status_row(_status_rows[key], effects)
 
 func _on_turn_started(unit_id: String) -> void:
 	_turn_label.text = "%s의 차례" % unit_id

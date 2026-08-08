@@ -144,7 +144,7 @@ func test_basic_attack_emits_hp_changed_reflecting_final_values() -> void: # #20
 	var battle := _make_battle()
 	battle.setup([_make_companion("companion_balance_01")], [_make_enemy("enemy_tank_01")])
 	var last_hp: Dictionary = {}
-	battle.unit_hp_changed.connect(func(id, hp): last_hp[id] = hp)
+	battle.unit_hp_changed.connect(func(id, _index, hp): last_hp[id] = hp)
 
 	battle.run_battle()
 	battle.submit_action("basic_attack")

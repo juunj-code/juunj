@@ -59,11 +59,11 @@ UI/HUD 시스템은 게임 내 모든 정보 표시와 플레이어 입력 UI를
 
 | 발신자 | 신호 | UI 반응 |
 |--------|------|---------|
-| #1 턴제 전투 | `unit_hp_changed(unit_id, new_hp)` | HP 바 즉시 갱신 |
-| #1 턴제 전투 | `unit_sp_changed(unit_id, new_sp)` | SP 점 갱신 |
+| #1 턴제 전투 | `unit_hp_changed(unit_id, unit_index, new_hp)` (2026-08-08 리비전 — `unit_index` 인자 추가, TD-001 수정: 같은 `unit_id`를 공유하는 두 적 인스턴스를 구별하기 위함) | HP 바 즉시 갱신 (`unit_id`+`unit_index` 조합으로 어느 인스턴스인지 식별) |
+| #1 턴제 전투 | `unit_sp_changed(unit_id, unit_index, new_sp)` (2026-08-08 리비전 — 위와 동일 사유) | SP 점 갱신 |
 | #1 턴제 전투 | `player_input_requested(companion_id)` | 액션 버튼 + 타겟 하이라이트 표시 |
 | #1 턴제 전투 | `turn_started(unit_id)` | "○○의 턴" 텍스트 갱신 |
-| #1 턴제 전투 | `status_effects_changed(unit_id, effects)` | 상태이상 아이콘 갱신 |
+| #1 턴제 전투 | `status_effects_changed(unit_id, unit_index, effects)` (2026-08-08 리비전 — 위와 동일 사유) | 상태이상 아이콘 갱신 |
 | #3 동료 해금 | `companion_unlocked_this_run(id, name, description, portrait_path, color_accent)` (2026-07-26 리비전 — `#3`의 실제 시그니처로 정정. 구 버전은 `description`/`color_accent` 2개 인자가 추가되기 전의 낡은 3-인자 시그니처를 참조하고 있었음) | 히든방 발견 팝업 표시 (초상화·이름·설명 텍스트) |
 | #9 히든 트리거 | `hidden_room_already_cleared(id)` | "이미 동료" 팝업 표시 |
 | #4 장비 | `equipment_dropped(item_data)` | 아이템 드롭 팝업 표시 |

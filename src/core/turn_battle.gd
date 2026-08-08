@@ -23,11 +23,15 @@ signal battle_ended(victory: bool)
 ## in DungeonGenerator can put two same-enemy_id units in one battle, and a
 ## signal keyed by that id can't disambiguate which one changed. Known
 ## ceiling, not fixed here -- see BattleScreen's note.
-signal unit_hp_changed(unit_id: String, new_hp: int)
-signal unit_sp_changed(unit_id: String, new_sp: int)
+## unit_index disambiguates two same-unit_id units in one battle (TD-001,
+## e.g. two identical enemies via DungeonGenerator's sampling-with-replacement)
+## -- it's the unit dict's own "index" field (position within party_units or
+## enemy_units), unique per unit_id/side combination.
+signal unit_hp_changed(unit_id: String, unit_index: int, new_hp: int)
+signal unit_sp_changed(unit_id: String, unit_index: int, new_sp: int)
 signal player_input_requested(unit_id: String)
 signal turn_started(unit_id: String)
-signal status_effects_changed(unit_id: String, effects: Array)
+signal status_effects_changed(unit_id: String, unit_index: int, effects: Array)
 
 var party_units: Array = []
 var enemy_units: Array = []
@@ -228,6 +232,6 @@ func _sync(unit: Dictionary) -> void:
 	rs.current_hp = unit["current_hp"]
 	rs.current_sp = unit["current_sp"]
 	rs.active_effects = unit["active_effects"]
-	unit_hp_changed.emit(unit["id"], unit["current_hp"])
-	unit_sp_changed.emit(unit["id"], unit["current_sp"])
-	status_effects_changed.emit(unit["id"], unit["active_effects"])
+	unit_hp_changed.emit(unit["id"], unit["index"], unit["current_hp"])
+	unit_sp_changed.emit(unit["id"], unit["index"], unit["current_sp"])
+	status_effects_changed.emit(unit["id"], unit["index"], unit["active_effects"])
