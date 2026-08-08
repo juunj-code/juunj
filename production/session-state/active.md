@@ -5,6 +5,10 @@
 
 ## Current Task
 
+**TD-001 해결 (2026-08-08)** — 백로그의 유일한 미차단 항목(리뷰 세션/GUI 확인 불필요). `unit_hp_changed`/`unit_sp_changed`/`status_effects_changed`에 `unit_index` 인자 추가해 같은 `enemy_id`를 공유하는 두 적 인스턴스의 HP/SP/상태이상 라벨이 같이 갱신되던 버그 수정. `battle_screen.gd`의 라벨 딕셔너리도 `"id#index"` 키로 단순화(배열 제거). `UI-HUD.md` 신호 계약 갱신. 194/194 GUT 통과, 커밋 `fb9ad21`. `docs/tech-debt-register.md` 남은 항목 TD-002(의도적 YAGNI 보류) 1건뿐.
+
+이전 항목:
+
 **#21 오디오 GDD 신규 작성 완료 (2026-08-08)** — Vertical Slice 마지막 미착수 시스템. 사용자와 톤(차분하고 신비로운 칩튠 BGM, 미니멀 8비트 SFX + 히든 발견만 특별한 사운드)만 빠르게 정하고 8개 섹션 전부 초안 작성 → 승인. 파일: `design/gdd/오디오.md`.
 
 - **오너십 원칙**: 순수 신호-구독 출력 레이어, 게임 상태 미소유, 재생 실패해도 게임 진행 차단 안 함(Graceful Degradation).
