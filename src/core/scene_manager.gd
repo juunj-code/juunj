@@ -23,6 +23,15 @@ extends Node
 ## budget (previously 6.4/17.1/27.6/48.7ms). Re-measure if scenes grow
 ## heavier.
 
+## 씬-관리.md Core Rule 5 -- #18/#21/#23 subscribe to hook scene-scoped
+## behavior (ad timing, BGM crossfade, settings) without SceneManager knowing
+## about any of them. Added 2026-08-08: the GDD documented these since
+## authoring, but the signals themselves were never implemented until now
+## (found while authoring #21 오디오, which depends on scene_ready/exited).
+signal scene_loading_started(scene_id: String)
+signal scene_ready(scene_id: String)
+signal scene_exited(scene_id: String)
+
 const SCENE_PATHS := {
 	"S-01": "res://scenes/Boot.tscn",
 	"S-02": "res://scenes/MainMenuScreen.tscn",
@@ -61,11 +70,17 @@ func go_to(scene_id: String, transition: String, color: Color = Color.WHITE) -> 
 		push_warning("SceneManager.go_to: %s -> %s is not a declared transition edge" % [current_scene_id, scene_id])
 
 	_is_transitioning = true
+	scene_loading_started.emit(scene_id)
 	var scene_path: String = SCENE_PATHS[scene_id]
 	# ponytail: threaded preload only under real (non-headless) runs -- GUT's
 	# headless desktop loads are already instant (nothing to hide behind the
 	# fade), and there's no reason to route through the threaded API there.
-	var use_threaded_load := not OS.has_feature("headless")
+	# 2026-08-08: was `not OS.has_feature("headless")`, which is always false
+	# under the --headless *runtime flag* (that feature tag only reflects a
+	# headless-*compiled* export template) -- verified empirically, this branch
+	# was silently always taking the real-threaded-load path during every GUT
+	# run. DisplayServer.get_name() == "headless" is the correct runtime check.
+	var use_threaded_load := DisplayServer.get_name() != "headless"
 	if use_threaded_load:
 		ResourceLoader.load_threaded_request(scene_path)
 		_poll_loading(scene_path) # unawaited -- runs concurrently with the fade below
@@ -73,11 +88,13 @@ func go_to(scene_id: String, transition: String, color: Color = Color.WHITE) -> 
 	var overlay_color := Color.BLACK if transition == SceneTransitionRules.TRANSITION_FADE else SceneTransitionRules.resolve_flash_color(color)
 
 	await _fade(overlay_color, 0.0, 1.0, durations["in_ms"] / 1000.0)
+	scene_exited.emit(current_scene_id)
 	if use_threaded_load:
 		get_tree().change_scene_to_packed(ResourceLoader.load_threaded_get(scene_path))
 	else:
 		get_tree().change_scene_to_file(scene_path)
 	current_scene_id = scene_id
+	scene_ready.emit(scene_id)
 	# Flag drops here, not after the fade-out below -- "이중 전환 방지" only
 	# needs to prevent two change_scene_to_file() calls racing. The incoming
 	# scene's own _ready() can legitimately call go_to() again immediately
@@ -103,7 +120,13 @@ func _fade(color: Color, from_alpha: float, to_alpha: float, duration_sec: float
 	# suspended coroutine that resumes several frames later during an unrelated
 	# test -- that exact staleness previously hung TurnBattle.run_battle() on an
 	# empty turn_order and crashed EnemyAI on a mismatched RunManager snapshot.
-	if duration_sec <= 0.0 or OS.has_feature("headless"):
+	# 2026-08-08: the headless check itself was wrong (see go_to()'s comment on
+	# use_threaded_load) -- this fast path was never actually being taken during
+	# GUT runs, meaning every go_to() call in every test suspended on a real
+	# Tween. The intermittent "transition already in progress" warnings seen in
+	# full-suite runs (previously assumed harmless) were this bug's symptom:
+	# a prior test's go_to() genuinely hadn't finished yet.
+	if duration_sec <= 0.0 or DisplayServer.get_name() == "headless":
 		_overlay.color.a = to_alpha
 		return
 	_active_tween = create_tween()
