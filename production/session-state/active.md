@@ -5,6 +5,18 @@
 
 ## Current Task
 
+**#21 오디오 GDD 신규 작성 완료 (2026-08-08)** — Vertical Slice 마지막 미착수 시스템. 사용자와 톤(차분하고 신비로운 칩튠 BGM, 미니멀 8비트 SFX + 히든 발견만 특별한 사운드)만 빠르게 정하고 8개 섹션 전부 초안 작성 → 승인. 파일: `design/gdd/오디오.md`.
+
+- **오너십 원칙**: 순수 신호-구독 출력 레이어, 게임 상태 미소유, 재생 실패해도 게임 진행 차단 안 함(Graceful Degradation).
+- **의존성 재구성**: systems-index엔 `#19`만 있었지만, 실제로 `#1`(전투 SFX, `unit_hp_changed` 부호 판별)·`#9`(히든 발견 스팅어)·`#13`(승패 스팅어+보스 BGM 분기)·`#11`(is_boss만 간접 참조)도 이미 다른 GDD들(동료-해금/런-결과/UI-HUD/전투-공식)이 "#21 구독" 형태로 예고해뒀던 걸 발견해 정식 의존성으로 편입. `턴제-전투.md`/`히든-트리거.md`/`런-상태-관리.md`에 `#21` 양방향 Downstream 항목 추가.
+- **부수 발견**: `씬-관리.md`(Approved)가 이미 `scene_ready`/`scene_exited` 신호를 `#21`에 약속했지만, 실제 `scene_manager.gd` 코드엔 그 신호가 없음(구현 안 됨) — Open Questions에 기록, `#21` 코드 착수 시 `#19` 코드에도 같이 추가해야 함.
+- **제작 범위**: 이번 세션은 GDD(스펙)까지만, 실제 BGM/SFX 에셋 생성은 사용자 결정으로 별도 세션.
+- **트래킹 갱신**: `systems-index.md` #21 Not Started → Designed(review pending), Vertical Slice 설계 진행률 2/2. `entities.yaml`에 `crossfade_volume_db` 포뮬러 신규 등록.
+- **다음 세션 필수**: `/design-review design/gdd/오디오.md`는 반드시 새 세션에서(저작 세션과 분리 — #8과 동일 컨벤션).
+- **커밋 대기 중**.
+
+이전 항목:
+
 **#8 시너지 GDD 독립 /design-review 완료 + 리비전 완료 (2026-08-08)** — 이전 세션이 남긴 "다음 세션 필수" 항목을 새 세션에서 실행. 4개 전문 서브에이전트(game-designer/systems-designer/qa-lead 병렬 어드버서리얼 리뷰 → creative-director 시니어 종합) 실행.
 
 - **Verdict: NEEDS REVISION** (major 아님). Blocking 4건: (1) 팀 단위 flat `synergy_bonus`를 파티원 전원에게 동일 가산하는 원안이 MVP 실제 스탯(tank base_atk=12)으로 이미 +91.7~110% 상대 증가율을 재현함(원래 "로스터 확장 시 미래 위험"으로만 다뤘던 문제가 사실 지금 당장의 문제였음 — systems-designer 발견), (2) `#1`이 실제로 시너지 함수를 올바르게 호출하는지 검증하는 AC 부재, (3) `SynergyTable` 순서-쌍 대칭성 회귀 가드 부재, (4) "노골적으로 안 보여준다" 결정의 검증 경로가 트리거 없는 순환 참조(Open Question)로만 남아있었음.

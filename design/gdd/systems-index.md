@@ -37,7 +37,7 @@
 | 18 | 광고 통합 (inferred) | Meta | MVP | Approved | design/gdd/광고-통합.md | #19 |
 | 19 | 씬 관리 | Core | MVP | Approved | design/gdd/씬-관리.md | (없음) |
 | 20 | UI/HUD | UI | MVP | Approved | design/gdd/UI-HUD.md | #1, #3, #4, #9, #13, #14, #15, #16 |
-| 21 | 오디오 | Audio | Vertical Slice | Not Started | — | #19 |
+| 21 | 오디오 | Audio | Vertical Slice | Designed (review pending) | design/gdd/오디오.md | #19, #1, #9, #13, #11 |
 | 22 | 동료 내러티브 (inferred) | Narrative | Alpha | Not Started | — | #10, #3 |
 | 23 | 설정 (inferred) | Meta | Alpha | Not Started | — | #17, #19 |
 
@@ -170,7 +170,7 @@
 | 설계 문서 검토 완료 | 18 |
 | 설계 문서 승인됨 | 18 |
 | MVP 시스템 설계 완료 | 18 / 18 |
-| Vertical Slice 시스템 설계 완료 | 1 / 2 (#8 시너지 Approved — 2026-08-08 독립 /design-review 완료, NEEDS REVISION → blocking 3건 해결 후 승인) |
+| Vertical Slice 시스템 설계 완료 | 2 / 2 (#8 시너지 Approved — 2026-08-08 독립 /design-review 완료, NEEDS REVISION → blocking 4건 해결 후 승인. #21 오디오 Designed, review pending — `/design-review`는 별도 세션에서) |
 
 ---
 

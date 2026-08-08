@@ -133,6 +133,24 @@ formulas:
     added: "2026-08-06"
     revised: "2026-08-08"
 
+  - name: crossfade_volume_db
+    status: active
+    source: design/gdd/오디오.md
+    referenced_by:
+      - design/gdd/오디오.md
+    variables:
+      - t
+      - from_db
+      - to_db
+      - CROSSFADE_DURATION
+    output_range: [-40, 0]
+    expression: "crossfade_volume_db(t) = lerp(from_db, to_db, clamp(t / CROSSFADE_DURATION, 0.0, 1.0))"
+    notes: "Linear dB interpolation for BGM crossfade on scene transitions.
+      CROSSFADE_DURATION default 0.5s (see 오디오.md Tuning Knobs, safe range
+      0.3-1.5s). Purely presentational -- no gameplay system reads this value."
+    added: "2026-08-08"
+    revised: ""
+
 # Example:
 #
 # formulas:
