@@ -5,6 +5,15 @@
 
 ## Current Task
 
+**#19 씬 생명주기 신호 구현 + 헤드리스 감지 버그 발견/수정 (2026-08-08)** — 사용자가 "더 할 일 없냐"고 재차 확인 요청, 재검토해서 찾은 작업.
+
+- `씬-관리.md`(Approved)가 저작 시점부터 `scene_loading_started`/`scene_ready`/`scene_exited` 신호를 약속(#18/#21/#23이 구독 예정)했지만 실제 `scene_manager.gd` 코드엔 없었음 — `#21 오디오` 저작 중 발견한 갭을 실제로 구현.
+- **부수 발견 (진짜 버그)**: 신호 테스트 작성 중, `go_to()`의 "헤드리스면 동기 처리" 분기가 `OS.has_feature("headless")`로 판별하고 있었는데, 이 feature 태그는 **헤드리스로 컴파일된 익스포트 템플릿**만 감지하고 `--headless` 런타임 플래그는 감지 못 함 — 실측 확인(`DisplayServer.get_name()=headless` vs `OS.has_feature("headless")=false`, 별도 진단 스크립트로 검증). 즉 **이전까지 모든 GUT 실행이 실제로는 동기 경로를 한 번도 못 타고 매번 진짜 Tween/스레드 로드를 기다리고 있었음** — 그동안 무해하다고 넘겼던 "transition already in progress" 경고들이 사실 이 버그의 증상이었음. `OS.has_feature("headless")` → `DisplayServer.get_name() == "headless"`로 수정, 전수 재실행 후 해당 경고 완전히 사라짐 확인.
+- 195/195 GUT 통과. 커밋 `1e14051`.
+- `design/gdd/오디오.md` Open Questions #1 해결로 갱신.
+
+이전 항목:
+
 **TD-001 해결 (2026-08-08)** — 백로그의 유일한 미차단 항목(리뷰 세션/GUI 확인 불필요). `unit_hp_changed`/`unit_sp_changed`/`status_effects_changed`에 `unit_index` 인자 추가해 같은 `enemy_id`를 공유하는 두 적 인스턴스의 HP/SP/상태이상 라벨이 같이 갱신되던 버그 수정. `battle_screen.gd`의 라벨 딕셔너리도 `"id#index"` 키로 단순화(배열 제거). `UI-HUD.md` 신호 계약 갱신. 194/194 GUT 통과, 커밋 `fb9ad21`. `docs/tech-debt-register.md` 남은 항목 TD-002(의도적 YAGNI 보류) 1건뿐.
 
 이전 항목:
