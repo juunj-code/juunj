@@ -43,6 +43,23 @@ func test_turn_order_sorts_by_speed() -> void:
 	assert_false(order[0]["is_companion"])
 	assert_true(order[1]["is_companion"])
 
+func test_setup_wires_synergy_bonus_into_companion_base_atk() -> void: # 시너지.md AC12 (integration)
+	# tank(12)+dealer(28)+support(14) -> team synergy_bonus=11 (4+2+5).
+	# dealer's own base_atk=28 is uncapped (11 <= floori(28*0.5)=14); tank's
+	# base_atk=12 is capped to floori(12*0.5)=6. No weapon equipped, so
+	# base_atk should equal registry base_atk + applied synergy exactly.
+	var battle := _make_battle()
+	battle.setup(
+		[_make_companion("companion_tank_01"), _make_companion("companion_dealer_01"), _make_companion("companion_support_01")],
+		[_make_enemy("enemy_tank_01")]
+	)
+
+	var dealer_unit: Dictionary = battle.party_units.filter(func(u): return u["id"] == "companion_dealer_01")[0]
+	var tank_unit: Dictionary = battle.party_units.filter(func(u): return u["id"] == "companion_tank_01")[0]
+
+	assert_eq(dealer_unit["base_atk"], 28 + 11) # uncapped
+	assert_eq(tank_unit["base_atk"], 12 + 6) # capped
+
 func test_player_basic_attack_damages_enemy_and_enemy_counters() -> void:
 	# companion_balance_01 (atk18/def12/spd6) acts before enemy_tank_01 (atk10/def12/spd2)
 	var battle := _make_battle()

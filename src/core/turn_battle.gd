@@ -8,8 +8,10 @@ extends Node
 ## EnemyAI/StatusEffects already use), built once at setup() from RunManager's
 ## CompanionRunState/EnemyRunState + the data registries, with a "run_state"
 ## backref so results sync back (_sync()). Companion base_atk/base_def are
-## equipment-inclusive (#4.get_effective_atk/def), computed once at setup --
-## equipment can't change mid-battle (#4 Core Rule 3).
+## equipment-inclusive (#4.get_effective_atk/def) plus the party's #8 synergy
+## bonus (Synergy.get_applied_synergy_bonus, 50%-of-own-base_atk capped per
+## unit), computed once at setup -- neither equipment nor synergy change
+## mid-battle (#4 Core Rule 3, #8 Core Rule 4).
 
 signal action_selected(action: String)
 signal target_selected(target: Dictionary)
@@ -39,14 +41,16 @@ func setup(companions: Array, enemies: Array) -> void:
 	enemy_units = _build_enemy_units(enemies)
 
 func _build_companion_units(companions: Array) -> Array:
+	var companion_ids: Array = companions.map(func(c: CompanionRunState) -> String: return c.companion_id)
 	var units: Array = []
 	for i in range(companions.size()):
 		var c: CompanionRunState = companions[i]
 		var data: CompanionData = CompanionRegistry.get_by_id(c.companion_id)
+		var synergy_bonus := Synergy.get_applied_synergy_bonus(companion_ids, data.base_atk)
 		units.append({
 			"id": c.companion_id, "is_companion": true, "index": i,
 			"current_hp": c.current_hp, "base_hp": data.base_hp,
-			"base_atk": Equipment.get_effective_atk(c), "base_def": Equipment.get_effective_def(c),
+			"base_atk": Equipment.get_effective_atk(c) + synergy_bonus, "base_def": Equipment.get_effective_def(c),
 			"spd": data.base_spd, "current_sp": c.current_sp,
 			"active_effects": c.active_effects, "skill_id": data.skill_id,
 			"run_state": c,
