@@ -5,6 +5,15 @@
 
 ## Current Task
 
+**#21 오디오 GDD 독립 /design-review 완료 + 리비전 완료 (2026-08-08)** — 이 harness가 프로젝트 로컬 스킬을 슬래시커맨드로 인식 못 해서, 이 대화와 전혀 무관한 새 백그라운드 서브에이전트에 `.claude/skills/design-review/SKILL.md`를 그대로 따라 독립 리뷰를 위임(진짜 독립성 확보 — 페르소나 주입 서브에이전트까지 포함).
+
+- **Verdict: NEEDS REVISION**, blocking 6건. 가장 뼈아픈 발견: `unit_hp_changed` 등 3개 시그널이 오늘 TD-001 수정으로 3-인자(`unit_index` 추가)가 됐는데 오디오.md는 갱신을 놓쳐 2-인자로 남아있었음(제 실수). 나머지: 보스 BGM 판별이 `EnemyRunState`에 없는 `is_boss` 필드를 읽으려 함(실제론 `EnemyRegistry` 조회 필요) · 크로스페이드 공식이 선형 dB lerp라 중간 지점에서 실제 음량이 훅 꺼짐(등파워 크로스페이드로 교체, `sin`/`cos` 기반) · 히든 발견 사운드가 "특별한 사운드"로만 뭉뚱그려짐(파형 계열 자체를 다르게 지정 — 전투 SFX는 사각파, 히든 발견은 삼각파/사인파 벨음으로 분리) · AC 11개 전부 재생 여부를 검증할 방법이 없었음(`get_current_bgm_id()`/`get_last_played_sfx_id()` 조회 함수 추가로 해결) · UI 탭 사운드(`play_ui_tap()`)가 `UI-HUD.md` 어디서도 호출을 약속 안 한 고아 기능(이번 리비전에서 스코프 제외, `#20`/`#23` 쪽에서 필요 시 다시 끌어오는 걸로 미룸).
+- **부수 발견**: `적-데이터.md`의 Downstream Dependents에 `#21`이 누락돼 있던 것도 리뷰가 잡아냄 — 추가.
+- **트래킹 갱신**: `systems-index.md` #21 Designed(review pending) → Approved, Vertical Slice 진행률 2/2 둘 다 Approved.
+- **커밋 대기 중**.
+
+이전 항목:
+
 **#19 씬 생명주기 신호 구현 + 헤드리스 감지 버그 발견/수정 (2026-08-08)** — 사용자가 "더 할 일 없냐"고 재차 확인 요청, 재검토해서 찾은 작업.
 
 - `씬-관리.md`(Approved)가 저작 시점부터 `scene_loading_started`/`scene_ready`/`scene_exited` 신호를 약속(#18/#21/#23이 구독 예정)했지만 실제 `scene_manager.gd` 코드엔 없었음 — `#21 오디오` 저작 중 발견한 갭을 실제로 구현.
