@@ -12,7 +12,7 @@
 - **부수 발견+수정**: `턴제-전투.md`의 절차적 흐름도(Detailed Rules)가 Dependencies 표에는 있는 `#8` 호출 지점을 실제 흐름 단계로는 전혀 보여주지 않고 있었음 — 구현 시 시너지 배선이 누락될 위험이 있는 크로스 문서 갭이라 이번에 함께 수정(흐름도에 "파티 시너지 반영" 단계 추가).
 - **미해결로 기록만**: 보스 DEF=8(솔로 전용 튜닝)이 파티 전투(시너지 포함 최대 3인)와 어떻게 상호작용해야 하는지는 `#8` 범위 밖 — Open Questions에 발견 사실만 기록, `#6`/`#11` 재검토 시 처리.
 - **트래킹 갱신**: `systems-index.md` #8 상태 Designed(review pending) → **Approved**, Vertical Slice 진행률 0/2 → 1/2. `entities.yaml`의 `synergy_bonus` 항목에 상한 로직 반영. 재검토(2차 `/design-review`)는 스킵 — 자율 진행 방침([[project_juunj-review-autonomy]])에 따라 리비전 후 바로 승인 처리.
-- **커밋 대기 중** — 아직 커밋 안 함.
+- **커밋 완료** (`349cf5a` 문서 리비전). 이어서 같은 세션에서 **코드 구현까지 완료**: `src/core/synergy.gd`(`calculate_party_synergy_bonus`/`get_applied_synergy_bonus`, 50% 상한 포함) + `turn_battle.gd._build_companion_units()`에 배선(장비 위에 가산, 전투 시작 시 1회) + 테스트 13개 신규(`synergy_test.gd` 12개 + `turn_battle_test.gd` 통합 테스트 1개, AC12가 요구한 "#1이 실제로 호출하는지" 검증). GUT 194/194 통과. 커밋 `6d497b3`.
 
 이전 항목:
 
