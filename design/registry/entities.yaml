@@ -119,15 +119,19 @@ formulas:
       - base_atk
       - class_type (per party member)
     output_range: [0, 11]
-    expression: "synergy_bonus = Σ SynergyTable[pair] for each unordered (class_type_a, class_type_b) pair present in the party"
+    expression: "team-level synergy_bonus = Σ SynergyTable[pair] for each unordered (class_type_a, class_type_b) pair present in the party; per-unit applied_bonus = min(synergy_bonus, floori(unit.base_atk * 0.5))"
     notes: "MVP SynergyTable (6 pairs, flat int): tank-dealer=4, tank-balance=2,
       tank-support=2, dealer-balance=3, dealer-support=5, balance-support=3.
       Feeds into 전투-공식.md Formula ① as part of effective_atk (flat-additive
-      alongside weapon_bonus/status_modifier). Re-verify all 6 values when the
-      companion roster expands past 4 (Vertical Slice, #10 동료-데이터 확장) —
-      see 시너지.md Tuning Knobs."
+      alongside weapon_bonus/status_modifier), but the per-unit APPLIED value is
+      capped at 50% of that unit's own base_atk (added 2026-08-08 — independent
+      /design-review found the flat team value already produced +91.7% ATK on
+      MVP's tank (base_atk=12) in the doc's own worked example, not just a future
+      roster-expansion risk). Re-verify both the 6 table values and the 50% cap
+      ratio when the companion roster expands past 4 (Vertical Slice, #10
+      동료-데이터 확장) — see 시너지.md Tuning Knobs."
     added: "2026-08-06"
-    revised: ""
+    revised: "2026-08-08"
 
 # Example:
 #

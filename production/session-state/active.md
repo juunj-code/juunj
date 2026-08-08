@@ -1,9 +1,20 @@
 # Session State — 바람의 탑 (Wind Tower)
 
-**Last Updated**: 2026-08-06
+**Last Updated**: 2026-08-08
 **Stage**: 코딩 착수 (design/architecture 문서는 참고자료, 게이트 아님 — [[project_juunj-scope-pivot]] 참조). 사용자가 커밋/다음 시스템 선택 등 코딩 단계 전반에 자율 진행 승인 ([[project_juunj-review-autonomy]] 참조, 2026-07-29 확장).
 
 ## Current Task
+
+**#8 시너지 GDD 독립 /design-review 완료 + 리비전 완료 (2026-08-08)** — 이전 세션이 남긴 "다음 세션 필수" 항목을 새 세션에서 실행. 4개 전문 서브에이전트(game-designer/systems-designer/qa-lead 병렬 어드버서리얼 리뷰 → creative-director 시니어 종합) 실행.
+
+- **Verdict: NEEDS REVISION** (major 아님). Blocking 4건: (1) 팀 단위 flat `synergy_bonus`를 파티원 전원에게 동일 가산하는 원안이 MVP 실제 스탯(tank base_atk=12)으로 이미 +91.7~110% 상대 증가율을 재현함(원래 "로스터 확장 시 미래 위험"으로만 다뤘던 문제가 사실 지금 당장의 문제였음 — systems-designer 발견), (2) `#1`이 실제로 시너지 함수를 올바르게 호출하는지 검증하는 AC 부재, (3) `SynergyTable` 순서-쌍 대칭성 회귀 가드 부재, (4) "노골적으로 안 보여준다" 결정의 검증 경로가 트리거 없는 순환 참조(Open Question)로만 남아있었음.
+- **리비전 내용**: 개인별 50% 상한(`applied_bonus = min(synergy_bonus, floori(base_atk*0.5))`) 도입 — 팀 단위 전략성은 유지하면서 저스탯 파티원의 극단적 스윙만 완화. AC 3건 추가(AC11 상한 경계값, AC12 통합 계약 spy 검증, AC13 테이블 대칭성 가드), AC5/AC6에 AC9와 동일한 "MVP는 합성 입력 테스트 대상" 캐비어트 추가. 개발자 전용 디버그 로그 + 셀프 플레이테스트 체크리스트 항목 추가(사용자 결정 — 무언 발견 철학은 유지, 검증 트리거만 확보). "6쌍뿐이라 조합이 사실상 풀린다"는 지적은 사용자 결정으로 MVP 스코프 한계로 인정·문서화(로스터 10명 확장 시 재검토, 지금 안티시너지 규칙 추가는 기각).
+- **부수 발견+수정**: `턴제-전투.md`의 절차적 흐름도(Detailed Rules)가 Dependencies 표에는 있는 `#8` 호출 지점을 실제 흐름 단계로는 전혀 보여주지 않고 있었음 — 구현 시 시너지 배선이 누락될 위험이 있는 크로스 문서 갭이라 이번에 함께 수정(흐름도에 "파티 시너지 반영" 단계 추가).
+- **미해결로 기록만**: 보스 DEF=8(솔로 전용 튜닝)이 파티 전투(시너지 포함 최대 3인)와 어떻게 상호작용해야 하는지는 `#8` 범위 밖 — Open Questions에 발견 사실만 기록, `#6`/`#11` 재검토 시 처리.
+- **트래킹 갱신**: `systems-index.md` #8 상태 Designed(review pending) → **Approved**, Vertical Slice 진행률 0/2 → 1/2. `entities.yaml`의 `synergy_bonus` 항목에 상한 로직 반영. 재검토(2차 `/design-review`)는 스킵 — 자율 진행 방침([[project_juunj-review-autonomy]])에 따라 리비전 후 바로 승인 처리.
+- **커밋 대기 중** — 아직 커밋 안 함.
+
+이전 항목:
 
 **#8 시너지 GDD 설계 완료 (2026-08-06)** — `/design-system 시너지`로 8개 필수 섹션 + Visual/Audio + UI + Open Questions 전부 작성. 파일: `design/gdd/시너지.md`.
 
