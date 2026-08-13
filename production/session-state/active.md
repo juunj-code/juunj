@@ -5,6 +5,16 @@
 
 ## Current Task
 
+**전투 화면 배경 아트 1건 (2026-08-13, 2차 폴리시 직후)** — 2차 폴리시 결과 스크린샷을 본 사용자 피드백: "뭔가 게임같지가않다..." — 진단: 던전/전투 어느 화면에도 실제 배경 아트가 없어(art-bible Section 6이 처음부터 환경 아트를 보류해둔 상태) 카드+버튼만 쌓인 웹폼처럼 보였음. 범위를 물어봐서(AskUserQuestion) "전투 화면부터"로 좁게 승인받음.
+
+- Higgsfield `nano_banana_pro`로 전투 배경 1장 생성(2크레딧, 사용자 승인) — 직사각형 석실, 순수 직각 벽, 반복 타일 바닥, Neutral-Cool 방향광+비네트(art-bible Section 2 "전투" 무드 + Section 3-2 환경 지오메트리를 그대로 적용, 새 규칙 없음). `assets/art/backgrounds/battle_arena_01.png`, 프롬프트는 `design/art/background-prompts.md`에 기록(기존 portrait/enemy-sprite-prompts.md와 동일 컨벤션).
+- `scenes/BattleScreen.tscn`에 풀렉트 `TextureRect`(`STRETCH_KEEP_ASPECT_COVERED`)로 배경 배선 — 기존 좌(파티)/우(적) 카드 레이아웃은 그대로 두고 그 뒤에 깔기만 함(레이아웃 변경 없음, 방 비율이 기존 2분할 카드와 자연스럽게 맞아떨어짐).
+- 새 에셋이라 `godot --headless --editor --quit`로 임포트 트리거 필요했음(`.png.import` 사이드카 생성, 기존 세션에서도 나온 패턴).
+- **검증**: 헤드리스 스크린샷으로 전/후 비교, "카드만 떠있던" 화면이 실제 석실 안에서 전투하는 것처럼 보이도록 개선 확인. 195/195 GUT 통과.
+- **다음**: 사용자가 이 결과 보고 던전 탐색(S-04)/메인메뉴 등 나머지 화면도 배경 아트를 확장할지 결정 대기.
+
+이전 항목:
+
 **비주얼 폴리시 2차 — 나머지 5개 화면 + 전역 배경/버튼 테마 (2026-08-13)** — 1차(BattleScreen 카드화)에 이어 "비주얼 작업 이어가야지" 요청으로 나머지 화면 처리.
 
 - **전역 배경**: 지금까지 어떤 화면도 배경색을 지정하지 않아 Godot 기본 클리어 컬러(회색)가 그대로 노출되고 있었음(메인메뉴 "회색 배경" 불만의 실제 원인) — `project.godot`에 `rendering/environment/defaults/default_clear_color`를 art-bible 던전 흑(Abyss `#0D0F14`)으로 1줄 설정, 화면별 수정 없이 6개 화면 전부 한 번에 적용.
