@@ -5,6 +5,16 @@
 
 ## Current Task
 
+**전투 화면 대형 재구성 — 마주보고 서기 (2026-08-13, 배경 아트 직후)** — 배경 아트를 본 사용자가 여전히 "너무 구리다" — "캐릭터를 마주보고 서있으면 좋겠다"는 구체적 피드백. 문제: 유닛 카드가 풀와이드 VBox라 배경이 생겨도 여전히 "세로로 쌓인 목록"처럼 보였음(파티/적 카드가 각각 화면 절반 폭 전체로 늘어남).
+
+- `PartyContainer`/`EnemyContainer`를 VBoxContainer → HBoxContainer로 교체(유닛이 같은 편끼리 가로로 나란히 서도록) + 각각 `CenterContainer`로 감싸 방 중앙에서 수직/수평 중앙정렬되도록 배치. `UnitsRow`에 `size_flags_vertical=3`을 줘서 카드 영역이 세로로 확장되며 버튼 행을 화면 하단으로 밀어냄 — 결과적으로 유닛들이 방 중간에 "서 있고" 버튼은 바닥에 깔림.
+- 카드 자체도 HBoxContainer 부모 아래에서는 내용물 크기로 줄어듦(더 이상 풀와이드 바가 아님) — 초상화 96×96로 키우고, 적 초상화는 `flip_h=true`로 좌우 반전해 파티 쪽(화면 왼쪽)을 바라보게 함.
+- `battle_screen.gd`의 `@onready` 타입/`_build_rows()` 파라미터 타입을 VBoxContainer→HBoxContainer로 동기화(타입 불일치로 처음엔 런타임 에러 — 잡아서 수정).
+- **검증**: 2인 파티 vs 보스, 3인 파티(MAX_PARTY_SIZE) vs 적 2마리 두 케이스 모두 헤드리스 스크린샷으로 확인 — 좌우로 갈라져 마주보는 구도, 960px 폭에서 오버플로 없음. 195/195 GUT 통과.
+- **다음**: 사용자 확인 대기. 이 정도면 "게임 같다"는 반응 나오는지 확인 후, 다른 화면(던전 탐색 등)에도 배경+실제 배치 확장할지 결정.
+
+이전 항목:
+
 **전투 화면 배경 아트 1건 (2026-08-13, 2차 폴리시 직후)** — 2차 폴리시 결과 스크린샷을 본 사용자 피드백: "뭔가 게임같지가않다..." — 진단: 던전/전투 어느 화면에도 실제 배경 아트가 없어(art-bible Section 6이 처음부터 환경 아트를 보류해둔 상태) 카드+버튼만 쌓인 웹폼처럼 보였음. 범위를 물어봐서(AskUserQuestion) "전투 화면부터"로 좁게 승인받음.
 
 - Higgsfield `nano_banana_pro`로 전투 배경 1장 생성(2크레딧, 사용자 승인) — 직사각형 석실, 순수 직각 벽, 반복 타일 바닥, Neutral-Cool 방향광+비네트(art-bible Section 2 "전투" 무드 + Section 3-2 환경 지오메트리를 그대로 적용, 새 규칙 없음). `assets/art/backgrounds/battle_arena_01.png`, 프롬프트는 `design/art/background-prompts.md`에 기록(기존 portrait/enemy-sprite-prompts.md와 동일 컨벤션).

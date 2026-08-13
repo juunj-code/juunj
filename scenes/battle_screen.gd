@@ -4,8 +4,8 @@ extends Control
 ## submit_action()/submit_target(). AC1(HP)은 신호->렌더 그대로 바인딩(HudRules에
 ## 로직 없음, 여기서 직접 처리).
 
-@onready var _party_container: VBoxContainer = %PartyContainer
-@onready var _enemy_container: VBoxContainer = %EnemyContainer
+@onready var _party_container: HBoxContainer = %PartyContainer
+@onready var _enemy_container: HBoxContainer = %EnemyContainer
 @onready var _turn_label: Label = %TurnLabel
 @onready var _basic_attack_button: Button = %BasicAttackButton
 @onready var _skill_button: Button = %SkillButton
@@ -45,7 +45,7 @@ func _ready() -> void:
 
 	_battle.run_battle()
 
-const _PORTRAIT_SIZE := Vector2(64, 64) ## design/art/art-bible.md Section 3-1
+const _PORTRAIT_SIZE := Vector2(96, 96) ## design/art/art-bible.md Section 3-1
 
 ## 2026-08-09: visual polish pass -- was flat sprite+label+label+row siblings
 ## directly in the party/enemy VBoxContainer, which (a) let each unit's sprite/
@@ -55,7 +55,7 @@ const _PORTRAIT_SIZE := Vector2(64, 64) ## design/art/art-bible.md Section 3-1
 ## its own bordered card (CompanionData.color_accent as the border for
 ## companions -- reusing the field #3's discovery flash already uses, no new
 ## asset needed) with a centered, size-locked portrait/sprite and a real HP bar.
-func _build_rows(units: Array, container: VBoxContainer) -> void:
+func _build_rows(units: Array, container: HBoxContainer) -> void:
 	for unit in units:
 		var key := _unit_key(unit["id"], unit["index"])
 		_display_names[unit["id"]] = _display_name(unit)
@@ -76,14 +76,19 @@ func _accent_color(unit: Dictionary) -> Color:
 		return CompanionRegistry.get_by_id(unit["id"]).color_accent
 	return Color(0.45, 0.48, 0.55) # neutral -- EnemyData has no accent color field
 
+## Standing token card -- HBoxContainer parents (UnitsRow's Party/EnemyContainer)
+## shrink cards to content width instead of stretching them full-width, so
+## units read as figures standing in the room rather than list rows. Enemy
+## portraits are mirrored to face the party (screen-left), completing the
+## "facing off" read the background alone couldn't give.
 func _build_card(unit: Dictionary, key: String) -> PanelContainer:
 	var card := PanelContainer.new()
 	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.14, 0.15, 0.18, 0.92)
+	style.bg_color = Color(0.14, 0.15, 0.18, 0.78)
 	style.border_color = _accent_color(unit)
 	style.set_border_width_all(2)
 	style.set_corner_radius_all(6)
-	style.set_content_margin_all(8)
+	style.set_content_margin_all(6)
 	card.add_theme_stylebox_override("panel", style)
 
 	var vbox := VBoxContainer.new()
@@ -99,6 +104,7 @@ func _build_card(unit: Dictionary, key: String) -> PanelContainer:
 		portrait.custom_minimum_size = _PORTRAIT_SIZE
 		portrait.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
 		portrait.size_flags_horizontal = Control.SIZE_SHRINK_CENTER # don't stretch to card width
+		portrait.flip_h = not unit["is_companion"]
 		center.add_child(portrait)
 
 	var name_label := Label.new()
