@@ -27,6 +27,8 @@ theme_override_constants/separation = 12
 
 [node name="TitleLabel" type="Label" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
+theme_override_colors/font_color = Color(0.941176, 0.929412, 0.901961, 1)
+theme_override_font_sizes/font_size = 28
 text = "파티 선택"
 horizontal_alignment = 1
 

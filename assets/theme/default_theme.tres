@@ -1,0 +1,73 @@
+[gd_resource type="Theme" load_steps=5 format=3]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_normal"]
+bg_color = Color(0.164706, 0.188235, 0.25098, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.290196, 0.313726, 0.407843, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hover"]
+bg_color = Color(0.211765, 0.239216, 0.313726, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.4, 0.435294, 0.541176, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_pressed"]
+bg_color = Color(0.290196, 0.313726, 0.407843, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.4, 0.435294, 0.541176, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_disabled"]
+bg_color = Color(0.101961, 0.117647, 0.156863, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.164706, 0.188235, 0.25098, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[resource]
+Button/styles/normal = SubResource("StyleBoxFlat_normal")
+Button/styles/hover = SubResource("StyleBoxFlat_hover")
+Button/styles/pressed = SubResource("StyleBoxFlat_pressed")
+Button/styles/hover_pressed = SubResource("StyleBoxFlat_pressed")
+Button/styles/disabled = SubResource("StyleBoxFlat_disabled")
+Button/styles/focus = SubResource("StyleBoxFlat_hover")
+Button/colors/font_color = Color(0.941176, 0.929412, 0.901961, 1)
+Button/colors/font_hover_color = Color(0.941176, 0.929412, 0.901961, 1)
+Button/colors/font_pressed_color = Color(0.941176, 0.929412, 0.901961, 1)
+Button/colors/font_disabled_color = Color(0.45, 0.47, 0.52, 1)
+OptionButton/styles/normal = SubResource("StyleBoxFlat_normal")
+OptionButton/styles/hover = SubResource("StyleBoxFlat_hover")
+OptionButton/styles/pressed = SubResource("StyleBoxFlat_pressed")
+OptionButton/styles/disabled = SubResource("StyleBoxFlat_disabled")
+OptionButton/styles/focus = SubResource("StyleBoxFlat_hover")
+OptionButton/colors/font_color = Color(0.941176, 0.929412, 0.901961, 1)
+OptionButton/colors/font_hover_color = Color(0.941176, 0.929412, 0.901961, 1)
+OptionButton/colors/font_disabled_color = Color(0.45, 0.47, 0.52, 1)
+PopupMenu/styles/panel = SubResource("StyleBoxFlat_normal")
+PopupMenu/styles/hover = SubResource("StyleBoxFlat_hover")
+PopupMenu/colors/font_color = Color(0.941176, 0.929412, 0.901961, 1)
+PopupMenu/colors/font_hover_color = Color(0.941176, 0.929412, 0.901961, 1)

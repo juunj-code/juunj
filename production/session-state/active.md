@@ -1,9 +1,21 @@
 # Session State — 바람의 탑 (Wind Tower)
 
-**Last Updated**: 2026-08-08
+**Last Updated**: 2026-08-13
 **Stage**: 코딩 착수 (design/architecture 문서는 참고자료, 게이트 아님 — [[project_juunj-scope-pivot]] 참조). 사용자가 커밋/다음 시스템 선택 등 코딩 단계 전반에 자율 진행 승인 ([[project_juunj-review-autonomy]] 참조, 2026-07-29 확장).
 
 ## Current Task
+
+**비주얼 폴리시 2차 — 나머지 5개 화면 + 전역 배경/버튼 테마 (2026-08-13)** — 1차(BattleScreen 카드화)에 이어 "비주얼 작업 이어가야지" 요청으로 나머지 화면 처리.
+
+- **전역 배경**: 지금까지 어떤 화면도 배경색을 지정하지 않아 Godot 기본 클리어 컬러(회색)가 그대로 노출되고 있었음(메인메뉴 "회색 배경" 불만의 실제 원인) — `project.godot`에 `rendering/environment/defaults/default_clear_color`를 art-bible 던전 흑(Abyss `#0D0F14`)으로 1줄 설정, 화면별 수정 없이 6개 화면 전부 한 번에 적용.
+- **부작용 발견+수정**: Abyss 배경 위에서 Godot 기본 Button/OptionButton 스타일(회색 배경 대비용으로 설계됨)이 다크-온-다크로 거의 안 보이게 됨 — `assets/theme/default_theme.tres` 신규 작성(Button/OptionButton/PopupMenu normal·hover·pressed·disabled 스타일박스, 냉석/안개 팔레트 기반 테두리+배경, Life White 텍스트), `project.godot`의 `gui/theme/custom`으로 프로젝트 전역 적용. 새 에셋 없음, StyleBoxFlat만 사용.
+- **MainMenuScreen**: 타이틀 48px + Life White 색상, 버튼과 간격 확보.
+- **PartySelectScreen/RunResultScreen**: 타이틀 28px + Life White (배틀스크린 카드 폴리시와 톤 통일). RunResultScreen의 신기록 뱃지는 발견금(Discovery gold `#E8C84A`)로 강조.
+- **DungeonExplorationScreen**: 팝업 패널이 스타일 지정 없이 기본 회색 박스였던 것을 발견금 골드 테두리 카드로 교체(히든/보상 발견이라는 의미와 일치, art-bible 4-2 시맨틱 규칙 그대로 적용). 파티 HP도 평문 라벨 → BattleScreen과 동일한 `color_accent` 테두리 카드 + ProgressBar로 교체(같은 패턴 재사용, 새 코드 최소).
+- **검증**: 헤드리스 SceneTree 스크립트로 RunManager 상태를 직접 세팅해(SceneManager fade 우회) 6개 화면(S-02~S-06, 팝업 상태 포함) 전부 실제 렌더 스크린샷 확인 — 대비 문제 확인 후 수정, 재확인 완료. 스크립트는 확인용 1회성이라 커밋 전 삭제. 195/195 GUT 통과(변경 전후 2회 확인).
+- **다음**: 없음 — 6개 화면 전부 폴리시 완료. 추가로 손댈 곳 있으면 사용자 확인 후 진행.
+
+이전 항목:
 
 **전투 화면(BattleScreen) 비주얼 폴리시 1차 (2026-08-09)** — 사용자가 실제로 플레이해보려다 "비주얼이 꽝이라 몰입이 안 됨" 피드백. Claude in Chrome 확장이 연결 안 돼 있어서 실제 게임 화면을 헤드리스 인게임 스크린샷(`get_viewport().get_texture().get_image().save_png()`, RunManager 상태를 스크립트로 직접 세팅)으로 직접 확인 → 문제 실측 확인.
 

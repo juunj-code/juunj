@@ -41,6 +41,7 @@ enabled=PackedStringArray("res://addons/gut/plugin.cfg")
 
 [gui]
 
+theme/custom="res://assets/theme/default_theme.tres"
 theme/custom_font="res://assets/fonts/NotoSansKR-Regular.ttf"
 
 [physics]
@@ -52,3 +53,4 @@ theme/custom_font="res://assets/fonts/NotoSansKR-Regular.ttf"
 rendering_device/driver.windows="d3d12"
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
+environment/defaults/default_clear_color=Color(0.05098, 0.05882, 0.07843, 1)

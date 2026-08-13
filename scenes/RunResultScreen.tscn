@@ -28,6 +28,8 @@ theme_override_constants/separation = 12
 [node name="HeaderLabel" type="Label" parent="MarginContainer/VBoxContainer"]
 unique_name_in_owner = true
 layout_mode = 2
+theme_override_colors/font_color = Color(0.941176, 0.929412, 0.901961, 1)
+theme_override_font_sizes/font_size = 28
 text = "결과"
 horizontal_alignment = 1
 
@@ -39,6 +41,7 @@ horizontal_alignment = 1
 [node name="RecordLabel" type="Label" parent="MarginContainer/VBoxContainer"]
 unique_name_in_owner = true
 layout_mode = 2
+theme_override_colors/font_color = Color(0.909804, 0.784314, 0.290196, 1)
 horizontal_alignment = 1
 visible = false
 
