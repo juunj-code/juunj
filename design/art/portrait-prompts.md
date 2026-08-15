@@ -4,6 +4,15 @@ Prepared 2026-07-31. Blocked on generation: Higgsfield workspace out of credits,
 Gemini (nanobanana) free-tier quota is 0 for `gemini-3.1-flash-image`. Run these
 once either is unblocked — square 1:1, save to `assets/art/portraits/<companion_id>.png`.
 
+**2026-08-15 regeneration note**: the original `companion_tank_01`/`companion_dealer_01`
+generations drifted from this spec (tank came out full-body instead of chest-up
+bust; dealer came out with a baked-in decorative panel frame despite the "no UI
+frame baked in" line). Both regenerated via `nano_banana_pro` with the same
+character descriptions below, plus an explicit "flat solid background,
+absolutely no border/frame/vignette" emphasis for the dealer retry (first retry
+still produced a frame; second attempt succeeded). `companion_balance_01` and
+`companion_support_01` already matched spec and were left untouched.
+
 Shared style line (repeat in every prompt for consistency across the set):
 > Square game UI portrait icon for a 2D indie JRPG called "Wind Tower" (바람의탑),
 > retro 16-bit-inspired but rendered as clean flat cel-shaded illustration with

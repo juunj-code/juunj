@@ -45,10 +45,10 @@ func _ready() -> void:
 
 	_battle.run_battle()
 
-## 2026-08-15: bumped from art-bible Section 3-1's documented 96x96 -- the
-## portrait/sprite art is already full-body character art (not a headshot
-## crop), so 96px was reading as a tiny icon instead of a standing figure.
-## art-bible needs updating to match if this size sticks.
+## 2026-08-15: bumped from 96x96 -- documented in art-bible.md Section 3-3
+## "동료 카드 초상화 표시 크기". Companion portraits are being unified to a
+## chest-up bust framing (portrait-prompts.md's original spec); this size
+## is tuned for that framing, not a full-body figure.
 const _PORTRAIT_SIZE := Vector2(150, 150)
 
 ## 2026-08-09: visual polish pass -- was flat sprite+label+label+row siblings
