@@ -17,6 +17,7 @@ var _hp_bars: Dictionary = {} # "id#index" -> ProgressBar
 var _sp_labels: Dictionary = {} # "id#index" -> Label
 var _status_rows: Dictionary = {} # "id#index" -> HBoxContainer
 var _base_hp: Dictionary = {} # "id#index" -> int
+var _cards: Dictionary = {} # "id#index" -> PanelContainer, for hit feedback (pop/damage number)
 var _display_names: Dictionary = {} # unit_id -> String, for signals that only carry unit_id
 var _current_unit: Dictionary = {}
 
@@ -147,6 +148,7 @@ func _build_card(unit: Dictionary, key: String) -> PanelContainer:
 	_status_rows[key] = status_row
 	_render_status_row(status_row, unit["active_effects"])
 
+	_cards[key] = card
 	return card
 
 func _render_label(label: Label, key: String, hp: int) -> void:
@@ -172,12 +174,54 @@ func _render_status_row(row: HBoxContainer, effects: Array) -> void:
 		duration_label.text = "(%d)" % effect.duration
 		row.add_child(duration_label)
 
+## 2026-08-15: hit feedback -- floating damage/heal number + a squash-pop on
+## the hit unit's card (game-feel skill's "eased tween, not linear" pattern).
+## HP delta isn't in the signal (unit_hp_changed only carries the new value,
+## per UI-HUD.md's contract) -- diffed here against the bar's current value
+## instead of touching that signal's shape.
 func _on_unit_hp_changed(unit_id: String, unit_index: int, new_hp: int) -> void:
 	var key := _unit_key(unit_id, unit_index)
 	if _labels.has(key):
 		_render_label(_labels[key], key, new_hp)
 	if _hp_bars.has(key):
-		_hp_bars[key].value = new_hp
+		var hp_bar: ProgressBar = _hp_bars[key]
+		var delta := int(hp_bar.value) - new_hp
+		if delta != 0:
+			_spawn_damage_number(key, delta)
+			_pop_card(key)
+		hp_bar.value = new_hp
+
+const _DAMAGE_COLOR := Color(0.85, 0.25, 0.25)
+const _HEAL_COLOR := Color(0.35, 0.85, 0.45)
+
+func _spawn_damage_number(key: String, delta: int) -> void:
+	if not _cards.has(key):
+		return
+	var card: Control = _cards[key]
+	var label := Label.new()
+	label.text = "-%d" % delta if delta > 0 else "+%d" % -delta
+	label.add_theme_color_override("font_color", _DAMAGE_COLOR if delta > 0 else _HEAL_COLOR)
+	label.add_theme_font_size_override("font_size", 22)
+	label.z_index = 10
+	add_child(label)
+	label.global_position = card.global_position + Vector2(card.size.x / 2 - 12, 4)
+
+	var tw := create_tween()
+	tw.set_parallel(true)
+	tw.tween_property(label, "global_position:y", label.global_position.y - 36, 0.6) \
+		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tw.tween_property(label, "modulate:a", 0.0, 0.6).set_delay(0.15)
+	tw.chain().tween_callback(label.queue_free)
+
+func _pop_card(key: String) -> void:
+	if not _cards.has(key):
+		return
+	var card: Control = _cards[key]
+	card.pivot_offset = card.size / 2
+	card.scale = Vector2(1.15, 0.85)
+	var tw := create_tween()
+	tw.tween_property(card, "scale", Vector2.ONE, 0.18) \
+		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 func _on_unit_sp_changed(unit_id: String, unit_index: int, new_sp: int) -> void:
 	var key := _unit_key(unit_id, unit_index)
