@@ -46,6 +46,9 @@ func _style_popup_panel() -> void:
 	style.set_border_width_all(2)
 	style.set_corner_radius_all(6)
 	style.set_content_margin_all(16)
+	style.shadow_color = Color(0, 0, 0, 0.85)
+	style.shadow_size = 16
+	style.shadow_offset = Vector2(0, 10)
 	_popup_panel.add_theme_stylebox_override("panel", style)
 
 ## Same bordered-card language as battle_screen.gd's unit cards (reuses
@@ -66,6 +69,9 @@ func _build_hp_card(data: CompanionData, current_hp: int) -> PanelContainer:
 	style.set_border_width_all(2)
 	style.set_corner_radius_all(4)
 	style.set_content_margin_all(6)
+	style.shadow_color = Color(0, 0, 0, 0.85)
+	style.shadow_size = 10
+	style.shadow_offset = Vector2(0, 6)
 	card.add_theme_stylebox_override("panel", style)
 
 	var row := HBoxContainer.new()

@@ -45,7 +45,11 @@ func _ready() -> void:
 
 	_battle.run_battle()
 
-const _PORTRAIT_SIZE := Vector2(96, 96) ## design/art/art-bible.md Section 3-1
+## 2026-08-15: bumped from art-bible Section 3-1's documented 96x96 -- the
+## portrait/sprite art is already full-body character art (not a headshot
+## crop), so 96px was reading as a tiny icon instead of a standing figure.
+## art-bible needs updating to match if this size sticks.
+const _PORTRAIT_SIZE := Vector2(150, 150)
 
 ## 2026-08-09: visual polish pass -- was flat sprite+label+label+row siblings
 ## directly in the party/enemy VBoxContainer, which (a) let each unit's sprite/
@@ -89,6 +93,9 @@ func _build_card(unit: Dictionary, key: String) -> PanelContainer:
 	style.set_border_width_all(2)
 	style.set_corner_radius_all(6)
 	style.set_content_margin_all(6)
+	style.shadow_color = Color(0, 0, 0, 0.85)
+	style.shadow_size = 16
+	style.shadow_offset = Vector2(0, 10)
 	card.add_theme_stylebox_override("panel", style)
 
 	var vbox := VBoxContainer.new()
