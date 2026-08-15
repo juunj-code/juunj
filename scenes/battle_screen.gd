@@ -187,14 +187,29 @@ func _on_unit_hp_changed(unit_id: String, unit_index: int, new_hp: int) -> void:
 		var hp_bar: ProgressBar = _hp_bars[key]
 		var delta := int(hp_bar.value) - new_hp
 		if delta != 0:
-			_spawn_damage_number(key, delta)
-			_pop_card(key)
+			var stagger := _next_stagger_delay()
+			_spawn_damage_number(key, delta, stagger)
+			_pop_card(key, stagger)
 		hp_bar.value = new_hp
 
 const _DAMAGE_COLOR := Color(0.85, 0.25, 0.25)
 const _HEAL_COLOR := Color(0.35, 0.85, 0.45)
+const _STAGGER_STEP := 0.08 ## seconds between same-frame multi-hits (all_allies heal etc.)
 
-func _spawn_damage_number(key: String, delta: int) -> void:
+var _last_hit_frame := -999
+var _hit_batch_index := 0
+
+## Party-wide skills (all_allies) call _sync() per unit synchronously in the
+## same frame -- without this, every number in the batch would pop and float
+## in perfect lockstep instead of reading as a sequence (damage-number
+## research: multi-hit numbers should stagger by tens of ms, not fire at once).
+func _next_stagger_delay() -> float:
+	var frame := Engine.get_process_frames()
+	_hit_batch_index = (_hit_batch_index + 1) if frame - _last_hit_frame <= 1 else 0
+	_last_hit_frame = frame
+	return _hit_batch_index * _STAGGER_STEP
+
+func _spawn_damage_number(key: String, delta: int, stagger: float) -> void:
 	if not _cards.has(key):
 		return
 	var card: Control = _cards[key]
@@ -203,23 +218,28 @@ func _spawn_damage_number(key: String, delta: int) -> void:
 	label.add_theme_color_override("font_color", _DAMAGE_COLOR if delta > 0 else _HEAL_COLOR)
 	label.add_theme_font_size_override("font_size", 22)
 	label.z_index = 10
+	label.modulate.a = 0.0
 	add_child(label)
 	label.global_position = card.global_position + Vector2(card.size.x / 2 - 12, 4)
+	var start_y := label.global_position.y
 
 	var tw := create_tween()
+	tw.tween_interval(stagger)
+	tw.tween_callback(func(): label.modulate.a = 1.0)
 	tw.set_parallel(true)
-	tw.tween_property(label, "global_position:y", label.global_position.y - 36, 0.6) \
+	tw.tween_property(label, "global_position:y", start_y - 36, 0.6) \
 		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	tw.tween_property(label, "modulate:a", 0.0, 0.6).set_delay(0.15)
 	tw.chain().tween_callback(label.queue_free)
 
-func _pop_card(key: String) -> void:
+func _pop_card(key: String, stagger: float) -> void:
 	if not _cards.has(key):
 		return
 	var card: Control = _cards[key]
 	card.pivot_offset = card.size / 2
-	card.scale = Vector2(1.15, 0.85)
 	var tw := create_tween()
+	tw.tween_interval(stagger)
+	tw.tween_callback(func(): card.scale = Vector2(1.15, 0.85))
 	tw.tween_property(card, "scale", Vector2.ONE, 0.18) \
 		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
