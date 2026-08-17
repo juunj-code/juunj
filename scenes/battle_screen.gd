@@ -42,6 +42,7 @@ func _ready() -> void:
 	_battle.unit_hp_changed.connect(_on_unit_hp_changed)
 	_battle.unit_sp_changed.connect(_on_unit_sp_changed)
 	_battle.status_effects_changed.connect(_on_status_effects_changed)
+	AudioManager.bind_battle(_battle)
 
 	_basic_attack_button.pressed.connect(_on_basic_attack_pressed)
 	_skill_button.pressed.connect(_on_skill_pressed)
