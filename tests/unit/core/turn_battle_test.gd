@@ -148,6 +148,20 @@ func test_turn_order_changed_emits_full_round_order() -> void: # turn queue UI
 	assert_eq(orders[0][0]["id"], "enemy_speed_01") # spd 8 beats companion's spd 6
 	assert_eq(orders[0][1]["id"], "companion_balance_01")
 
+func test_action_executed_emits_actor_and_target() -> void: # lunge-animation hook
+	var battle := _make_battle()
+	battle.setup([_make_companion("companion_balance_01")], [_make_enemy("enemy_tank_01")])
+	var events: Array = []
+	battle.action_executed.connect(func(actor_id, actor_index, target_id, target_index, action):
+		events.append([actor_id, actor_index, target_id, target_index, action]))
+
+	battle.run_battle()
+	battle.submit_action("basic_attack")
+	battle.submit_target(battle.enemy_units[0])
+
+	assert_eq(events[0], ["companion_balance_01", 0, "enemy_tank_01", 0, "basic_attack"])
+	assert_eq(events[1], ["enemy_tank_01", 0, "companion_balance_01", 0, "skill"]) # enemy's 0-cost skill counter
+
 func test_basic_attack_emits_hp_changed_reflecting_final_values() -> void: # #20 UI-HUD.md signal contract
 	# _sync() emits on every processing step (tick/SP-recover included), not
 	# only on actual change -- so assert latest-seen value per id, not an

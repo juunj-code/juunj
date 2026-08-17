@@ -38,6 +38,7 @@ func _ready() -> void:
 
 	_battle.turn_order_changed.connect(_on_turn_order_changed)
 	_battle.turn_started.connect(_on_turn_started)
+	_battle.action_executed.connect(_on_action_executed)
 	_battle.player_input_requested.connect(_on_player_input_requested)
 	_battle.unit_hp_changed.connect(_on_unit_hp_changed)
 	_battle.unit_sp_changed.connect(_on_unit_sp_changed)
@@ -247,6 +248,29 @@ func _pop_card(key: String, stagger: float) -> void:
 	tw.tween_property(card, "scale", Vector2.ONE, 0.18) \
 		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
+const _LUNGE_DISTANCE := 24.0
+
+## Combat had zero attacker motion (menu-driven, HP just changed) -- the
+## reason hit-stop was skipped in the last polish pass ("no movement to
+## stop"). This gives every action a small lunge-and-return toward its
+## target, attacker or target identified via action_executed (unit_hp_changed
+## alone can't tell who acted). Runs before the hit-pop/damage-number tween
+## on the target card, so the two read as one impact instead of overlapping.
+func _on_action_executed(actor_id: String, actor_index: int, target_id: String, target_index: int, _action: String) -> void:
+	var actor_key := _unit_key(actor_id, actor_index)
+	var target_key := _unit_key(target_id, target_index)
+	if not _cards.has(actor_key) or not _cards.has(target_key) or actor_key == target_key:
+		return
+	var actor_card: Control = _cards[actor_key]
+	var target_card: Control = _cards[target_key]
+	var direction := (target_card.global_position - actor_card.global_position).normalized()
+	var start_pos := actor_card.position
+	var tw := create_tween()
+	tw.tween_property(actor_card, "position", start_pos + direction * _LUNGE_DISTANCE, 0.09) \
+		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tw.tween_property(actor_card, "position", start_pos, 0.15) \
+		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+
 func _on_unit_sp_changed(unit_id: String, unit_index: int, new_sp: int) -> void:
 	var key := _unit_key(unit_id, unit_index)
 	if _sp_labels.has(key):
@@ -308,9 +332,18 @@ func _on_turn_started(unit_id: String) -> void:
 func _on_player_input_requested(_unit_id: String) -> void:
 	_set_action_buttons_enabled(true)
 
+## Skill button used to just say "스킬" -- players were picking blind (no
+## name/cost/effect shown before committing). Label + tooltip now come
+## straight from SkillData, no new UI element needed.
 func _set_action_buttons_enabled(enabled: bool) -> void:
 	_basic_attack_button.disabled = not enabled
 	var skill: SkillData = SkillRegistry.get_by_id(_current_unit.get("skill_id", ""))
+	if skill != null:
+		_skill_button.text = "%s (SP %d)" % [skill.name, skill.cost_sp]
+		_skill_button.tooltip_text = skill.description
+	else:
+		_skill_button.text = "스킬"
+		_skill_button.tooltip_text = ""
 	_skill_button.disabled = not enabled or skill == null \
 		or HudRules.is_skill_disabled(_current_unit.get("current_sp", 0), skill.cost_sp)
 	_clear_targets()

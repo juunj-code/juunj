@@ -35,6 +35,10 @@ signal status_effects_changed(unit_id: String, unit_index: int, effects: Array)
 ## Fires whenever the round's turn order is (re)computed -- unit dicts, same
 ## shape as party_units/enemy_units entries. UI listens to render a queue.
 signal turn_order_changed(turn_order: Array)
+## Fires at the start of _execute_action(), before any HP/SP change -- lets UI
+## animate a lunge toward the target (attacker/target aren't otherwise
+## identifiable together; unit_hp_changed only carries who got hit).
+signal action_executed(actor_id: String, actor_index: int, target_id: String, target_index: int, action: String)
 
 var party_units: Array = []
 var enemy_units: Array = []
@@ -175,6 +179,7 @@ func _get_ai_action(unit: Dictionary) -> Dictionary:
 func _execute_action(unit: Dictionary, action_data: Dictionary) -> void:
 	var action: String = action_data["action"]
 	var target: Dictionary = action_data["target"]
+	action_executed.emit(unit["id"], unit["index"], target["id"], target["index"], action)
 	var attacker_stats := StatusEffects.get_modified_stats(unit)
 
 	if action == "basic_attack":
