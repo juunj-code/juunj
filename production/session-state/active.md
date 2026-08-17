@@ -1,9 +1,20 @@
 # Session State — 바람의 탑 (Wind Tower)
 
-**Last Updated**: 2026-08-13
-**Stage**: 코딩 착수 (design/architecture 문서는 참고자료, 게이트 아님 — [[project_juunj-scope-pivot]] 참조). 사용자가 커밋/다음 시스템 선택 등 코딩 단계 전반에 자율 진행 승인 ([[project_juunj-review-autonomy]] 참조, 2026-07-29 확장).
+**Last Updated**: 2026-08-17
+**Stage**: 코딩 착수 (design/architecture 문서는 참고자료, 게이트 아님 — [[project_juunj-scope-pivot]] 참조). 사용자가 커밋/다음 시스템 선택 등 코딩 단계 전반에 자율 진행 승인 ([[project_juunj-review-autonomy]] 참조, 2026-07-29 확장, 2026-08-17 "나한테 뭐 물어보지말고, 스스로 검증하고" 재확인).
 
 ## Current Task
+
+**턴 순서 대기열 UI + #21 오디오 구현 (2026-08-17)** — 새 세션에서 "이어서 작업" 요청. 지난 세션 "다음" 항목(턴 순서 대기열 UI/유휴 모션/스킬 아이콘) 중 하나를 자율 선택해 진행, 이어서 사용자가 "더 재미있는 게임, 게임다운 게임" 요청 → 자체 진단으로 우선순위 결정.
+
+- **턴 순서 대기열 UI**: `TurnBattle`에 `turn_order_changed(turn_order: Array)` 시그널 신규(라운드 계산될 때마다 발신, `_compute_turn_order()` 재사용). `BattleScreen`에 `TurnQueueRow`(작은 초상화 칩, 현재 턴만 밝게·나머지 dim) 추가 — 기존 카드 빌드 로직(`_portrait_path`/`_accent_color`) 재사용, 새 에셋 없음. 196/196 GUT(+1), 창모드 스크린샷으로 확인(칩 순서·하이라이트 정상). 커밋 `77c2059`.
+- **자체 진단 (오디오 완전 부재 발견)**: "게임다운 게임" 요청에 응해 재점검 → `#21 오디오` GDD가 2026-08-08에 Approved되고 다른 시스템(#1/#9/#13)이 이미 구독을 약속해뒀는데, 실제 `src/`에 오디오 코드/에셋이 0건이었음(무음 게임). 시각 폴리시보다 임팩트가 크다고 판단해 우선 착수.
+- **AudioManager 구현**: 외부 에셋 생성(Higgsfield 크레딧) 대신 `AudioSynth`(신규, `class_name`, square/triangle/sine 파형을 `AudioStreamWAV` PCM으로 런타임 합성)로 GDD의 "미니멀 8비트" 요구를 코드만으로 충족 — 새 크레딧/파일 불필요. `AudioManager` 오토로드: SFX/BGM 버스(런타임 `AudioServer.add_bus`), SFX 5종(hit/heal/victory/defeat/discovery — 전투는 사각파, 히든 발견은 사인파로 GDD의 파형 구분 그대로), BGM 3종(lobby/exploration/combat) 등파워(sin/cos) 크로스페이드(GDD 리뷰가 지적한 "선형 dB lerp가 중간 지점에서 음량 훅 꺼짐" 버그를 애초에 회피). `SceneManager.scene_ready`/`CompanionUnlock.companion_unlocked_this_run`(둘 다 오토로드) 직접 구독, `BattleScreen`은 `AudioManager.bind_battle(_battle)` 1회 호출(TurnBattle은 오토로드가 아니라 전투마다 바인딩 필요).
+- **의도적 스코프 컷**: 보스 전용 BGM 분기는 스킵(ponytail — MVP는 전투 루프 1개, 필요해지면 트랙 추가+`is_boss` 체크). GDD의 UI 탭 사운드도 기존 결정대로 계속 스코프 제외.
+- **검증**: `AudioSynth`/`AudioManager` 신규 GUT 테스트 10개(hit/heal 판별, victory/defeat, BGM 전환, 파형 프레임 수/루프 설정) — 헤드리스 첫 실행에서 `class_name AudioSynth`가 전역 클래스 캐시에 안 잡혀 파싱 실패(기존에도 겪은 패턴) → `--headless --editor --quit`로 캐시 갱신 후 재실행, 206/206 통과. 헤드리스는 더미 오디오 드라이버라 실제 재생 검증이 안 돼, 별도로 창모드(실제 오디오 디바이스)에서 버스 생성+SFX 5종+BGM 크로스페이드를 실행해 에러 없음 확인(임시 스크립트, 삭제 완료). 커밋 `f85b730`.
+- **다음**: 캐릭터 유휴 모션, 스킬 아이콘, 보스 전용 BGM(스킵한 항목) 중 우선순위 판단 필요 — 사용자에게 묻지 않고 계속 자율 진행 예정.
+
+이전 항목:
 
 **입체감 폴리시 — 카드 그림자 + 초상화 확대 + 던전 배경 아트 (2026-08-15)** — 사용자가 전투 화면 마주보기 구도를 보고 "한결 낫다"면서 "입체감있게 좀 만들어줘"라고 추가 요청.
 
