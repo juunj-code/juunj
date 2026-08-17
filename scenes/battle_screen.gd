@@ -195,7 +195,38 @@ func _on_unit_hp_changed(unit_id: String, unit_index: int, new_hp: int) -> void:
 			var stagger := _next_stagger_delay()
 			_spawn_damage_number(key, delta, stagger)
 			_pop_card(key, stagger)
+			if delta > 0 and stagger == 0.0: # damage, not heal; skip on staggered multi-hits
+				_hit_stop()
 		hp_bar.value = new_hp
+
+const _HIT_STOP_DURATION := 0.06
+const _HIT_STOP_SCALE := 0.05
+var _hit_stopping := false
+
+## Freeze-frame on impact (game-feel skill's hit-stop recipe) -- now that the
+## lunge gives combat actual motion, a beat of stillness on contact sells the
+## impact instead of just looking like a stutter. Real-time timer
+## (ignore_time_scale) so it still resolves while Engine.time_scale is
+## dropped; the card-pop/damage-number tweens are deliberately left on
+## default idle time (scaled), so they visibly hold with everything else
+## during the freeze instead of animating through it.
+## ponytail: no queueing for overlapping hits -- first hit-stop in flight
+## wins, later ones in the same ~60ms window are skipped rather than
+## extended. Fine today (no multi-target damage skill exists yet); revisit
+## if one's added and hits feel like they're eating each other's freeze.
+func _hit_stop() -> void:
+	if _hit_stopping:
+		return
+	_hit_stopping = true
+	Engine.time_scale = _HIT_STOP_SCALE
+	await get_tree().create_timer(_HIT_STOP_DURATION, true, false, true).timeout
+	Engine.time_scale = 1.0
+	_hit_stopping = false
+
+## Safety net: if the scene tears down (defeat/victory transition) while a
+## hit-stop is mid-flight, don't leave the whole engine permanently slowed.
+func _exit_tree() -> void:
+	Engine.time_scale = 1.0
 
 const _DAMAGE_COLOR := Color(0.85, 0.25, 0.25)
 const _HEAL_COLOR := Color(0.35, 0.85, 0.45)
