@@ -22,6 +22,8 @@ var _cards: Dictionary = {} # "id#index" -> PanelContainer, for hit feedback (po
 var _display_names: Dictionary = {} # unit_id -> String, for signals that only carry unit_id
 var _current_unit: Dictionary = {}
 var _queue_chips: Dictionary = {} # "id#index" (TD-001) -> PanelContainer, for current-turn highlight
+var _portraits: Dictionary = {} # "id#index" -> TextureRect, for idle bob
+var _idle_time := 0.0
 
 static func _unit_key(id: String, index: int) -> String:
 	return "%s#%d" % [id, index]
@@ -50,6 +52,24 @@ func _ready() -> void:
 	_set_action_buttons_enabled(false)
 
 	_battle.run_battle()
+
+const _IDLE_BOB_AMPLITUDE := 3.0
+const _IDLE_BOB_PERIOD := 1.6 ## seconds per full up/down cycle
+
+## Standing portraits were completely static -- the room read as a paused
+## screenshot between turns. A slow per-unit vertical bob (idle "breathing")
+## fixes that without new art. Runs on the portrait TextureRect, not the
+## card (card.position is owned by the lunge tween -- driving both would
+## fight each other every frame). Per-unit phase offset (hashed from the
+## unit key) keeps the party from bobbing in obviously synced lockstep.
+func _process(delta: float) -> void:
+	_idle_time += delta
+	for key in _portraits:
+		if _hp_bars.has(key) and _hp_bars[key].value <= 0:
+			continue # downed units hold still
+		var portrait: TextureRect = _portraits[key]
+		var phase := float(key.hash() % 1000) / 1000.0 * TAU
+		portrait.position.y = sin(_idle_time * TAU / _IDLE_BOB_PERIOD + phase) * _IDLE_BOB_AMPLITUDE
 
 ## 2026-08-15: bumped from 96x96 -- documented in art-bible.md Section 3-3
 ## "동료 카드 초상화 표시 크기". Companion portraits are being unified to a
@@ -119,6 +139,7 @@ func _build_card(unit: Dictionary, key: String) -> PanelContainer:
 		portrait.size_flags_horizontal = Control.SIZE_SHRINK_CENTER # don't stretch to card width
 		portrait.flip_h = not unit["is_companion"]
 		center.add_child(portrait)
+		_portraits[key] = portrait
 
 	var name_label := Label.new()
 	name_label.text = _display_name(unit)
