@@ -43,6 +43,12 @@ layout_mode = 2
 text = "전투 시작"
 horizontal_alignment = 1
 
+[node name="TurnQueueRow" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 6
+
 [node name="UnitsRow" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
 size_flags_vertical = 3

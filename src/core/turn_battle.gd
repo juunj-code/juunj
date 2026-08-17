@@ -32,6 +32,9 @@ signal unit_sp_changed(unit_id: String, unit_index: int, new_sp: int)
 signal player_input_requested(unit_id: String)
 signal turn_started(unit_id: String)
 signal status_effects_changed(unit_id: String, unit_index: int, effects: Array)
+## Fires whenever the round's turn order is (re)computed -- unit dicts, same
+## shape as party_units/enemy_units entries. UI listens to render a queue.
+signal turn_order_changed(turn_order: Array)
 
 var party_units: Array = []
 var enemy_units: Array = []
@@ -86,6 +89,7 @@ func submit_target(target: Dictionary) -> void:
 
 func run_battle() -> void:
 	var turn_order := _compute_turn_order()
+	turn_order_changed.emit(turn_order)
 	if turn_order.is_empty():
 		push_error("TurnBattle.run_battle() called with no living units -- ending immediately")
 		ended = true
@@ -132,6 +136,7 @@ func run_battle() -> void:
 			_sync(unit)
 
 		turn_order = _compute_turn_order()
+		turn_order_changed.emit(turn_order)
 		_targeted_this_turn = []
 
 func _compute_turn_order() -> Array:

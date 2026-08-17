@@ -7,6 +7,7 @@ extends Control
 @onready var _party_container: HBoxContainer = %PartyContainer
 @onready var _enemy_container: HBoxContainer = %EnemyContainer
 @onready var _turn_label: Label = %TurnLabel
+@onready var _turn_queue_row: HBoxContainer = %TurnQueueRow
 @onready var _basic_attack_button: Button = %BasicAttackButton
 @onready var _skill_button: Button = %SkillButton
 @onready var _target_container: VBoxContainer = %TargetContainer
@@ -20,6 +21,7 @@ var _base_hp: Dictionary = {} # "id#index" -> int
 var _cards: Dictionary = {} # "id#index" -> PanelContainer, for hit feedback (pop/damage number)
 var _display_names: Dictionary = {} # unit_id -> String, for signals that only carry unit_id
 var _current_unit: Dictionary = {}
+var _queue_chips: Dictionary = {} # "id#index" (TD-001) -> PanelContainer, for current-turn highlight
 
 static func _unit_key(id: String, index: int) -> String:
 	return "%s#%d" % [id, index]
@@ -34,6 +36,7 @@ func _ready() -> void:
 	_build_rows(_battle.party_units, _party_container)
 	_build_rows(_battle.enemy_units, _enemy_container)
 
+	_battle.turn_order_changed.connect(_on_turn_order_changed)
 	_battle.turn_started.connect(_on_turn_started)
 	_battle.player_input_requested.connect(_on_player_input_requested)
 	_battle.unit_hp_changed.connect(_on_unit_hp_changed)
@@ -253,8 +256,48 @@ func _on_status_effects_changed(unit_id: String, unit_index: int, effects: Array
 	if _status_rows.has(key):
 		_render_status_row(_status_rows[key], effects)
 
+const _QUEUE_CHIP_SIZE := Vector2(40, 40)
+
+## Small portrait strip previewing the round's spd-sorted turn order (reuses
+## _portrait_path()/_accent_color() -- no new art). Rebuilt every round since
+## TurnBattle recomputes turn_order() each round; keeping it dumb-simple
+## (rebuild vs. diff) avoids tracking staleness for a once-per-round event.
+func _on_turn_order_changed(turn_order: Array) -> void:
+	for child in _turn_queue_row.get_children():
+		child.queue_free()
+	_queue_chips.clear()
+	for unit in turn_order:
+		var chip := PanelContainer.new()
+		var style := StyleBoxFlat.new()
+		style.bg_color = Color(0.14, 0.15, 0.18, 0.78)
+		style.border_color = _accent_color(unit)
+		style.set_border_width_all(2)
+		style.set_corner_radius_all(4)
+		style.set_content_margin_all(2)
+		chip.add_theme_stylebox_override("panel", style)
+		var portrait_path := _portrait_path(unit)
+		if portrait_path != "":
+			var portrait := TextureRect.new()
+			portrait.texture = load(portrait_path)
+			portrait.custom_minimum_size = _QUEUE_CHIP_SIZE
+			portrait.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+			portrait.flip_h = not unit["is_companion"]
+			chip.add_child(portrait)
+		_turn_queue_row.add_child(chip)
+		_queue_chips[_unit_key(unit["id"], unit["index"])] = chip
+	_highlight_current_in_queue("")
+
+## turn_started only carries unit_id (not index -- TD-001's known ceiling), so
+## a duplicate-id pair of enemies would highlight both chips together; rare
+## and harmless enough not to widen the signal contract for.
+func _highlight_current_in_queue(unit_id: String) -> void:
+	for key in _queue_chips:
+		var is_current: bool = unit_id != "" and key.begins_with(unit_id + "#")
+		_queue_chips[key].modulate = Color.WHITE if is_current else Color(1, 1, 1, 0.5)
+
 func _on_turn_started(unit_id: String) -> void:
 	_turn_label.text = "%s의 차례" % _display_names.get(unit_id, unit_id)
+	_highlight_current_in_queue(unit_id)
 	for unit in _battle.party_units:
 		if unit["id"] == unit_id:
 			_current_unit = unit
