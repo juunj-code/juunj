@@ -53,40 +53,39 @@ layout_mode = 2
 custom_minimum_size = Vector2(0, 44)
 text = "다음 방으로"
 
-[node name="PopupPanel" type="PanelContainer" parent="."]
-unique_name_in_owner = true
-visible = false
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -160.0
-offset_top = -150.0
-offset_right = 160.0
-offset_bottom = 150.0
+[node name="PopupCenter" type="CenterContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 
-[node name="VBoxContainer" type="VBoxContainer" parent="PopupPanel"]
+[node name="PopupPanel" type="PanelContainer" parent="PopupCenter"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+custom_minimum_size = Vector2(320, 0)
+
+[node name="VBoxContainer" type="VBoxContainer" parent="PopupCenter/PopupPanel"]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="PopupTitle" type="Label" parent="PopupPanel/VBoxContainer"]
+[node name="PopupTitle" type="Label" parent="PopupCenter/PopupPanel/VBoxContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "제목"
 horizontal_alignment = 1
 autowrap_mode = 2
 
-[node name="PopupBody" type="Label" parent="PopupPanel/VBoxContainer"]
+[node name="PopupBody" type="Label" parent="PopupCenter/PopupPanel/VBoxContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "본문"
 horizontal_alignment = 1
 autowrap_mode = 2
 
-[node name="PopupConfirm" type="Button" parent="PopupPanel/VBoxContainer"]
+[node name="PopupConfirm" type="Button" parent="PopupCenter/PopupPanel/VBoxContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 custom_minimum_size = Vector2(0, 44)

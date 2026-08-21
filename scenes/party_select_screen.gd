@@ -112,8 +112,10 @@ func _refresh_stat_label(id: String) -> void:
 		eff_def, _delta_text(eff_def - data.base_def),
 	]
 
+## delta==0 shows "+0" (not "0") -- a bare "0" read ambiguously as "the
+## stat's value is 0" rather than "no change from base", a self-review finding.
 func _delta_text(delta: int) -> String:
-	return "+%d" % delta if delta > 0 else "%d" % delta
+	return "+%d" % delta if delta >= 0 else "%d" % delta
 
 func _rebuild_picker(picker: OptionButton, id: String, slot: String) -> void:
 	picker.clear()
