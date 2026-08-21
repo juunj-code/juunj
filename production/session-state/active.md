@@ -1,9 +1,17 @@
 # Session State — 바람의 탑 (Wind Tower)
 
-**Last Updated**: 2026-08-17
+**Last Updated**: 2026-08-21
 **Stage**: 코딩 착수 (design/architecture 문서는 참고자료, 게이트 아님 — [[project_juunj-scope-pivot]] 참조). 사용자가 커밋/다음 시스템 선택 등 코딩 단계 전반에 자율 진행 승인 ([[project_juunj-review-autonomy]] 참조, 2026-07-29 확장, 2026-08-17 "나한테 뭐 물어보지말고, 스스로 검증하고" 재확인).
 
 ## Current Task
+
+**보스 전용 BGM 분기 (2026-08-21)** — 새 세션에서 "이어서 작업" 요청, 지난 세션 "다음" 목록(보스 BGM 분기/스킬 아이콘/기타 피드백 공백) 중 크레딧 불필요한 항목부터 자율 진행.
+
+- `AudioManager.bind_battle(battle)`이 `battle.enemy_units`를 직접 순회해 `is_boss` 필드로 `combat`/`combat_boss` BGM을 분기(`TurnBattle._build_enemy_units()`가 이미 `is_boss`를 유닛 딕셔너리에 풀어놔서 `EnemyRegistry` 재조회 불필요 — 오디오.md 원안이 가정한 것보다 단순하게 구현 가능했음, GDD에 구현 노트로 기록). 새 트랙 1개(`AudioSynth.sequence`, 사각파, 기존 `combat`보다 저음역+느린 템포로 긴장감 표현) — 새 에셋 없음.
+- 신규 GUT 테스트 1개(보스 유닛 포함 파티 vs `enemy_boss_01` 바인딩 시 `combat_boss` 확인), 208/208 통과. 커밋 `73c4a70`.
+- **다음**: 스킬 아이콘(크레딧 확인 필요), 그 외 발견되는 게임성/피드백 공백 — 계속 자율 진행.
+
+이전 항목:
 
 **턴 순서 대기열 UI + #21 오디오 구현 (2026-08-17)** — 새 세션에서 "이어서 작업" 요청. 지난 세션 "다음" 항목(턴 순서 대기열 UI/유휴 모션/스킬 아이콘) 중 하나를 자율 선택해 진행, 이어서 사용자가 "더 재미있는 게임, 게임다운 게임" 요청 → 자체 진단으로 우선순위 결정.
 
