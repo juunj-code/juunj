@@ -26,6 +26,11 @@
 
 - `UI-HUD.md` AC4가 "동료 초상화·이름·설명" 팝업 표시를 명시하는데, `dungeon_exploration_screen.gd`의 `_on_companion_unlocked()`가 신호로 받은 `portrait_id`/`color_accent`를 `_portrait_id`/`_color_accent`로 언더스코어 처리해 그냥 버리고 있었음 — 텍스트(제목+설명)만 표시, "새 동료 발견!"이라는 이 게임의 가장 큰 감정적 순간에 이미지가 아예 없던 실제 AC 위반. `_build_popup_portrait()`로 TextureRect를 1회 생성(배틀 카드/런결과 카드와 동일 패턴), `_render_popup()`에서 팝업 타입이 "companion"일 때만 표시(장비/이미해금 팝업은 UI-HUD.md 스펙에 초상화 요구 없음 — 스코프 유지). `PopupPanel` 고정 오프셋을 초상화 들어갈 공간만큼 확대.
 - **검증**: 창모드 스크린샷(`CompanionUnlock.companion_unlocked_this_run` 직접 발신)으로 발견금 테두리 팝업 안에 초상화가 제목/설명 위에 정상 렌더링 확인. 208/208 GUT 그대로. 커밋 `15458be`.
+
+**파티 구성 화면 스탯 미리보기 (같은 세션, 2026-08-22)** — "다음 ㄱㄱ"로 이어서 진행, 같은 GDD-대조 방식(UI Requirements vs 실제 구현)을 다른 화면에도 적용해서 찾음.
+
+- `파티-구성.md` UI Requirement #5(2026-07-26 리비전으로 "장비 교체 시 변화량도 함께 표시"가 명시적으로 강조됨 — "절대 수치만으로는 이 장비가 뭘 바꿨는지 안 보임")인데, `party_select_screen.gd`엔 애초에 ATK/DEF 스탯 표시 자체가 전혀 없었음(장비 픽커만 있고 결과 수치는 안 보임). `Equipment.get_effective_atk/def()`를 그대로 재사용(공식 재구현 없음)해 로스터 행마다 Label 1개 추가, 델타는 `effective - base`.
+- **검증**: 창모드 스크린샷(도른에게 체인 메일 장착)으로 "DEF 25 (+5)" 정상 표시 확인 — AC6c 예시값과 정확히 일치. 208/208 GUT 그대로. 커밋 `ee05f15`.
 - **다음**: 그 외 발견되는 게임성/피드백 공백 — 계속 자율 진행.
 
 이전 항목:
