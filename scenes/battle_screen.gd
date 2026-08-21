@@ -431,8 +431,18 @@ func _show_targets(units: Array) -> void:
 		var button := Button.new()
 		button.text = _display_names.get(unit["id"], unit["id"])
 		button.custom_minimum_size = Vector2(0, 44)
-		button.pressed.connect(_battle.submit_target.bind(unit))
+		button.pressed.connect(_on_target_pressed.bind(unit))
 		_target_container.add_child(button)
+
+## UI-HUD.md Open Question #1 ("전투 애니메이션 중 입력 블록") -- resolved: yes,
+## block. Target buttons used to stay live (and clickable) until the *next*
+## turn's setup cleared them, so a stray double-click here could re-submit a
+## target into a signal nobody's awaiting anymore. Clearing immediately on
+## the first tap closes that window instead of leaving it open until the
+## next _set_action_buttons_enabled() call.
+func _on_target_pressed(unit: Dictionary) -> void:
+	_clear_targets()
+	_battle.submit_target(unit)
 
 func _clear_targets() -> void:
 	for child in _target_container.get_children():

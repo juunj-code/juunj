@@ -159,7 +159,8 @@ empty_dots = SP_MAX - current_sp  # SP_MAX = 5
 ## Open Questions
 
 1. **전투 애니메이션 중 입력 블록** — 피격 SFX/애니메이션 재생 중 다음 입력 블록 여부. `/ux-design`에서 결정.
-   - 담당: ux-designer | 해결 시점: `/ux-design`
+   - **해결 (2026-08-22)**: 예, 막는다. 액션 버튼은 `submit_action()` 직후 바로 비활성화되고 다음 `player_input_requested`(다음 자기 차례)까지 재활성화 안 됨 — 이미 구현돼 있었음. 다만 **타겟 버튼**은 갭이 있었음: 클릭해도 그 자리에서 안 사라지고 다음 턴 셋업 때까지 살아있어 재클릭하면 리스너 없는 신호가 그냥 버려지긴 해도(기능적 버그는 아님) 의도상 "입력 차단"과 안 맞았음 — `_on_target_pressed()`로 클릭 즉시 `_clear_targets()` 하도록 수정.
+   - 담당: ux-designer | 해결 시점: ~~`/ux-design`~~ → 해결됨 (위 참조)
 
 2. **보스방 레이아웃** — 보스 HP 바 위치 및 크기. `/ux-design`에서 확정.
    - 담당: ux-designer | 해결 시점: `/ux-design`
