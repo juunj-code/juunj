@@ -21,6 +21,11 @@
 
 - `런-결과.md` UI Requirement #3이 "이번 런 신규 해금 동료 — 동료 카드 (초상화 + 이름)"를 명시하는데, 실제 `run_result_screen.gd`는 이름만 쉼표로 이어붙인 plain text였음(초상화 없음) — GDD의 AC 범위 축소 노트("실제 렌더링 검증은 #20 소관")에 가려져 있던 진짜 구현 갭. `RunResult.build_display_data()`(데이터 계층, AC로 커버됨)는 안 건드리고 렌더링만 수정 — `CompanionData.portrait_id`/`color_accent` 재사용, 배틀/히든발견 팝업과 동일한 카드 스타일(색상 테두리 PanelContainer + 초상화 + 이름), 새 에셋 없음.
 - **검증**: 창모드 스크린샷(동료 2명 해금 상태로 세팅)으로 색상 테두리 카드 2개가 정상 렌더링 확인. 208/208 GUT 그대로(로직 미변경, 순수 렌더링). 커밋 `008cdae`.
+
+**히든방 발견 팝업에 동료 초상화 추가 (같은 세션, 2026-08-21)** — 같은 GDD-대조 방식으로 이어서 찾음, 이번엔 더 뼈아픈 케이스.
+
+- `UI-HUD.md` AC4가 "동료 초상화·이름·설명" 팝업 표시를 명시하는데, `dungeon_exploration_screen.gd`의 `_on_companion_unlocked()`가 신호로 받은 `portrait_id`/`color_accent`를 `_portrait_id`/`_color_accent`로 언더스코어 처리해 그냥 버리고 있었음 — 텍스트(제목+설명)만 표시, "새 동료 발견!"이라는 이 게임의 가장 큰 감정적 순간에 이미지가 아예 없던 실제 AC 위반. `_build_popup_portrait()`로 TextureRect를 1회 생성(배틀 카드/런결과 카드와 동일 패턴), `_render_popup()`에서 팝업 타입이 "companion"일 때만 표시(장비/이미해금 팝업은 UI-HUD.md 스펙에 초상화 요구 없음 — 스코프 유지). `PopupPanel` 고정 오프셋을 초상화 들어갈 공간만큼 확대.
+- **검증**: 창모드 스크린샷(`CompanionUnlock.companion_unlocked_this_run` 직접 발신)으로 발견금 테두리 팝업 안에 초상화가 제목/설명 위에 정상 렌더링 확인. 208/208 GUT 그대로. 커밋 `15458be`.
 - **다음**: 그 외 발견되는 게임성/피드백 공백 — 계속 자율 진행.
 
 이전 항목:
