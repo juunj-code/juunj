@@ -8,6 +8,7 @@ var _composition: PartyComposition
 var _buttons: Dictionary = {} # companion_id -> Button
 var _weapon_pickers: Dictionary = {} # companion_id -> OptionButton
 var _armor_pickers: Dictionary = {} # companion_id -> OptionButton
+var _stat_labels: Dictionary = {} # companion_id -> Label
 
 func _ready() -> void:
 	_composition = PartyComposition.new(ProgressManager.get_unlocked_companions())
@@ -37,6 +38,10 @@ func _build_roster() -> void:
 		_roster_container.add_child(armor_picker)
 		_weapon_pickers[id] = weapon_picker
 		_armor_pickers[id] = armor_picker
+
+		var stat_label := Label.new()
+		_roster_container.add_child(stat_label)
+		_stat_labels[id] = stat_label
 
 	_refresh_all_pickers()
 
@@ -83,9 +88,32 @@ func _refresh_all_pickers() -> void:
 		var is_selected: bool = _composition.selected.has(id)
 		_weapon_pickers[id].visible = is_selected
 		_armor_pickers[id].visible = is_selected
+		_stat_labels[id].visible = is_selected
 		if is_selected:
 			_rebuild_picker(_weapon_pickers[id], id, "weapon")
 			_rebuild_picker(_armor_pickers[id], id, "armor")
+			_refresh_stat_label(id)
+
+## UI Requirement #5 (2026-07-26 리비전): 장비 포함 effective 절대값뿐 아니라
+## 장비가 주는 변화량("+5" 등)도 노출 -- "절대 수치만으로는 이 장비가 뭘
+## 바꿨는지 안 보임"이라는 #4 리뷰 지적. Equipment.get_effective_atk/def()를
+## 그대로 재사용(공식 재구현 없음), 델타는 base 대비 차이.
+func _refresh_stat_label(id: String) -> void:
+	var data: CompanionData = CompanionRegistry.get_by_id(id)
+	var eq: Dictionary = _composition.equipment[id]
+	var temp_state := CompanionRunState.new()
+	temp_state.companion_id = id
+	temp_state.weapon_slot = eq["weapon_slot"]
+	temp_state.armor_slot = eq["armor_slot"]
+	var eff_atk := Equipment.get_effective_atk(temp_state)
+	var eff_def := Equipment.get_effective_def(temp_state)
+	_stat_labels[id].text = "ATK %d (%s)  DEF %d (%s)" % [
+		eff_atk, _delta_text(eff_atk - data.base_atk),
+		eff_def, _delta_text(eff_def - data.base_def),
+	]
+
+func _delta_text(delta: int) -> String:
+	return "+%d" % delta if delta > 0 else "%d" % delta
 
 func _rebuild_picker(picker: OptionButton, id: String, slot: String) -> void:
 	picker.clear()
