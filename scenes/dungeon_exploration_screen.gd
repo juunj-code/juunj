@@ -12,7 +12,10 @@ extends Control
 @onready var _popup_body: Label = %PopupBody
 @onready var _popup_confirm: Button = %PopupConfirm
 
+const _POPUP_PORTRAIT_SIZE := Vector2(96, 96)
+
 var _popup_queue := HudPopupQueue.new()
+var _popup_portrait: TextureRect
 
 func _ready() -> void:
 	if RunManager.state != "EXPLORING":
@@ -26,6 +29,7 @@ func _ready() -> void:
 	_popup_confirm.pressed.connect(_on_popup_confirm_pressed)
 
 	_style_popup_panel()
+	_build_popup_portrait()
 	_render_floor_room()
 	_render_party_hp()
 	_popup_panel.visible = false
@@ -50,6 +54,20 @@ func _style_popup_panel() -> void:
 	style.shadow_size = 16
 	style.shadow_offset = Vector2(0, 10)
 	_popup_panel.add_theme_stylebox_override("panel", style)
+
+## UI-HUD.md AC4 asks for "동료 초상화·이름·설명" on the discovery popup, but
+## _on_companion_unlocked() used to just discard the portrait_id/color_accent
+## args it received -- title/body text only, no image. Built once here
+## (hidden by default) and toggled per-popup in _render_popup(), same
+## portrait-loading pattern as battle_screen.gd's unit cards.
+func _build_popup_portrait() -> void:
+	_popup_portrait = TextureRect.new()
+	_popup_portrait.custom_minimum_size = _POPUP_PORTRAIT_SIZE
+	_popup_portrait.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+	_popup_portrait.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	_popup_portrait.visible = false
+	%PopupPanel.get_node("VBoxContainer").add_child(_popup_portrait)
+	%PopupPanel.get_node("VBoxContainer").move_child(_popup_portrait, 0)
 
 ## Same bordered-card language as battle_screen.gd's unit cards (reuses
 ## CompanionData.color_accent, no new asset) so the HP readout while exploring
@@ -121,11 +139,12 @@ func _on_advance_pressed() -> void:
 		RunManager.advance_room()
 	_render_party_hp()
 
-func _on_companion_unlocked(_id: String, comp_name: String, description: String, _portrait_id: String, _color_accent: Color) -> void:
+func _on_companion_unlocked(_id: String, comp_name: String, description: String, portrait_id: String, _color_accent: Color) -> void:
 	_popup_queue.enqueue({
 		"type": "companion",
 		"title": "%s가 동료가 되었다!" % comp_name,
 		"body": "%s\n도감에 영구 등록됨" % description,
+		"portrait_id": portrait_id,
 	})
 	_try_show_popup()
 
@@ -149,6 +168,10 @@ func _try_show_popup() -> void:
 func _render_popup() -> void:
 	_popup_title.text = _popup_queue.current["title"]
 	_popup_body.text = _popup_queue.current["body"]
+	var portrait_id: String = _popup_queue.current.get("portrait_id", "")
+	_popup_portrait.visible = portrait_id != ""
+	if portrait_id != "":
+		_popup_portrait.texture = load(portrait_id)
 	_popup_panel.visible = true
 	_advance_button.disabled = true
 
