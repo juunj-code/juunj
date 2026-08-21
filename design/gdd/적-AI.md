@@ -176,4 +176,5 @@ use_skill = (current_sp >= skill.cost_sp)   # bool, 단순 비교
    - 담당: game-designer | 해결 시점: `/prototype roguelite-core` 플레이테스트 후
 
 2. **상태이상 적용 시 AI 타겟 재계산** — MVP는 base_atk/base_hp 고정값 사용. 버프된 동료를 AI가 인식해야 하는지 Vertical Slice에서 결정. (2026-07-26 리비전: `#12 상태이상`은 이미 작성 완료 상태(In Design, 2026-07-24)이므로 "GDD 작성 시"라는 트리거는 이미 충족됨 — 이 질문은 실제로는 여전히 미해결이며, 다음 세션에서 `#12` 내용을 참조해 지금 결정해야 한다.)
-   - 담당: game-designer + systems-designer | 해결 시점: 즉시 (`#12 상태이상` 내용 검토 후) — 더 이상 "작성 시"로 미룰 수 없음
+   - **해결 (2026-08-22, 코드 감사로 확인)**: `#1 턴제 전투`가 `EnemyAI.decide_action()`에 넘기는 `alive_companions`의 `base_atk` 필드는 이미 장비+시너지 반영값(`turn_battle.gd`의 `Equipment.get_effective_atk() + synergy_bonus`)이라, ATK에 영향을 주는 현재 존재하는 모든 메커니즘(장비/시너지)은 보스 AI가 이미 인식하고 있다. 실제 미반영분은 오직 `#12`의 `STAT_MODIFY` 상태이상뿐인데, **현재 데이터(`assets/data/status_effects/`)엔 ATK를 만지는 상태이상이 하나도 없다**(`defense_up`만 DEF+8, 나머지는 DOT/SKIP_TURN) — 즉 지금 이 순간 이 갭이 실제로 발현되는 경로가 존재하지 않는다. 없는 기능을 위해 지금 코드를 손대는 대신(YAGNI), ATK를 바꾸는 상태이상이 실제로 설계되는 시점에 `enemy_ai.gd`의 타겟 비교를 `StatusEffects.get_modified_stats()` 경유로 바꾸기로 결정 — `src/core/enemy_ai.gd`에 그 지점을 가리키는 코드 주석을 남겨둠.
+   - 담당: game-designer + systems-designer | 해결 시점: ~~즉시~~ → ATK 계열 STAT_MODIFY 상태이상이 실제로 추가되는 시점 (해결됨, 위 참조)

@@ -36,6 +36,12 @@ static func _pick_target(is_boss: bool, alive_companions: Array, targeted_this_t
 			best = candidates[i]
 	return best
 
+## ponytail: reads candidate["base_atk"] directly, not StatusEffects.get_modified_stats().
+## Fine today -- turn_battle.gd already bakes equipment+synergy into this field before
+## calling EnemyAI, and no current STAT_MODIFY status effect targets "atk" (only
+## defense_up/def exists, see assets/data/status_effects/). If an ATK-modifying status
+## effect is ever added, switch this comparison to StatusEffects.get_modified_stats(c)["atk"]
+## so boss targeting reacts to it (design decision closed in 적-AI.md Open Question #2).
 static func _is_better_target(candidate: Dictionary, current_best: Dictionary, is_boss: bool) -> bool:
 	if is_boss and candidate["base_atk"] != current_best["base_atk"]:
 		return candidate["base_atk"] > current_best["base_atk"]
