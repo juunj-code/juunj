@@ -41,10 +41,22 @@ project-wide for "회복되거나 강해진다".
 
 ## skill_guard_bash — `skill_guard_bash` (방패 강타, tank/`companion_tank_01`)
 
-Pictogram: a round shield silhouette, viewed face-on, with a small angular
-impact burst overlapping its front edge.
+Pictogram: a classic heater-shield silhouette (flat top edge, curved sides,
+tapering to a single point at the bottom -- like a knight's shield, not a
+circle) with a small angular impact burst overlapping its top edge.
 
 **Color**: flat muted olive-brown `#856D45` (tank's `color_accent`).
+
+**Regenerated 2026-08-21** (self-review caught it): the first version's
+"round shield" wording produced a scalloped coin/medallion with a crack
+line through it -- no shield silhouette at all, unreadable as "shield" even
+at full 2048px resolution, let alone the 24px button render. Explicitly
+naming the heater-shield shape (flat top, tapered point at bottom) and
+ruling out "circle/coin/medallion" fixed it in one regeneration. Lesson: a
+prompt that's merely on-topic ("shield") isn't the same as a prompt that
+locks the actual silhouette -- verify the generated pictogram is
+identifiable at intended render size, not just that it exists and matches
+the palette.
 
 ## skill_heavy_strike — `skill_heavy_strike` (강타, dealer/`companion_dealer_01`)
 
