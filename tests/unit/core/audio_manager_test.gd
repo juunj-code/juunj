@@ -78,6 +78,15 @@ func test_bind_battle_starts_combat_bgm() -> void:
 
 	assert_eq(AudioManager.get_current_bgm_id(), "combat")
 
+func test_bind_battle_with_boss_enemy_starts_boss_bgm() -> void:
+	var battle := TurnBattle.new()
+	add_child_autofree(battle)
+	battle.setup([_make_companion("companion_balance_01")], [_make_enemy("enemy_boss_01")])
+
+	AudioManager.bind_battle(battle)
+
+	assert_eq(AudioManager.get_current_bgm_id(), "combat_boss")
+
 func test_audio_synth_tone_produces_expected_frame_count() -> void:
 	var stream := AudioSynth.tone(440.0, 0.1, "square", 0.5)
 

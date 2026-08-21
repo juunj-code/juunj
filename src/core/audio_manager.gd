@@ -8,10 +8,12 @@ extends Node
 ## sound palette. get_current_bgm_id()/get_last_played_sfx_id() exist purely
 ## so tests can observe playback without a real audio device.
 ##
-## Boss-specific BGM branching (오디오.md's "보스 BGM 판별") is deliberately
-## NOT implemented here -- ponytail: single combat loop for MVP, add a
-## second track + EnemyRegistry.is_boss check on the battle's enemies if
-## boss fights need their own theme later.
+## Boss BGM branching (오디오.md's "보스 BGM 판별"): bind_battle() checks
+## battle.enemy_units for an is_boss unit directly -- TurnBattle already
+## resolves that field into each unit dict (turn_battle.gd _build_enemy_units),
+## so no EnemyRegistry.get_by_id() lookup is needed here (GDD's original
+## reasoning assumed only enemy_id was available at this point; it isn't the
+## case in the actual implementation).
 
 const _SFX_BUS := "SFX"
 const _BGM_BUS := "BGM"
@@ -61,6 +63,9 @@ func _build_bgm_library() -> void:
 	_bgm_streams["combat"] = AudioSynth.sequence(
 		[[220.0, 0.18], [220.0, 0.18], [262.0, 0.18], [220.0, 0.18], [196.0, 0.18], [196.0, 0.18], [220.0, 0.36]],
 		"square", 0.16, true)
+	_bgm_streams["combat_boss"] = AudioSynth.sequence(
+		[[147.0, 0.14], [147.0, 0.14], [175.0, 0.14], [147.0, 0.14], [131.0, 0.14], [110.0, 0.14], [131.0, 0.28]],
+		"square", 0.2, true)
 	_bgm_streams["lobby"] = AudioSynth.sequence(
 		[[196.0, 0.5], [247.0, 0.5], [294.0, 0.5], [247.0, 0.5]],
 		"triangle", 0.16, true)
@@ -125,7 +130,8 @@ func bind_battle(battle: Node) -> void:
 		_last_hp[_unit_key(unit["id"], unit["index"])] = unit["current_hp"]
 	battle.unit_hp_changed.connect(_on_battle_unit_hp_changed)
 	battle.battle_ended.connect(_on_battle_ended)
-	play_bgm("combat")
+	var has_boss: bool = battle.enemy_units.any(func(u): return u.get("is_boss", false))
+	play_bgm("combat_boss" if has_boss else "combat")
 
 func _unit_key(id: String, index: int) -> String:
 	return "%s#%d" % [id, index]
