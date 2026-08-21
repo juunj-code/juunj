@@ -12,3 +12,4 @@ damage_multiplier = 1.0
 heal_multiplier = 0.3
 effect_id = ""
 cost_sp = 2
+icon_id = "res://assets/art/icons/skill_heal_light.png"

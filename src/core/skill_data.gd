@@ -10,3 +10,4 @@ extends Resource
 @export var heal_multiplier: float = 0.0 ## valid range 0.0~1.0, used when target_type in self/ally/all_allies
 @export var effect_id: String = "" ## #12 상태이상 reference, "" = none
 @export var cost_sp: int = 0 ## valid range 0~5
+@export var icon_id: String = "" ## texture path, "" = no icon (e.g. enemy-only skills)

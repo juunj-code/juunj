@@ -12,3 +12,4 @@ damage_multiplier = 2.0
 heal_multiplier = 0.0
 effect_id = ""
 cost_sp = 3
+icon_id = "res://assets/art/icons/skill_heavy_strike.png"

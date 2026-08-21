@@ -49,6 +49,11 @@ func _ready() -> void:
 
 	_basic_attack_button.pressed.connect(_on_basic_attack_pressed)
 	_skill_button.pressed.connect(_on_skill_pressed)
+	# icon_id textures are 2048x2048 (Higgsfield's default output res) -- Button
+	# has no auto-fit, so without this the icon renders native-size and
+	# overflows the whole screen. 24px matches status_icon's existing render
+	# convention (art-bible Section 5-1).
+	_skill_button.add_theme_constant_override("icon_max_width", 24)
 	_set_action_buttons_enabled(false)
 
 	_battle.run_battle()
@@ -393,9 +398,11 @@ func _set_action_buttons_enabled(enabled: bool) -> void:
 	if skill != null:
 		_skill_button.text = "%s (SP %d)" % [skill.name, skill.cost_sp]
 		_skill_button.tooltip_text = skill.description
+		_skill_button.icon = load(skill.icon_id) if skill.icon_id != "" else null
 	else:
 		_skill_button.text = "스킬"
 		_skill_button.tooltip_text = ""
+		_skill_button.icon = null
 	_skill_button.disabled = not enabled or skill == null \
 		or HudRules.is_skill_disabled(_current_unit.get("current_sp", 0), skill.cost_sp)
 	_clear_targets()

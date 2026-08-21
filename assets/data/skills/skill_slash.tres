@@ -12,3 +12,4 @@ damage_multiplier = 1.5
 heal_multiplier = 0.0
 effect_id = ""
 cost_sp = 2
+icon_id = "res://assets/art/icons/skill_slash.png"
