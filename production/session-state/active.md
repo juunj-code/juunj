@@ -9,7 +9,14 @@
 
 - `AudioManager.bind_battle(battle)`이 `battle.enemy_units`를 직접 순회해 `is_boss` 필드로 `combat`/`combat_boss` BGM을 분기(`TurnBattle._build_enemy_units()`가 이미 `is_boss`를 유닛 딕셔너리에 풀어놔서 `EnemyRegistry` 재조회 불필요 — 오디오.md 원안이 가정한 것보다 단순하게 구현 가능했음, GDD에 구현 노트로 기록). 새 트랙 1개(`AudioSynth.sequence`, 사각파, 기존 `combat`보다 저음역+느린 템포로 긴장감 표현) — 새 에셋 없음.
 - 신규 GUT 테스트 1개(보스 유닛 포함 파티 vs `enemy_boss_01` 바인딩 시 `combat_boss` 확인), 208/208 통과. 커밋 `73c4a70`.
-- **다음**: 스킬 아이콘(크레딧 확인 필요), 그 외 발견되는 게임성/피드백 공백 — 계속 자율 진행.
+
+**스킬 아이콘 (같은 세션, 2026-08-21)** — 크레딧 지출 확인(AskUserQuestion) 후 승인받아 진행.
+
+- Higgsfield `nano_banana_pro`로 4개 컴패니언 스킬(방패 강타/강타/가벼운 치유/베기) 아이콘 생성 — 상태이상 아이콘과 동일한 flat pictogram + 2px 테두리 규칙(art-bible Section 5), 색상은 힐만 기존 회복-초록 채널 재사용하고 나머지 3개는 각 컴패니언의 `color_accent`. `SkillData.icon_id` 필드 신규, `battle_screen.gd`의 `_skill_button.icon`에 배선.
+- **버그 잡음**: 원본이 2048×2048이라 `Button.icon`에 자동 축소가 없어 처음 배선 시 아이콘이 화면 전체를 뒤덮음(창모드 스크린샷으로 발견) — `icon_max_width=24`(기존 상태이상 아이콘/로스터 아이콘과 동일 컨벤션)로 해결, 원본 리사이즈는 안 함.
+- **검증**: 신규 창모드 검증 스크립트(`prototypes/skill-icon-verify/`, RunManager 상태를 직접 세팅 + BattleScreen 수동 인스턴스화 — `RunManager.start_run()`/`enter_combat()`의 SceneManager 트랜지션 락과 얽혀 두 번 실패한 뒤 우회) — 스크린샷으로 "강타 (SP 3)" 옆 아이콘이 정상 크기로 렌더링 확인, 검증 후 삭제(기존 관례와 동일). 208/208 GUT 통과(로직 변경 없음, 순수 시각).
+- 커밋 `13b34ec`.
+- **다음**: 그 외 발견되는 게임성/피드백 공백 — 계속 자율 진행.
 
 이전 항목:
 
