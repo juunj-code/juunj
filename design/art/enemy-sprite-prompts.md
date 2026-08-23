@@ -9,16 +9,25 @@ Spec sources: `design/art/art-bible.md` Section 3-1 (실루엣 철학, 크기별
 and Section 4-2's 2026-08-02 addendum (적 스프라이트 기본 색 = 냉석/안개 청회색,
 위협홍은 눈/균열 등 포인트 액센트로만).
 
+**2026-08-23 art-direction regeneration**: same pivot as
+`design/art/portrait-prompts.md` — enemies regenerated alongside companions so
+the two don't visually diverge (flat cel-shaded monsters next to 3D-rendered
+heroes would look worse than either alone). Silhouette/color rules unchanged.
+
 Shared style line (repeat in every prompt for consistency across the set):
-> Flat 16-bit pixel-art style square game monster icon for a 2D indie JRPG
-> called "Wind Tower" (바람의탑), rendered as clean flat cel-shaded
-> illustration with bold dark outlines — a stylized game monster sprite, not a
-> photo. Full body, centered, filling most of the square frame. Base body
-> color is cool desaturated blue-gray (around #2A3040-#4A5568 range), NOT red
-> — red is used only as a small glowing accent (eyes, cracks, markings), never
-> as the main body color. No text, no logos, no UI frame baked into the
-> image, no watermark. Flat dark blue-gray stone background `#2A3040`, no
-> scenery detail.
+> 3D-rendered stylized monster character for a 2D indie JRPG called "Wind
+> Tower" (바람의탑) — mobile-game-quality stylized 3D render look (think
+> Genshin Impact / Clash Royale-adjacent monster art), NOT flat vector
+> illustration, NOT flat cel-shading, NOT pixel art, NOT a photo. Soft
+> directional studio lighting creates real volumetric shading and ambient
+> occlusion. Materials read distinctly: rough cracked stone texture, worn
+> cloth, glowing cracks with real light falloff. Minimal to no black outline —
+> silhouette and form are defined by light and shadow, not linework. Full
+> body, centered, filling most of the square frame. Base body color is cool
+> desaturated blue-gray (around #2A3040-#4A5568 range), NOT red — red is used
+> only as a small glowing accent (eyes, cracks, markings), never as the main
+> body color. No text, no logos, no UI frame baked into the image, no
+> watermark. Flat dark blue-gray stone background `#2A3040`, no scenery detail.
 
 ## enemy_speed_01 — 고블린 정찰병 (Goblin Scout, 소형/속도형)
 

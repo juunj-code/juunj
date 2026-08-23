@@ -13,13 +13,25 @@ absolutely no border/frame/vignette" emphasis for the dealer retry (first retry
 still produced a frame; second attempt succeeded). `companion_balance_01` and
 `companion_support_01` already matched spec and were left untouched.
 
+**2026-08-23 art-direction regeneration**: user feedback after playtesting —
+characters read as flat cel-shaded cutouts, wanted them pushed toward a
+3D-rendered look instead. See `design/art/art-bible.md` Section 6 for the
+rationale. All 4 regenerated with the new shared style line below (silhouette/
+color rules unchanged — only shading/material treatment changed).
+
 Shared style line (repeat in every prompt for consistency across the set):
-> Square game UI portrait icon for a 2D indie JRPG called "Wind Tower" (바람의탑),
-> retro 16-bit-inspired but rendered as clean flat cel-shaded illustration with
-> bold dark outlines — a stylized game character icon, not a photo. Front-facing
-> bust portrait, chest-up, centered, symmetrical. No text, no logos, no UI
-> frame/border baked into the image, no watermark. Character fills most of the
-> square frame.
+> 3D-rendered stylized character bust portrait for a 2D indie JRPG called
+> "Wind Tower" (바람의탑) — mobile-game-quality stylized 3D render look (think
+> Genshin Impact / Clash Royale-adjacent character art), NOT flat vector
+> illustration, NOT flat cel-shading, NOT pixel art, NOT a photo. Soft
+> directional studio lighting creates real volumetric shading and ambient
+> occlusion across hair, skin, and armor. Materials read distinctly: specular
+> highlights on metal/steel, soft sheen on leather, subtle woven texture on
+> cloth. Minimal to no black outline — silhouette and form are defined by
+> light and shadow, not linework. Semi-realistic proportions (not chibi/SD).
+> Front-facing bust portrait, chest-up, centered, symmetrical. No text, no
+> logos, no UI frame/border baked into the image, no watermark. Character
+> fills most of the square frame.
 
 Colors are locked to `design/art/art-bible.md`'s 동료 컬러 레지스터 (2026-07-31).
 Background for all four: flat cool dark blue-gray stone `#2A3040`, no scenery detail.
