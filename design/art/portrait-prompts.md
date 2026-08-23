@@ -70,3 +70,20 @@ detail near her shoulder is optional, don't overdo it). Soft, rounded
 silhouette.
 
 **Accent color**: `#D1B857` (warm gold — robe trim, hair accent).
+
+## companion_mage_01 — 마도사 셀린 (마법사/원거리, 2026-08-24 신규)
+
+Mysterious female arcane mage/scholar found at the center of a burned-out
+magic circle in the tower's old library. Calm, distant, faintly melancholic
+expression — she's forgotten what she was researching, but the magic still
+lingers at her fingertips. Dark hooded scholar robes with faint glowing rune
+trim, no visible weapon (caster).
+
+**Accent color**: `#B238B2` (vivid violet-magenta — robe trim/rune glow/hair
+accent). First companion in the 마법사/원거리 archetype slot (art-bible 4-3's
+H:280°–320° range) — the other 4 companions cover 전사/탱커/도적/힐러, leaving
+this archetype the only genuinely empty slot in the registry, hence the pick.
+`class_type = "dealer"` (mechanically a second ranged/magic dealer, distinct
+flavor from 리사's melee-rogue burst) — reuses the existing #8 시너지 pair
+table with zero table changes, since a 5th `class_type` value would have
+required extending 시너지.md's Open Question 2 scope.

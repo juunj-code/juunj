@@ -63,3 +63,27 @@ gap/opening (e.g. a ring-shaped torso, or open space between wind-formed
 limbs and the core body) that shows the background through the character.
 Glowing red accent: a single core/eye at the center and thin cracks along the
 wind-formed limbs only.
+
+## enemy_wisp_01 — 바람 정령 (Wind Wisp, 2026-08-24 신규, 소형/속도형)
+
+Small, fast wind spirit — a compact swirling wisp-creature with at least 2
+sharp, jagged wind-tendril protrusions curling off its body (like small
+tornado tendrils), crouched and alert as if about to dart away. Glowing red
+accent: a pair of small glowing eyes only.
+
+## enemy_boss_02 — 서리 파수꾼 (Frost Warden, 2026-08-24 신규, 보스)
+
+Towering frost/ice guardian golem, slow and immovable, encased in thick
+frozen armor plating — contrast to 바람의 수호자's fast swirling form with a
+bulkier, tankier silhouette (base_hp 180 vs 150, base_def 10 vs 8, base_spd 4
+vs 6). Silhouette MUST include at least one clear internal negative space — a
+hollow gap in the icy chest/torso (e.g. a hollow frozen ribcage or gap
+between frost-armor plates). Glowing accent: pale icy-blue cracks and a
+single glowing core (not red — cool blue matches the frost theme instead of
+the wind guardian's red).
+
+**Boss selection**: `dungeon_generator.gd`'s `_boss_enemy_id()` now picks
+randomly among every `is_boss=true` enemy (previously just returned the
+first found, which would have silently ignored this boss forever) — floor
+3's boss room can hand the player either boss. Both are independently
+verified solo-winnable with optimal play (`boss_balance_test.gd`).
