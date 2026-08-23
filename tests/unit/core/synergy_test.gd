@@ -3,7 +3,8 @@ extends GutTest
 ## AC4 (solo/empty) covered inline below. AC8 (no recalculation mid-battle)
 ## and AC12 (integration -- #1 actually calls this once per unit) are
 ## TurnBattle's behavior, not Synergy's own state (Synergy is stateless by
-## design) -- see turn_battle_test.gd.
+## design) -- see turn_battle_test.gd (both now actually present there as of
+## 2026-08-23; AC8 was previously just an unbacked claim in this comment).
 ##
 ## AC5/AC6 (same-class_type-duplicate scenarios) don't need synthetic
 ## companion_ids: MVP's real registry has exactly one companion per

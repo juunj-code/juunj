@@ -60,6 +60,25 @@ func test_setup_wires_synergy_bonus_into_companion_base_atk() -> void: # 시너�
 	assert_eq(dealer_unit["base_atk"], 28 + 11) # uncapped
 	assert_eq(tank_unit["base_atk"], 12 + 6) # capped
 
+## 시너지.md AC8. synergy_test.gd's header claims this is covered here, but
+## no such test previously existed (2026-08-23 audit) -- the claim happened
+## to be true by construction (synergy_bonus is baked into base_atk once at
+## setup() and nothing ever recomputes it), but the guarantee had no
+## regression test, so a future refactor could silently break it unnoticed.
+func test_synergy_bonus_unchanged_after_party_member_incapacitated() -> void:
+	var battle := _make_battle()
+	battle.setup(
+		[_make_companion("companion_tank_01"), _make_companion("companion_dealer_01"), _make_companion("companion_support_01")],
+		[_make_enemy("enemy_tank_01")]
+	)
+	var dealer_unit: Dictionary = battle.party_units.filter(func(u): return u["id"] == "companion_dealer_01")[0]
+	var tank_unit: Dictionary = battle.party_units.filter(func(u): return u["id"] == "companion_tank_01")[0]
+	var base_atk_before_ko: int = dealer_unit["base_atk"]
+
+	tank_unit["current_hp"] = 0 # simulate tank being incapacitated mid-battle
+
+	assert_eq(dealer_unit["base_atk"], base_atk_before_ko)
+
 func test_player_basic_attack_damages_enemy_and_enemy_counters() -> void:
 	# companion_balance_01 (atk18/def12/spd6) acts before enemy_tank_01 (atk10/def12/spd2)
 	var battle := _make_battle()
