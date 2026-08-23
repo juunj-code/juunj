@@ -97,10 +97,18 @@ func enter_combat(enemy_ids: Array) -> void:
 ## previously had no caller anywhere on this path (only #9's already-unlocked
 ## hidden-room-revisit called it) -- the game's stated main gear-acquisition
 ## loop never actually fired.
+##
+## 상태이상.md AC9 -- also found via the same audit method (2026-08-23):
+## CompanionRunState persists across every battle in a run (unlike
+## EnemyRunState, recreated fresh per enter_combat()), and nothing ever
+## cleared active_effects here -- a defense_up/poison still active when a
+## fight ends in victory silently carried into the next combat room.
 func exit_combat_victory() -> void:
 	_current_enemies.clear()
 	if current_room_data != null and current_room_data.get("type", "") == "combat":
 		Equipment.roll_and_apply_drop(self, _run_rng)
+	for companion in _party:
+		companion.active_effects = []
 	_set_state("EXPLORING")
 	combat_exited.emit(true)
 	_go_to_scene("S-04", "FADE")

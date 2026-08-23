@@ -97,6 +97,15 @@ func test_exit_combat_victory_in_combat_room_rolls_drop_on_hit() -> void: # 장�
 
 	assert_eq(RunManager.inventory.size(), 1)
 
+func test_exit_combat_victory_clears_companion_active_effects() -> void: # 상태이상.md AC9
+	RunManager.start_run(_party_config())
+	RunManager.enter_combat(["enemy_speed_01"])
+	RunManager.party[0].active_effects = [StatusEffectRegistry.get_by_id("poison").duplicate()]
+
+	RunManager.exit_combat_victory()
+
+	assert_eq(RunManager.party[0].active_effects, [])
+
 func test_exit_combat_victory_in_boss_room_never_rolls_drop() -> void: # 장비.md AC6
 	RunManager.start_run(_party_config())
 	RunManager.enter_combat(["enemy_boss_01"])
