@@ -98,3 +98,30 @@ func test_audio_synth_sequence_loop_sets_loop_mode() -> void:
 
 	assert_eq(stream.loop_mode, AudioStreamWAV.LOOP_FORWARD)
 	assert_eq(stream.loop_end, int(stream.data.size() / 2))
+
+## mix_tracks() -- BGM richness fix, 2026-08-23 (see audio_synth.gd/audio_manager.gd)
+func test_audio_synth_mix_tracks_frame_count_matches_longest_track() -> void:
+	var stream := AudioSynth.mix_tracks([
+		{"notes": [[220.0, 0.05]], "waveform": "square", "volume": 0.3},
+		{"notes": [[220.0, 0.1]], "waveform": "triangle", "volume": 0.3},
+	])
+	assert_eq(stream.data.size(), int(0.1 * 44100) * 2)
+
+func test_audio_synth_mix_tracks_loop_sets_loop_mode() -> void:
+	var stream := AudioSynth.mix_tracks([{"notes": [[220.0, 0.05]], "waveform": "triangle", "volume": 0.3}], true)
+	assert_eq(stream.loop_mode, AudioStreamWAV.LOOP_FORWARD)
+	assert_eq(stream.loop_end, int(stream.data.size() / 2))
+
+## Two identical (same freq/waveform/volume) tracks are exactly in-phase, so
+## mixing must sum them, not average/pick-one -- a real regression this
+## guards against: an early draft of mix_tracks that just took voice_buffers[0].
+func test_audio_synth_mix_tracks_sums_in_phase_voices() -> void:
+	var single := AudioSynth.mix_tracks([{"notes": [[440.0, 0.1]], "waveform": "square", "volume": 0.3}])
+	var doubled := AudioSynth.mix_tracks([
+		{"notes": [[440.0, 0.1]], "waveform": "square", "volume": 0.3},
+		{"notes": [[440.0, 0.1]], "waveform": "square", "volume": 0.3},
+	])
+	var frame := 2200 # well past the ~264-frame fade-in/out window
+	var single_sample := single.data.decode_s16(frame * 2)
+	var doubled_sample := doubled.data.decode_s16(frame * 2)
+	assert_almost_eq(doubled_sample, single_sample * 2, 1)

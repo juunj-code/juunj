@@ -56,19 +56,34 @@ func _build_sfx_library() -> void:
 	_sfx_streams["defeat"] = AudioSynth.sequence([[392.0, 0.14], [330.0, 0.14], [262.0, 0.22]], "square", 0.3)
 	_sfx_streams["discovery"] = AudioSynth.sequence([[784.0, 0.08], [988.0, 0.08], [1175.0, 0.16]], "sine", 0.3)
 
+## 2026-08-23 (user feedback: BGM too flat/monotone) -- each track now mixes
+## a bass voice under the melody (single-channel chiptune reads thin), and
+## combat/combat_boss (previously ~1.1-1.3s loops, by far the shortest/most
+## repetitive) get an answering second phrase so the loop period roughly
+## doubles. exploration/lobby melodies unchanged -- only combat's were short
+## enough to be the likely main offender in a multi-minute fight.
 func _build_bgm_library() -> void:
-	_bgm_streams["exploration"] = AudioSynth.sequence(
-		[[220.0, 0.4], [262.0, 0.4], [330.0, 0.4], [262.0, 0.4], [196.0, 0.4], [262.0, 0.4], [220.0, 0.8]],
-		"triangle", 0.18, true)
-	_bgm_streams["combat"] = AudioSynth.sequence(
-		[[220.0, 0.18], [220.0, 0.18], [262.0, 0.18], [220.0, 0.18], [196.0, 0.18], [196.0, 0.18], [220.0, 0.36]],
-		"square", 0.16, true)
-	_bgm_streams["combat_boss"] = AudioSynth.sequence(
-		[[147.0, 0.14], [147.0, 0.14], [175.0, 0.14], [147.0, 0.14], [131.0, 0.14], [110.0, 0.14], [131.0, 0.28]],
-		"square", 0.2, true)
-	_bgm_streams["lobby"] = AudioSynth.sequence(
-		[[196.0, 0.5], [247.0, 0.5], [294.0, 0.5], [247.0, 0.5]],
-		"triangle", 0.16, true)
+	_bgm_streams["exploration"] = AudioSynth.mix_tracks([
+		{"notes": [[220.0, 0.4], [262.0, 0.4], [330.0, 0.4], [262.0, 0.4], [196.0, 0.4], [262.0, 0.4], [220.0, 0.8]],
+			"waveform": "triangle", "volume": 0.18},
+		{"notes": [[110.0, 1.6], [98.0, 1.6]], "waveform": "triangle", "volume": 0.1},
+	], true)
+	_bgm_streams["combat"] = AudioSynth.mix_tracks([
+		{"notes": [[220.0, 0.18], [220.0, 0.18], [262.0, 0.18], [220.0, 0.18], [196.0, 0.18], [196.0, 0.18], [220.0, 0.36],
+				[262.0, 0.18], [294.0, 0.18], [262.0, 0.18], [220.0, 0.18], [196.0, 0.18], [220.0, 0.18], [262.0, 0.36]],
+			"waveform": "square", "volume": 0.16},
+		{"notes": [[110.0, 0.63], [98.0, 0.63], [110.0, 0.72], [82.0, 0.72]], "waveform": "triangle", "volume": 0.09},
+	], true)
+	_bgm_streams["combat_boss"] = AudioSynth.mix_tracks([
+		{"notes": [[147.0, 0.14], [147.0, 0.14], [175.0, 0.14], [147.0, 0.14], [131.0, 0.14], [110.0, 0.14], [131.0, 0.28],
+				[131.0, 0.14], [131.0, 0.14], [110.0, 0.14], [131.0, 0.14], [98.0, 0.14], [87.0, 0.14], [98.0, 0.28]],
+			"waveform": "square", "volume": 0.2},
+		{"notes": [[73.5, 1.12], [65.4, 1.12]], "waveform": "triangle", "volume": 0.12},
+	], true)
+	_bgm_streams["lobby"] = AudioSynth.mix_tracks([
+		{"notes": [[196.0, 0.5], [247.0, 0.5], [294.0, 0.5], [247.0, 0.5]], "waveform": "triangle", "volume": 0.16},
+		{"notes": [[98.0, 1.0], [131.0, 1.0]], "waveform": "triangle", "volume": 0.09},
+	], true)
 
 func play_sfx(id: String) -> void:
 	if not _sfx_streams.has(id):
