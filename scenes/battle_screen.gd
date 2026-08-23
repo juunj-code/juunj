@@ -156,7 +156,9 @@ func _build_card(unit: Dictionary, key: String) -> PanelContainer:
 	hp_bar.max_value = unit["base_hp"]
 	hp_bar.value = unit["current_hp"]
 	hp_bar.show_percentage = false
-	hp_bar.custom_minimum_size = Vector2(0, 10)
+	# UI-HUD.md Tuning Knobs: "보스 HP 바 크기 -- 대형 (일반 2배)" -- unwired
+	# until now (found via GDD-vs-implementation audit, 2026-08-23).
+	hp_bar.custom_minimum_size = Vector2(0, 20 if unit.get("is_boss", false) else 10)
 	vbox.add_child(hp_bar)
 	_hp_bars[key] = hp_bar
 
