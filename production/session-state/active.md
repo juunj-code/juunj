@@ -91,6 +91,14 @@
 - **검증**: 208/208 GUT 그대로(순수 데이터+렌더링, 로직 미변경). 창모드 스크린샷 2장(`prototypes/narrative-verify/`, 검증 후 삭제) — 파티 선택 화면 4개 로스터 행 전부 배경 서사 정상 렌더링, 해금 팝업에 "내 뒤에 있으면 다치지 않아." 인용구가 초상화/제목 아래 정상 표시 확인.
 - **다음**: 2번(#23 설정 화면)으로 진행.
 
+**#23 설정 (같은 세션, 2026-08-23)** — 2번 항목, "1부터 5까지" 순서대로 이어서 진행.
+
+- 새 S-07 `SettingsScreen`(메인메뉴 "설정" 버튼으로 진입) — SFX/BGM 음량 슬라이더 2개. `SceneManager.SCENE_PATHS`/`SceneTransitionRules.TRANSITION_GRAPH`에 S-07 등록(S-02 양방향).
+- `AudioManager`에 `set_sfx_volume/set_bgm_volume(linear 0..1)` 신규(기존 `_apply_equal_power_gain`과 동일한 `maxf(0.0001)` 바닥 재사용, linear_to_db(0) 회피). 새 `SettingsManager` 오토로드(AudioManager 다음 순서로 등록 — 부팅 시 버스가 먼저 만들어져 있어야 함)가 값 보관+`SaveManager.save_section("settings", ...)`으로 영속화, `_load_from_save()`가 `ProgressManager._load_from_save()`와 같은 패턴으로 테스트에서 직접 호출 가능하게 분리.
+- **언어 설정은 스코프 제외**(ponytail) — 게임 전체가 한국어 단일 콘텐츠라 i18n 인프라가 아예 없음, 존재하지 않는 기능을 흉내내는 스위치가 되므로 실제 다국어 콘텐츠가 생기기 전까진 안 만듦.
+- 신규 GUT 테스트 8개(클램핑/영속화/reload/시그널) + 씬 그래프 엣지 테스트 1개, 216/216 통과. 창모드 스크린샷 3장(`prototypes/settings-verify/`, 검증 후 삭제) — 메인메뉴에 "설정" 버튼 정상 노출, 슬라이더 조작(0.3/0.6) 후 값이 `SettingsManager`/`SaveManager` 양쪽에 정확히 반영되는 것 확인. 커밋 `3aeebdc`.
+- **다음**: 3번(#5 클라우드 세이브)으로 진행.
+
 이전 항목:
 
 **턴 순서 대기열 UI + #21 오디오 구현 (2026-08-17)** — 새 세션에서 "이어서 작업" 요청. 지난 세션 "다음" 항목(턴 순서 대기열 UI/유휴 모션/스킬 아이콘) 중 하나를 자율 선택해 진행, 이어서 사용자가 "더 재미있는 게임, 게임다운 게임" 요청 → 자체 진단으로 우선순위 결정.
