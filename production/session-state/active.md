@@ -99,6 +99,14 @@
 - 신규 GUT 테스트 8개(클램핑/영속화/reload/시그널) + 씬 그래프 엣지 테스트 1개, 216/216 통과. 창모드 스크린샷 3장(`prototypes/settings-verify/`, 검증 후 삭제) — 메인메뉴에 "설정" 버튼 정상 노출, 슬라이더 조작(0.3/0.6) 후 값이 `SettingsManager`/`SaveManager` 양쪽에 정확히 반영되는 것 확인. 커밋 `3aeebdc`.
 - **다음**: 3번(#5 클라우드 세이브)으로 진행.
 
+**#5 클라우드 세이브 (같은 세션, 2026-08-23)** — 3번 항목. 실제 Firebase 연동은 프로젝트 생성/API 키 발급 등 사용자 계정 작업이 선행돼야 해서 AskUserQuestion으로 방향 확인 → **"인터페이스만 스텁으로 준비"** 선택.
+
+- `CloudSaveProvider`(class_name, `RefCounted`) 신규 — `save_async(sections)`/`load_async()` 가상 메서드, 기본 구현은 각각 `false`/`null` 반환. `NullCloudSaveProvider`(별도 파일 — Godot는 파일당 `class_name` 1개라 분리)가 현재 유일한 구현체.
+- `SaveManager.cloud_provider` 필드 신규(기본값 `NullCloudSaveProvider.new()`), `save()`가 로컬 저장 성공 직후 `cloud_provider.save_async(_sections)`를 fire-and-forget으로 호출(결과값 안 봄 — 로컬 저장 성패와 완전히 독립, 클라우드는 항상 로컬의 보조 백업이라는 원칙). 실제 Firebase 자격증명이 생기면 서브클래스 하나 추가 + `cloud_provider`에 주입만 하면 연결됨.
+- ADR 없이 진행(코딩 우선 관행 유지, 스텁이라 아키텍처 결정이랄 게 사실상 없음). systems-index.md는 안 건드림(2026-07-22 이후 코딩 단계에서 갱신 안 하는 기존 관행 유지).
+- 신규 GUT 테스트 4개(훅 호출 확인용 Fake provider, 기본값이 NullCloudSaveProvider인지, null provider의 save/load가 진짜 no-op인지), 220/220 통과. UI 없는 순수 인터페이스라 창모드 시각 검증 불필요. 커밋 `3429eed`.
+- **다음**: 4번(실측 필요 열린 질문 — 전투 페이싱/SP 밸런스)으로 진행.
+
 이전 항목:
 
 **턴 순서 대기열 UI + #21 오디오 구현 (2026-08-17)** — 새 세션에서 "이어서 작업" 요청. 지난 세션 "다음" 항목(턴 순서 대기열 UI/유휴 모션/스킬 아이콘) 중 하나를 자율 선택해 진행, 이어서 사용자가 "더 재미있는 게임, 게임다운 게임" 요청 → 자체 진단으로 우선순위 결정.
