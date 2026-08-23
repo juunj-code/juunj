@@ -92,8 +92,15 @@ func enter_combat(enemy_ids: Array) -> void:
 	combat_entered.emit(_current_enemies)
 	_go_to_scene("S-05", "FADE")
 
+## 장비.md AC1/AC6 -- combat-room clear rolls a drop, boss rooms don't. Found
+## via GDD-vs-implementation audit (2026-08-23): Equipment.roll_and_apply_drop()
+## previously had no caller anywhere on this path (only #9's already-unlocked
+## hidden-room-revisit called it) -- the game's stated main gear-acquisition
+## loop never actually fired.
 func exit_combat_victory() -> void:
 	_current_enemies.clear()
+	if current_room_data != null and current_room_data.get("type", "") == "combat":
+		Equipment.roll_and_apply_drop(self, _run_rng)
 	_set_state("EXPLORING")
 	combat_exited.emit(true)
 	_go_to_scene("S-04", "FADE")

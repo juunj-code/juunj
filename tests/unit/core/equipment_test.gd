@@ -1,8 +1,9 @@
 extends GutTest
 ## Covers design/gdd/장비.md Acceptance Criteria 1-5, 8. AC6/7/7b are about
-## *who calls* the drop function (#2/#9's ownership, not built yet) --
-## Equipment itself doesn't know about room types, so there's nothing of
-## this system's own to assert for those.
+## *who calls* the drop function (#2/#9's ownership) -- Equipment itself
+## doesn't know about room types, so there's nothing of this system's own to
+## assert for those. See run_manager_test.gd (AC1/AC6, combat/boss room
+## gating) and hidden_trigger_test.gd (AC7b, already-unlocked revisit) instead.
 
 func before_each() -> void:
 	RunManager.reset()

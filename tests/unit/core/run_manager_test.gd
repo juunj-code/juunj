@@ -71,6 +71,42 @@ func test_exit_combat_victory_clears_enemies_and_returns_to_exploring() -> void:
 	assert_eq(RunManager.current_enemies.size(), 0)
 	assert_eq(RunManager.state, "EXPLORING")
 
+## 장비.md AC1/AC6 (2026-08-23, GDD-vs-구현 감사로 발견) -- exit_combat_victory()
+## is the only real caller of the combat-room drop roll; #4's own
+## equipment_test.gd only covers Equipment.roll_and_apply_drop() in isolation,
+## not who calls it for the primary (non-hidden-room) path.
+func _seeded_rng_for_first_roll(want_hit: bool) -> RandomNumberGenerator:
+	var s := 1
+	while true:
+		var probe := RandomNumberGenerator.new()
+		probe.seed = s
+		if (probe.randf() < Equipment.DROP_CHANCE) == want_hit:
+			var fresh := RandomNumberGenerator.new()
+			fresh.seed = s
+			return fresh
+		s += 1
+	return null # unreachable
+
+func test_exit_combat_victory_in_combat_room_rolls_drop_on_hit() -> void: # 장비.md AC1
+	RunManager.start_run(_party_config())
+	RunManager.enter_combat(["enemy_speed_01"])
+	RunManager.current_room_data = {"type": "combat", "enemy_ids": [], "companion_id": ""}
+	RunManager._run_rng = _seeded_rng_for_first_roll(true)
+
+	RunManager.exit_combat_victory()
+
+	assert_eq(RunManager.inventory.size(), 1)
+
+func test_exit_combat_victory_in_boss_room_never_rolls_drop() -> void: # 장비.md AC6
+	RunManager.start_run(_party_config())
+	RunManager.enter_combat(["enemy_boss_01"])
+	RunManager.current_room_data = {"type": "boss", "enemy_ids": [], "companion_id": ""}
+	RunManager._run_rng = _seeded_rng_for_first_roll(true) # would hit if boss rooms rolled
+
+	RunManager.exit_combat_victory()
+
+	assert_eq(RunManager.inventory.size(), 0)
+
 func test_end_run_defeat_sets_state_and_success_flag() -> void: # AC5
 	# Arrange
 	RunManager.start_run(_party_config())
