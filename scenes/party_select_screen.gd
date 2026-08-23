@@ -32,6 +32,13 @@ func _build_roster() -> void:
 		_roster_container.add_child(button)
 		_buttons[id] = button
 
+		if data.backstory != "":
+			var backstory_label := Label.new()
+			backstory_label.text = data.backstory
+			backstory_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			backstory_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7))
+			_roster_container.add_child(backstory_label)
+
 		var weapon_picker := _build_equipment_picker(id, "weapon")
 		var armor_picker := _build_equipment_picker(id, "armor")
 		_roster_container.add_child(weapon_picker)

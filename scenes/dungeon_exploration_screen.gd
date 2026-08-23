@@ -139,11 +139,15 @@ func _on_advance_pressed() -> void:
 		RunManager.advance_room()
 	_render_party_hp()
 
-func _on_companion_unlocked(_id: String, comp_name: String, description: String, portrait_id: String, _color_accent: Color) -> void:
+func _on_companion_unlocked(id: String, comp_name: String, description: String, portrait_id: String, _color_accent: Color) -> void:
+	var meeting_line: String = CompanionRegistry.get_by_id(id).meeting_line
+	var body := "%s\n도감에 영구 등록됨" % description
+	if meeting_line != "":
+		body = "%s\n%s" % [meeting_line, body]
 	_popup_queue.enqueue({
 		"type": "companion",
 		"title": "%s가 동료가 되었다!" % comp_name,
-		"body": "%s\n도감에 영구 등록됨" % description,
+		"body": body,
 		"portrait_id": portrait_id,
 	})
 	_try_show_popup()

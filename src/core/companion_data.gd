@@ -8,6 +8,9 @@ extends Resource
 @export var description: String
 @export var class_type: String ## "tank" | "dealer" | "balance" | "support" — pure tag, not used in math
 
+@export var backstory: String = "" ## #22 동료 내러티브 — party select 화면에 노출되는 배경 서사
+@export var meeting_line: String = "" ## #22 동료 내러티브 — 해금 팝업에 노출되는 1인칭 만남 대사
+
 @export var portrait_id: String = ""
 @export var color_accent: Color
 
