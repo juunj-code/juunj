@@ -39,6 +39,7 @@ const SCENE_PATHS := {
 	"S-04": "res://scenes/DungeonExplorationScreen.tscn",
 	"S-05": "res://scenes/BattleScreen.tscn",
 	"S-06": "res://scenes/RunResultScreen.tscn",
+	"S-07": "res://scenes/SettingsScreen.tscn",
 }
 
 var current_scene_id: String = "S-01"

@@ -153,3 +153,11 @@ func get_current_bgm_id() -> String:
 
 func get_last_played_sfx_id() -> String:
 	return _last_played_sfx_id
+
+## #23 설정 -- linear 0..1, same maxf(0.0001) floor as _apply_equal_power_gain
+## (linear_to_db(0.0) is -inf, which AudioServer clamps oddly).
+func set_sfx_volume(linear: float) -> void:
+	AudioServer.set_bus_volume_db(AudioServer.get_bus_index(_SFX_BUS), linear_to_db(maxf(linear, 0.0001)))
+
+func set_bgm_volume(linear: float) -> void:
+	AudioServer.set_bus_volume_db(AudioServer.get_bus_index(_BGM_BUS), linear_to_db(maxf(linear, 0.0001)))

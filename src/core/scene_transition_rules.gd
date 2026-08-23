@@ -29,11 +29,12 @@ const BOOT_PRELOAD_SCENE_IDS: Array[String] = ["S-02", "S-03", "S-05"] # MainMen
 ## are still allowed (AC11) -- this is only used to decide whether to warn.
 const TRANSITION_GRAPH := {
 	"S-01": ["S-02"],
-	"S-02": ["S-03"],
+	"S-02": ["S-03", "S-07"],
 	"S-03": ["S-04"],
 	"S-04": ["S-05", "S-06"],
 	"S-05": ["S-04", "S-06"], # victory -> back to dungeon, defeat -> run result
 	"S-06": ["S-03", "S-02"],
+	"S-07": ["S-02"],
 }
 
 ## {"in_ms": int, "out_ms": int} for the given transition type. AC4/AC5.

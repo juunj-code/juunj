@@ -30,6 +30,7 @@ HiddenTrigger="*res://src/core/hidden_trigger.gd"
 CompanionUnlock="*res://src/core/companion_unlock.gd"
 AdManager="*res://src/core/ad_manager.gd"
 AudioManager="*res://src/core/audio_manager.gd"
+SettingsManager="*res://src/core/settings_manager.gd"
 
 [display]
 

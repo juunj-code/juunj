@@ -48,3 +48,7 @@ func test_undeclared_edge_not_recognized_but_not_blocked() -> void: # AC11
 	# BattleScreen -> MainMenu isn't in the graph -- caller decides to warn,
 	# this rule set just reports it's off-graph, it doesn't refuse.
 	assert_false(SceneTransitionRules.is_declared_edge("S-05", "S-02"))
+
+func test_settings_screen_edges_recognized() -> void: # AC11 -- #23 설정 (S-07)
+	assert_true(SceneTransitionRules.is_declared_edge("S-02", "S-07"))
+	assert_true(SceneTransitionRules.is_declared_edge("S-07", "S-02"))

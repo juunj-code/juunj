@@ -48,3 +48,13 @@ unique_name_in_owner = true
 layout_mode = 2
 custom_minimum_size = Vector2(200, 44)
 text = "시작"
+
+[node name="Spacer2" type="Control" parent="CenterContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 12)
+layout_mode = 2
+
+[node name="SettingsButton" type="Button" parent="CenterContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(200, 44)
+text = "설정"
