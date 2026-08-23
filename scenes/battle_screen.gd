@@ -90,11 +90,23 @@ const _PORTRAIT_SIZE := Vector2(150, 150)
 ## its own bordered card (CompanionData.color_accent as the border for
 ## companions -- reusing the field #3's discovery flash already uses, no new
 ## asset needed) with a centered, size-locked portrait/sprite and a real HP bar.
+## 2026-08-23 (user report): 같은 종 적 2마리가 완전히 동일한 이름/초상화라 카드가
+## 구분이 안 됐음 -- 같은 id가 이 목록(파티/적, 따로 호출됨) 안에 2번 이상 있으면
+## 카드 이름에 순번을 붙인다("고블린 정찰병 1"/"2"). _display_names(턴 배너용,
+## unit_id 키라 인덱스 구분 불가)는 그대로 둠 -- 카드 라벨만 별도로 넘김.
 func _build_rows(units: Array, container: HBoxContainer) -> void:
+	var id_counts: Dictionary = {}
+	for unit in units:
+		id_counts[unit["id"]] = id_counts.get(unit["id"], 0) + 1
+	var seen: Dictionary = {}
 	for unit in units:
 		var key := _unit_key(unit["id"], unit["index"])
 		_display_names[unit["id"]] = _display_name(unit)
-		container.add_child(_build_card(unit, key))
+		var card_name := _display_name(unit)
+		if id_counts[unit["id"]] > 1:
+			seen[unit["id"]] = seen.get(unit["id"], 0) + 1
+			card_name = "%s %d" % [card_name, seen[unit["id"]]]
+		container.add_child(_build_card(unit, key, card_name))
 
 func _display_name(unit: Dictionary) -> String:
 	if unit["is_companion"]:
@@ -116,7 +128,7 @@ func _accent_color(unit: Dictionary) -> Color:
 ## units read as figures standing in the room rather than list rows. Enemy
 ## portraits are mirrored to face the party (screen-left), completing the
 ## "facing off" read the background alone couldn't give.
-func _build_card(unit: Dictionary, key: String) -> PanelContainer:
+func _build_card(unit: Dictionary, key: String, card_name: String) -> PanelContainer:
 	var card := PanelContainer.new()
 	var style := StyleBoxFlat.new()
 	style.bg_color = Color(0.14, 0.15, 0.18, 0.78)
@@ -147,7 +159,7 @@ func _build_card(unit: Dictionary, key: String) -> PanelContainer:
 		_portraits[key] = portrait
 
 	var name_label := Label.new()
-	name_label.text = _display_name(unit)
+	name_label.text = card_name
 	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vbox.add_child(name_label)
 
@@ -169,11 +181,16 @@ func _build_card(unit: Dictionary, key: String) -> PanelContainer:
 	_base_hp[key] = unit["base_hp"]
 	_render_label(label, key, unit["current_hp"])
 
-	var sp_label := Label.new()
-	sp_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	vbox.add_child(sp_label)
-	_sp_labels[key] = sp_label
-	sp_label.text = HudRules.sp_dots(unit["current_sp"])
+	# UI-HUD.md Detailed Rules only specs SP dots for the party ("파티 SP 표시"),
+	# not enemies -- yet every card got them with no "SP" label anywhere, so
+	# players couldn't tell what the dots meant even for their own party
+	# (user report, 2026-08-23). Companion-only now, and labeled.
+	if unit["is_companion"]:
+		var sp_label := Label.new()
+		sp_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		vbox.add_child(sp_label)
+		_sp_labels[key] = sp_label
+		sp_label.text = _sp_label_text(unit["current_sp"])
 
 	var status_row := HBoxContainer.new()
 	status_row.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -333,7 +350,10 @@ func _on_action_executed(actor_id: String, actor_index: int, target_id: String, 
 func _on_unit_sp_changed(unit_id: String, unit_index: int, new_sp: int) -> void:
 	var key := _unit_key(unit_id, unit_index)
 	if _sp_labels.has(key):
-		_sp_labels[key].text = HudRules.sp_dots(new_sp)
+		_sp_labels[key].text = _sp_label_text(new_sp)
+
+func _sp_label_text(sp: int) -> String:
+	return "SP " + HudRules.sp_dots(sp)
 
 func _on_status_effects_changed(unit_id: String, unit_index: int, effects: Array) -> void:
 	var key := _unit_key(unit_id, unit_index)
