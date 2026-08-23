@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/core/enemy_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "enemy_boss_02"
+name = "서리 파수꾼"
+sprite_id = "res://assets/art/sprites/enemy_boss_02.png"
+base_hp = 180
+base_atk = 13
+base_def = 10
+base_spd = 4
+skill_id = "skill_boss_frost"
+is_boss = true

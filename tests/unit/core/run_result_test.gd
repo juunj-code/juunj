@@ -40,10 +40,10 @@ func test_new_record_badge() -> void: # AC5
 func test_progress_fraction_text() -> void: # AC6
 	ProgressManager.unlocked_companions = ["a", "b"]
 	var data := RunResult.build_display_data(RunManager)
-	assert_eq(data["progress_text"], "해금 동료: 2 / 4명")
+	assert_eq(data["progress_text"], "해금 동료: 2 / 5명")
 
 func test_progress_complete_text() -> void: # AC6b
-	ProgressManager.unlocked_companions = ["a", "b", "c", "d"]
+	ProgressManager.unlocked_companions = ["a", "b", "c", "d", "e"]
 	var data := RunResult.build_display_data(RunManager)
 	assert_eq(data["progress_text"], "모든 동료를 발견했습니다!")
 

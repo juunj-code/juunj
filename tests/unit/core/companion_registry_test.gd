@@ -3,7 +3,7 @@ extends GutTest
 ## AC3/AC7 are #15 파티 구성 / portrait-loader UI concerns, not this system's.
 ## AC4 (build-time skill_id validator) needs EnemyRegistry too — deferred to #11.
 
-func test_companion_registry_loads_all_four_mvp_companions() -> void: # AC1
+func test_companion_registry_loads_all_five_mvp_companions() -> void: # AC1
 	# Act
 	var companions := DataRegistryLoader.load_all(
 		"res://assets/data/companions/",
@@ -11,7 +11,7 @@ func test_companion_registry_loads_all_four_mvp_companions() -> void: # AC1
 	)
 
 	# Assert
-	assert_eq(companions.size(), 4)
+	assert_eq(companions.size(), 5)
 	for id in companions:
 		assert_not_null(companions[id])
 

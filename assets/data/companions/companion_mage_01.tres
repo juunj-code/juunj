@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="CompanionData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/core/companion_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "companion_mage_01"
+name = "마도사 셀린"
+description = "탑의 오래된 서고, 다 타버린 마법진 한가운데서 발견된다."
+backstory = "한때 탑의 마법을 연구하던 학자였으나, 실험이 남긴 흔적만이 그녀 곁을 맴돈다. 자신이 무엇을 찾고 있었는지조차 잊었지만, 손끝의 마력만은 여전히 선명하다."
+meeting_line = "\"이 탑에도... 아직 풀리지 않은 게 남아있었네.\""
+class_type = "dealer"
+portrait_id = "res://assets/art/portraits/companion_mage_01.png"
+color_accent = Color(0.7, 0.22, 0.7, 1)
+base_hp = 65
+base_atk = 26
+base_def = 6
+base_spd = 7
+skill_id = "skill_arcane_burst"
+is_hidden = true
+unlock_condition_id = "hidden_trigger_mage_01"

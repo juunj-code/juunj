@@ -6,14 +6,14 @@ extends GutTest
 ## AC12 (soft out-of-range warning) is not enforced yet -- add when balance
 ## tooling needs it (ponytail: YAGNI, no AC blocks on it today).
 
-func test_enemy_registry_loads_all_four_mvp_enemies() -> void: # AC1
+func test_enemy_registry_loads_all_six_mvp_enemies() -> void: # AC1
 	# Act
 	var enemies := DataRegistryLoader.load_all(
 		"res://assets/data/enemies/", func(r: EnemyData) -> bool: return r.base_hp <= 0
 	)
 
 	# Assert
-	assert_eq(enemies.size(), 4)
+	assert_eq(enemies.size(), 6)
 
 func test_normal_enemy_stats_within_range() -> void: # AC6
 	# Arrange

@@ -6,7 +6,7 @@ extends RefCounted
 ## #13's progress handoff) rather than talking to #14 directly, per this
 ## GDD's stated ownership ("#16이 #14와 직접 통신하지 않는다").
 
-const TOTAL_COMPANIONS := 4
+const TOTAL_COMPANIONS := 5
 
 static func build_display_data(run_manager: Object) -> Dictionary:
 	var newly_unlocked: Array = run_manager.last_newly_unlocked

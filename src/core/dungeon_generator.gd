@@ -45,7 +45,7 @@ static func _generate_floor(floor_index: int, rng: RandomNumberGenerator, force_
 	_shuffle(rooms, rng) # boss room (added below) is never part of this shuffle
 
 	if floor_index == 3:
-		rooms.append(_make_boss_room())
+		rooms.append(_make_boss_room(rng))
 
 	return rooms
 
@@ -59,8 +59,8 @@ static func _make_combat_room(rng: RandomNumberGenerator, enemy_count: int) -> D
 static func _make_hidden_room() -> Dictionary:
 	return {"type": "hidden", "enemy_ids": [], "companion_id": _next_companion_id_for_hidden_room()}
 
-static func _make_boss_room() -> Dictionary:
-	return {"type": "boss", "enemy_ids": [_boss_enemy_id()], "companion_id": ""}
+static func _make_boss_room(rng: RandomNumberGenerator) -> Dictionary:
+	return {"type": "boss", "enemy_ids": [_boss_enemy_id(rng)], "companion_id": ""}
 
 static func _normal_enemy_pool() -> Array:
 	var pool: Array = []
@@ -69,11 +69,20 @@ static func _normal_enemy_pool() -> Array:
 			pool.append(id)
 	return pool
 
-static func _boss_enemy_id() -> String:
+## 2026-08-23: was "return the first is_boss found" -- fine with exactly one
+## boss, but silently ignored every other boss once a second one existed.
+## Boss ids are sorted first so the roll is deterministic given the same rng
+## draw (directory scan order isn't portable, same reasoning as
+## DataRegistryLoader's sort -- ADR-0006).
+static func _boss_enemy_id(rng: RandomNumberGenerator) -> String:
+	var boss_ids: Array = []
 	for id in EnemyRegistry.get_all_ids():
 		if EnemyRegistry.get_by_id(id).is_boss:
-			return id
-	return ""
+			boss_ids.append(id)
+	if boss_ids.is_empty():
+		return ""
+	boss_ids.sort()
+	return boss_ids[rng.randi() % boss_ids.size()]
 
 static func _next_companion_id_for_hidden_room() -> String:
 	var tree := Engine.get_main_loop() as SceneTree

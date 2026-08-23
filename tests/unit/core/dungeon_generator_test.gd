@@ -73,6 +73,22 @@ func test_boss_room_has_single_boss_enemy() -> void: # AC4
 	assert_eq(boss_room["enemy_ids"].size(), 1)
 	assert_true(EnemyRegistry.get_by_id(boss_room["enemy_ids"][0]).is_boss)
 
+## 2026-08-23: added when a 2nd boss (enemy_boss_02) shipped -- the old
+## _boss_enemy_id() just returned the first is_boss found in registry order,
+## which would have silently ignored the new boss forever. Runs many seeds
+## and requires both boss ids to show up at least once.
+func test_boss_selection_covers_all_boss_ids_across_seeds() -> void:
+	var seen: Dictionary = {}
+	for s in range(1, 50):
+		var rng := RandomNumberGenerator.new()
+		rng.seed = s
+		var floors := DungeonGenerator.generate_run(rng)
+		var floor3: Array = floors[2]
+		seen[floor3[floor3.size() - 1]["enemy_ids"][0]] = true
+
+	assert_true(seen.has("enemy_boss_01"))
+	assert_true(seen.has("enemy_boss_02"))
+
 func test_generate_run_produces_all_three_floors() -> void: # AC5
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 7
