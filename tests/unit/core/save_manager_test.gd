@@ -14,6 +14,7 @@ func before_each() -> void:
 func after_each() -> void:
 	SaveManager._web_override = null
 	SaveManager._js_bridge = JavaScriptBridge
+	SaveManager.cloud_provider = NullCloudSaveProvider.new()
 
 func after_all() -> void:
 	var dir := DirAccess.open("user://")
@@ -225,3 +226,28 @@ class MockJsBridge:
 
 	func create_callback(method: Callable) -> Callable:
 		return method
+
+## #5 클라우드 세이브 (extension point only, see cloud_save_provider.gd)
+class FakeCloudSaveProvider extends CloudSaveProvider:
+	var received: Dictionary = {}
+	func save_async(sections: Dictionary) -> bool:
+		received = sections
+		return true
+
+func test_save_calls_cloud_provider_hook_with_current_sections() -> void:
+	var fake := FakeCloudSaveProvider.new()
+	SaveManager.cloud_provider = fake
+	SaveManager.save_section("a", 1)
+
+	SaveManager.save()
+
+	assert_eq(fake.received, {"a": 1})
+
+func test_default_cloud_provider_is_null_provider() -> void:
+	assert_true(SaveManager.cloud_provider is NullCloudSaveProvider)
+
+func test_null_cloud_save_provider_save_is_noop() -> void:
+	assert_false(NullCloudSaveProvider.new().save_async({"a": 1}))
+
+func test_null_cloud_save_provider_load_returns_null() -> void:
+	assert_null(NullCloudSaveProvider.new().load_async())

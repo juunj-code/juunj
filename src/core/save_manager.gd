@@ -38,6 +38,10 @@ var _sections: Dictionary = {}
 var _js_bridge = JavaScriptBridge # DI 시임 -- 테스트에서 mock으로 교체 (ADR-0003과 동일 패턴)
 var _web_override = null # DI 시임 -- true/false로 강제, null=실제 OS 값 사용
 
+## #5 클라우드 세이브 훅 -- 실제 Firebase 자격증명이 생기면 이 자리에 진짜
+## CloudSaveProvider 서브클래스를 주입. 지금은 NullCloudSaveProvider(no-op).
+var cloud_provider: CloudSaveProvider = NullCloudSaveProvider.new()
+
 func _ready() -> void:
 	load_from_disk()
 
@@ -74,6 +78,7 @@ func save() -> bool:
 		return false
 
 	save_succeeded.emit()
+	cloud_provider.save_async(_sections) # fire-and-forget -- 로컬 세이브 결과와 무관 (그래서 결과값을 안 봄)
 	return true
 
 ## Base64 round-trip avoids ever building a JS string literal out of raw JSON
